@@ -6,7 +6,7 @@
 
 
 /* keywords:
-( "apply" "apply-imports" "choose" 
+(make-regexp  '("apply" "apply-imports" "choose" 
        "copy" "copy-of" "else"
        "encoding" "exclude-result-prefixes" "extension-element-prefixes" 
        "fallback" "for-each" "format" "from" "grouping-separator" 
@@ -16,20 +16,18 @@
        "order" "otherwise" "output" "pattern-separator" "preserve-space" 
        "priority" "sort" "standalone" "strip-space" "stylesheet"
        "terminate" "tpl" "use-attribute-set" "use-attribute-sets" "value" 
-       "version" "when")
+       "version" "when"))
 */
 
 xsltxt_keyword_re=
-/\b(apply(?:-imports)?|c(?:hoose|opy(?:-of)?)\
-|e(?:lse|ncoding|x(?:(?:clude-resul|tension-elemen)t-prefixes))\
-|f(?:allback|or(?:-each|mat)|rom)|grouping-s(?:eparator|ize)\
-|i(?:mport|n(?:clude|dent|finity)|[df])|key|l(?:ang|e(?:tter-value|vel))\
-|m(?:e(?:dia-type|thod)|ode)|n(?:ame(?:space(?:-alias)?)?|umber)\
-|o(?:mit-xml-declaration|rder|therwise|utput)\
-|p(?:attern-separator|r(?:eserve-space|iority))\
-|s(?:ort|t(?:andalone|rip-space|ylesheet))
-|t(?:erminate|pl)|use-attribute-sets?|v(?:alue|ersion)|when)\b/;
-
+/\b(apply(|-imports)|c(hoose|opy(|-of))\
+|e(lse|ncoding|x(clude-result-prefixes|tension-element-prefixes))\
+|f(allback|or(-each|mat)|rom)|grouping-s(eparator|ize)\
+|i([df]|mport|n(clude|dent|finity))|key|l(ang|e(tter-value|vel))\
+|m(e(dia-type|thod)|ode)|n(ame(|space(|-alias))|umber)\
+|o(mit-xml-declaration|rder|therwise|utput)|p(attern-separator\
+|r(eserve-space|iority))|s(ort|t(andalone|rip-space|ylesheet))\
+|t(erminate|pl)|use-attribute-sets?|v(alue|ersion)|when)\b/;
 
 state xsltxt extends Highlight
 {
@@ -62,7 +60,7 @@ state xsltxt extends Highlight
    }
 
 /* String constants. */
-   /\'[^\']*\'/ {
+   /'[^']*'/ {
      string_face (true);
      language_print ($0);
      string_face (false);
