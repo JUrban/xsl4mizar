@@ -45,33 +45,33 @@ $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
 // name of current article (upper case)
-$aname= { `string(/Article/@name)`; }
+#aname= { `string(/*/@aid)`; }
 
 // name of current article (lower case)
-$anamelc= { `translate($aname, $ucletters, $lcletters)`; }
+#anamelc= { `translate($aname, $ucletters, $lcletters)`; }
 
 // .atr file with imported constructors
-$constrs=  { `concat($anamelc, '.atr')`; }
+#constrs=  { `concat($anamelc, '.atr')`; }
 
 // .eth file with imported theorems
-$thms=  { `concat($anamelc, '.eth')`; }
+#thms=  { `concat($anamelc, '.eth')`; }
 
 // .esh file with imported schemes
-$schms=  { `concat($anamelc, '.esh')`; }
+#schms=  { `concat($anamelc, '.esh')`; }
 
 
 // mmlquery address
-$mmlq= { "http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry="; }
+#mmlq= { "http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry="; }
 
 // tells whether relative or absolute names are shown
-$relnames= { "1"; }
+#relnames= { "1"; }
 
 // linking methods:
 // "q" - query, everything is linked to mmlquery
 // "s" - self, everything is linked to these xml files
 // "m" - mizaring, current article's constructs are linked to self,
 //       the rest is linked to mmlquery
-$linking = { "m"; }
+#linking = { "m"; }
 
 
 // Formulas
@@ -487,13 +487,21 @@ tpl refkind(#kind) {
 
 
 // separate top-level items by additional newline
-tpl [Article] { ":: "; `@name`; "  semantic presentation"; <br; <br;
+tpl [Article] { ":: "; `@aid`; "  semantic presentation"; <br; <br;
     for-each [*] { apply[.]; <br;} }
 
-// prevent processing of imported documents
-tpl [/Constructors/Constructor] {}
-tpl [/Theorems/Theorem] {}
-tpl [/Schemes/Scheme] {}
+// processing of imported documents
+tpl [Theorem] { <b { "theorem "; } 
+    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br; apply; <br; <br; }
+
+tpl [Constructor] { <b { "constructor "; } 
+    absref(#elems=`key(@kind,@relnr)`); <br; 
+    absref(#elems=`key(@kind,@relnr)`); "( "; 
+    arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); ")";
+    if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
+        or (@kind= 'U') or (@kind= 'L')] 
+       { " -> "; list(#separ=",",#elems=`Typ`); }
+     ";"; <br; <br; }
 
 // Default
 tpl [/] { <html { 
@@ -506,9 +514,9 @@ tpl [/] { <html {
         <body {  
 
 // first read the keys for imported stuff
-          apply[document($constrs,/)/Constructors/Constructor]; 
-          apply[document($thms,/)/Theorems/Theorem]; 
-          apply[document($schms,/)/Schemes/Scheme];
+//          apply[document($constrs,/)/Constructors/Constructor]; 
+//          apply[document($thms,/)/Theorems/Theorem]; 
+//          apply[document($schms,/)/Schemes/Scheme];
  
 // then process the whole document
           apply; }} }
