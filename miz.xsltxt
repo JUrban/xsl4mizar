@@ -41,6 +41,26 @@ key "T" [/Theorems/Theorem[@kind='T']] `concat(@articlenr,':',@nr)`;
 key "D" [/Theorems/Theorem[@kind='D']] `concat(@articlenr,':',@nr)`;
 key "S" [/Schemes/Scheme] `concat(@articlenr,':',@nr)`;
 
+key "P_M" [Pattern[@kind='M']] `@constrnr` ;
+key "P_L" [Pattern[@kind='L']] `@constrnr` ;
+key "P_V" [Pattern[@kind='V']] `@constrnr` ;
+key "P_R" [Pattern[@kind='R']] `@constrnr` ;
+key "P_K" [Pattern[@kind='K']] `@constrnr` ;
+key "P_U" [Pattern[@kind='U']] `@constrnr` ;
+key "P_G" [Pattern[@kind='G']] `@constrnr` ;
+
+key "F" [Format] `@nr`;
+
+key "D_G" [Symbol[@kind='G']] `@nr`;
+key "D_K" [Symbol[@kind='K']] `@nr`;
+key "D_J" [Symbol[@kind='J']] `@nr`;
+key "D_L" [Symbol[@kind='L']] `@nr`;
+key "D_M" [Symbol[@kind='M']] `@nr`;
+key "D_O" [Symbol[@kind='O']] `@nr`;
+key "D_R" [Symbol[@kind='R']] `@nr`;
+key "D_U" [Symbol[@kind='U']] `@nr`;
+key "D_V" [Symbol[@kind='V']] `@nr`;
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
@@ -58,6 +78,16 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // .esh file with imported schemes
 #schms=  { `concat($anamelc, '.esh')`; }
+
+// .eno file with imported patterns
+#patts=  { `concat($anamelc, '.eno')`; }
+
+// .frx file with all (both imported and article's) formats
+#formats=  { `concat($anamelc, '.frx')`; }
+
+// .dcx file with vocabulary
+#vocs=  { `concat($anamelc, '.dcx')`; }
+
 
 
 // mmlquery address
@@ -93,7 +123,7 @@ tpl [Not](#i) { "not "; apply[*[1]](#i=$i); }
 tpl [And](#i) { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }
 tpl [Pred](#i) { 
   if [@kind='P'] { `@kind`; `@nr`; }
-  else { abs(#k=`@kind`, #nr=`@nr`); }
+  else { abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`)); }
   "[ "; list(#separ=",", #elems=`*`); "]"; }
 tpl [PrivPred](#i) { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
 tpl [Is](#i) { apply[*[1]]; " is "; apply[*[2]]; } 
@@ -109,7 +139,7 @@ tpl [InfConst] { "D"; `@nr`; }
 tpl [Num] { "N"; `@nr`; }
 tpl [Func] { 
    if [@kind='F'] { `@kind`; `@nr`; }
-   else { abs(#k=`@kind`, #nr=`@nr`); }
+   else { abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`)); }
    "( "; list(#separ=",", #elems=`*`); ")"; }
 tpl [PrivFunc] { "H"; `@nr`; "( "; list(#separ=",", #elems=`*`); ")"; }
 tpl [ErrorTrm] { "errortrm"; }
@@ -123,8 +153,8 @@ tpl [Fraenkel] { "{ ";
 tpl [Typ] { 
    " ";
    if [count(*)>0] { apply[*[1]]; }
-   if [@kind="M"] { abs(#k="M", #nr=`@nr`); }
-   else { if [@kind="G"] { abs(#k="L", #nr=`@nr`); }
+   if [@kind="M"] { abs(#k="M", #nr=`@nr`, #sym=abs1(#k="M", #nr=`@nr`)); }
+   else { if [@kind="G"] { abs(#k="L", #nr=`@nr`, #sym=abs1(#k="G", #nr=`@nr`)); }
      else { `@kind`; }}
    if [count(*)>2] { " of "; list(#separ=",", #elems=`*[position()>2]`); }
 }
@@ -134,7 +164,7 @@ tpl [Cluster] { list(#separ=" ", #elems=`*`); " "; }
 
 // Adjective
 tpl [Adjective] { if [@value="false"] { "non "; } 
-                 abs(#k="V", #nr=`@nr`);
+                 abs(#k="V", #nr=`@nr`, #sym=abs1(#k="V", #nr=`@nr`));
 	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
 
 tpl [Proposition] { if [@nr>0] { "E"; `@nr`; ": ";} apply; " ";}
@@ -328,23 +358,24 @@ tpl [Definition] {
    if [@kind = 'G'] { 
       for-each [Constructor[@kind="G"]] {
         <a { @NAME=`concat("G",@nr)`; <b { "aggr "; } } 
-        abs(#k="G",#nr=`@relnr`); "(# "; }
+        abs(#k="G",#nr=`@relnr`,#sym=abs1(#k="G", #nr=`@relnr`)); "(# "; }
       for-each [Constructor[@kind="L"]/Fields/Int] { 
-       abs(#k="U",#nr=`@x`); if [not(position()=last())] { ", "; } }
+       abs(#k="U",#nr=`@x`,#sym=abs1(#k="U", #nr=`@x`)); 
+      if [not(position()=last())] { ", "; } }
       " #) -> "; apply[Constructor[@kind="G"]/Typ]; ";"; <br; 
       for-each [Constructor[@kind="L"]] {
         <a { @NAME=`concat("L",@nr)`; <b { "struct "; } } 
-        abs(#k="L",#nr=`@relnr`); "( ";
+        abs(#k="L",#nr=`@relnr`,#sym=abs1(#k="G", #nr=`@relnr`)); "( ";
         arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`);
         ") -> ( "; list(#separ=", ", #elems=`Typ`); " );"; <br; }
       for-each [Constructor[@kind="U"]] {
         <a { @NAME=`concat("U",@nr)`; <b { "selector "; } } 
-        abs(#k="U",#nr=`@relnr`); "( ";
+        abs(#k="U",#nr=`@relnr`,#sym=abs1(#k="U", #nr=`@relnr`)); "( ";
         arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); 
         ") -> "; apply[Typ]; <br; } 
       for-each [Constructor[@kind="V"]] {
-        <a { @NAME=`concat("V",@nr)`; <b { "attr"; } " strict "; } 
-        abs(#k="V",#nr=`@relnr`); "( ";
+        <a { @NAME=`concat("V",@nr)`; <b { "attr "; }  } 
+        abs(#k="V",#nr=`@relnr`,#sym=abs1(#k="V", #nr=`@relnr`)); "( ";
         arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); 
         ")"; <br; }
    }
@@ -354,8 +385,10 @@ tpl [Definition] {
      if [@redefinition="true"] { <b { "redefine "; } }
      for-each [Constructor] {
        <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
-       if [../@redefinition="true"] { abs(#k=`@kind`,#nr=`@redefnr`); " as "; }
-       abs(#k=`@kind`,#nr=`@relnr`); "( ";
+       if [../@redefinition="true"] { 
+         abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
+         " as "; }
+       abs(#k=`@kind`,#nr=`@relnr`,#sym=abs1(#k=`@kind`, #nr=`@relnr`)); "( ";
        arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); ")";
        if [(@kind = 'M') or (@kind = 'K')] { " -> "; apply[Typ]; }
        ";"; <br; }
@@ -422,7 +455,8 @@ for-each [$elems] {
 
 
 // add the constructor href, $c tells if it is from current article
-tpl absref(#elems,#c) { 
+// #sym is optional Mizar symbol
+tpl absref(#elems,#c,#sym) { 
      for-each [$elems] { $mk=mkind(#kind=`@kind`);
       <a { 
        if [($linking = 'q') or (($linking = 'm') and not($c))] { 
@@ -434,14 +468,46 @@ tpl absref(#elems,#c) {
 	 @title=`concat(translate(@aid,$ucletters,$lcletters),
 	                ":",$mk,".",@nr)`;
          if [$c] { @target="_self"; } }
-       if [$relnames>0] { `@kind`; `@relnr`; }
-       else { `@kind`; `@nr`; "_"; `@aid`;  } } }}
+       if [$sym] { $sym; }
+       else { if [$relnames>0] { `@kind`; `@relnr`; }
+         else { `@kind`; `@nr`; "_"; `@aid`;  } } }} }
 
-tpl abs(#k,#nr) { 
-   if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#c="1"); }
+tpl abs(#k,#nr,#sym) { 
+   if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#c="1",#sym=$sym); }
    else { 
       for-each [document($constrs,/)] { 
-      absref(#elems=`key($k,$nr)`); } } }
+      absref(#elems=`key($k,$nr)`,#sym=$sym); } } }
+
+
+// return first symbol corresponding to constructor;
+// if nothing found, just concat #k and #nr
+tpl abs1(#k,#nr) {
+     $pkey=`concat('P_',$k)`;
+     $fnr= { if [key($pkey,$nr)] { 
+              for-each [key($pkey,$nr)[position()=1]] {
+	        `@formatnr`; }}
+             else { for-each [document($patts,/)] {
+                     for-each [key($pkey,$nr)[position()=1]] {
+	               `@formatnr`; }}} }
+     for-each [document($formats,/)] {
+       if [not(key('F',$fnr))] { `concat($k,$nr)`; }
+       else {
+	for-each [key('F',$fnr)] {
+          $snr=`@symbolnr`; $sk=`@kind`; $dkey=`concat('D_',@kind)`;
+          $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } } 
+        for-each [document($vocs,/)] {
+         if [key($dkey,$snr)] {
+	  for-each [key($dkey,$snr)] { 
+            `@name`; 
+             if [$sk='K'] { 
+               for-each [key('D_L',$rsnr)] { `@name`; } } 
+             } } 
+         else { choose { 
+          when [($snr='1') and ($sk='M')] { "set"; }
+          when [($snr='1') and ($sk='R')] { "="; }
+          when [($snr='1') and ($sk='K')] { "[]"; } 
+          when [($snr='2') and ($sk='K')] { "{}"; } 
+	  otherwise { `concat($k,$nr)`; } } } } } } } }
 
 // theorem, definition and scheme references
 // add the reference's href, $c tells if it is from current article
@@ -494,7 +560,9 @@ tpl refkind(#kind) {
 
 // separate top-level items by additional newline
 tpl [Article] { ":: "; `@aid`; "  semantic presentation"; <br; <br;
-    for-each [*] { apply[.]; <br;} }
+    for-each [*] { apply[.]; 
+      if [(not(name()='Definiens')) and (not(name()='Reservartion')) 
+          and (not(name()='Pattern'))] { <br;} } }
 
 // processing of imported documents
 tpl [Theorem] { <b { "theorem "; } 
@@ -508,6 +576,9 @@ tpl [Constructor] { <b { "constructor "; }
         or (@kind= 'U') or (@kind= 'L')] 
        { " -> "; list(#separ=",",#elems=`Typ`); }
      ";"; <br; <br; }
+
+// ignore Patterns now
+tpl [Pattern] {}
 
 // Default
 tpl [/] { <html { 
