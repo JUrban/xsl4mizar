@@ -426,10 +426,13 @@ tpl absref(#elems,#c) {
      for-each [$elems] { $mk=mkind(#kind=`@kind`);
       <a { 
        if [($linking = 'q') or (($linking = 'm') and not($c))] { 
-          @href=`concat($mmlq,@aid,":",$mk,".",@nr)`; }
+          @href=`concat($mmlq,@aid,":",$mk,".",@nr)`;
+	  @title=`concat(@aid,":",$mk,".",@nr)`; }
        else { 
          @href=`concat(translate(@aid,$ucletters,$lcletters),
                        ".xml#",@kind,@nr)`; 
+	 @title=`concat(translate(@aid,$ucletters,$lcletters),
+	                ":",$mk,".",@nr)`;
          if [$c] { @target="_self"; } }
        if [$relnames>0] { `@kind`; `@relnr`; }
        else { `@kind`; `@nr`; "_"; `@aid`;  } } }}
@@ -446,10 +449,13 @@ tpl mkref(#aid,#nr,#k,#c) {
       $mk=refkind(#kind=$k);
       <a { 
        if [($linking = 'q') or (($linking = 'm') and not($c))] { 
-          @href=`concat($mmlq,$aid,":",$mk,".",$nr)`; }
+          @href=`concat($mmlq,$aid,":",$mk,".",$nr)`;
+	  @title=`concat($aid,":",$mk,".",$nr)`; }
        else { 
          @href=`concat(translate($aid,$ucletters,$lcletters),
                        ".xml#",$k,$nr)`; 
+	 @title=`concat(translate($aid,$ucletters,$lcletters),
+                        ":",$mk,".",$nr)`;
          if [$c] { @target="_self"; } }
        $aid; ":"; $mk; " "; $nr;  } }
 
