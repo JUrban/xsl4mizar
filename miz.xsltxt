@@ -59,10 +59,10 @@ tpl [PrivFunc](#i) { "H"; `@nr`; "( ";
                      list(#separ=",", #elems=`*`, #i=$i); ")";}
 tpl [ErrorTrm](#i) { "errortrm"; }
 tpl [Fraenkel](#i) { "{ "; 
-     apply[*[position() = last() - 1]](#i=$i); " where ";
-     list(#separ=" and ", #elems=`*[position() < last() - 1]`, #i=$i); " : "; 
-     apply[*[position() = last()]](#i=$i); " } ";
-}
+     apply[*[position() = last() - 1]](#i=$i); 
+     if  [count(*)>2] { " where B is ";
+      list(#separ=", B is ", #elems=`*[position() < last() - 1]`, #i=$i); }
+     " : "; apply[*[position() = last()]](#i=$i); " } "; }
 
 // Types
 tpl [Typ](#i) { 
@@ -82,6 +82,8 @@ tpl [Adjective](#i) { if [@value="false"] { "non "; } "V"; `@nr`;
 // indents unless inside one-line item
 tpl [Proposition](#i) { $i; if [@nr>0] { "E"; `@nr`; ": ";} apply(#i=$i); " ";}
 tpl [Assume/Proposition|Given/Proposition|Conclusion/Proposition](#i) 
+    { if [@nr>0] { "E"; `@nr`; ": "; } apply(#i=$i); " "; }
+tpl [Consider/Proposition[position() > 1]](#i)
     { if [@nr>0] { "E"; `@nr`; ": "; } apply(#i=$i); " "; }
 
 // Justifications
@@ -130,17 +132,17 @@ tpl [Take](#i) { $i; "take "; apply(#i=$i); ";"; <br; }
 tpl [TakeAsVar](#i) { $i; "take C = ";   apply[*[2]](#i=$i); ";"; <br; }
 tpl [Conclusion](#i) { $i; "thus "; apply(#i=$i); }
 tpl [Case](#i) { $i; "case "; if [count(*)>1] { "that ";}
-             list(#separ=" and ", #elems=`*`, #i=$i); ";"; <br; }
+             nlist(#separ=`concat($i,"and ")`, #elems=`*`, #i=$i); ";"; <br; }
 tpl [Suppose](#i) { $i; "suppose "; if [count(*)>1] { "that ";} 
-                list(#separ=" and ", #elems=`*`, #i=$i); ";"; <br; }
+             nlist(#separ=`concat($i,"and ")`, #elems=`*`, #i=$i); ";"; <br; }
 tpl [PerCases](#i) { $i; "per cases "; apply(#i=$i); ";"; <br; }
 
 // Auxiliary items
 tpl [Consider](#i) { $i; "consider C being "; 
                  list(#separ=", C being ", #elems=`Typ`, #i=$i);
 	         if [count(Proposition) > 1] { 
-                   " such that ";
-		   list(#separ=" and ", 
+                   " such that "; <br; $i;
+		   nlist(#separ=`concat($i,"and ")`,
                         #elems=`Proposition[position() > 1]`, #i=$i); } 
                  apply[*[2]](#i=$i); }
 
@@ -152,18 +154,18 @@ tpl [Reconsider](#i) {
     apply[*[last()]](#i=$i); } 
 
 tpl [Set](#i) { $i; "set C = "; apply[*[1]](#i=$i); ";"; <br; }
-tpl [DefFunc](#i) { $i; "deffunc F(";  
+tpl [DefFunc](#i) { $i; "deffunc H(";  
                 list(#separ=",", #elems=`ArgTypes/Typ`, #i=$i); ") -> ";
                 apply[*[3]](#i=$i); " = ";
 	        apply[*[2]](#i=$i); ";"; <br; }
-tpl [DefPred](#i) { $i; "defpred P["; 
+tpl [DefPred](#i) { $i; "defpred S["; 
                 list(#separ=",", #elems=`ArgTypes/Typ`, #i=$i); "] means ";
 	        apply[*[2]](#i=$i); ";"; <br; }
 
 // Thesis after skeleton item, with definiens numbers
-tpl [Thesis](#i) { $i; "thesis: "; apply[*[1]](#i=$i); " defs("; 
-               list(#separ=",", #elems=`ThesisExpansions/Pair[@x]`, #i=$i);
-	       ");"; <br; }
+tpl [Thesis](#i) { } // $i; "thesis: "; apply[*[1]](#i=$i); " defs("; 
+               // list(#separ=",", #elems=`ThesisExpansions/Pair[@x]`, #i=$i);
+	       // ");"; <br; }
 
 // Registrations
 tpl [RCluster](#i) { $i; "cluster ";
@@ -180,7 +182,7 @@ tpl [FCluster](#i) { $i; "cluster ";
 	         else { apply[*[2]](#i=$i); " -> "; apply[*[3]](#i=$i); }
                  ";"; <br; }
 // Blocks
-tpl [BlockThesis](#i) { $i; "blockthesis: "; apply(#i=$i); ";"; <br; }
+tpl [BlockThesis](#i) { } // $i; "blockthesis: "; apply(#i=$i); ";"; <br; }
 
 //   (  ( elBlockThesis, elCase, elThesis, Reasoning )
 //   |  ( elCase, Reasoning, elBlockThesis ) )
@@ -228,7 +230,7 @@ tpl [Reservartion/Typ](#i) { ""; }
 tpl [Definiens/*](#i) { ""; }
 
 tpl [JustifiedTheorem](#i) { $i; "theorem"; <br; apply(#i=$i); }
-tpl [DefTheorem](#i) { "deftheorem"; <br; apply(#i=$i);  }
+tpl [DefTheorem](#i) { "deftheorem"; <br; apply(#i=$i);  ";"; <br; }
 
 
 //   Property, elProposition, Justification
@@ -260,11 +262,11 @@ tpl [SchemePredDecl](#i) {
 //   elProposition, Justification, elEndPosition
 tpl [SchemeBlock](#i) {
     $j=`concat($i,$add)`;
-    $i; "scheme S"; `@schemenr`; "{ ";
+    $i; "scheme s"; `@schemenr`; "{ ";
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`, #i=$i); 
     " } :"; <br;
     apply[Proposition](#i=$j); <br; $i; "provided"; <br;
-    list(#separ=" and ", #elems=`SchemePremises/Proposition`, #i=$j); <br;
+    list(#separ=" and ", #elems=`SchemePremises/Proposition`, #i=$j);
     apply[*[position() = last() - 1]](#i=$i);  }
 
 
