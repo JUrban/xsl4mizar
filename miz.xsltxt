@@ -1,0 +1,144 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// XML terms, formulas and types to less verbose format.
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL miz.xsltxt >miz.xsl
+
+// Then e.g.: xalan -XSL miz.xsl <ordinal2.pre >ordinal2.pre1
+
+// TODO: number B vars in 'for' and fraenkel
+//       number C vars in 'Let', 'Given', TakeAsVar, (Re)Consider,
+//                        'Set',
+//       numbers for Deffunc, Defpred
+//       article numbering in Ref?
+//       defineins nybers for thesisExpansions?
+
+output method=html;
+
+// Formulas
+tpl [For] { "for B being"; apply[*[1]]; " holds "; apply[*[2]]; } 
+tpl [Not] { "not "; apply[*[1]]; }
+tpl [And] { "( "; list(#separ=" & ", #elems=`*`); " )"; }
+tpl [Pred] { `@kind`; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]";}
+tpl [PrivPred] { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]";}
+tpl [Is] { apply[*[1]]; " is "; apply[*[2]]; } 
+tpl [Verum] { "verum"; }
+tpl [ErrorFrm] { "errorfrm"; }
+
+// Terms
+tpl [Var] { "B"; `@nr`; }
+tpl [LocusVar] { "A"; `@nr`; }
+tpl [FreeVar] { "X"; `@nr`; }
+tpl [Const] { "C"; `@nr`; }
+tpl [InfConst] { "D"; `@nr`; }
+tpl [Num] { "N"; `@nr`; }
+tpl [Func] { `@kind`; `@nr`; "( "; list(#separ=",", #elems=`*`); ")";}
+tpl [PrivFunc] { "H"; `@nr`; "( "; list(#separ=",", #elems=`*`); ")";}
+tpl [ErrorTrm] { "errortrm"; }
+tpl [Fraenkel] { "{ "; 
+     apply[*[position() = last() - 1]]; " where ";
+     list(#separ=" and ", #elems=`*[position() < last() - 1]`); " : "; 
+     apply[*[position() = last()]]; " } ";
+}
+
+// Types
+tpl [Typ] { 
+   " ";
+   if [count(*)>0] { apply[*[1]]; }
+   `@kind`; `@nr`; 
+   if [count(*)>2] { " of "; list(#separ=",", #elems=`*[position()>2]`); }
+}
+
+// Clusters
+tpl [Cluster] { list(#separ=" ", #elems=`*`); " "; }
+
+// Adjective
+tpl [Adjective] { if [@value="false"] { "non "; } "V"; `@nr`;
+	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
+
+// Propositions - only newlines
+tpl [Proposition] { if [@nr>1] { "E"; `@nr`; ": ";} apply; <br; }
+
+// Justifications
+tpl [By] { if [(@linked="true") or (count(*)>0)] { "by "; }  
+           if [@linked="true"] { "previous"; } 
+           if [count(*)>0] { if [@linked="true"] { ","; }
+                             list(#separ=",", #elems=`*`); }
+           ";"; <br; }
+tpl [From] { "from s"; `@nr`; if [@articlenr] { ":"; `@articlenr`; } "(";
+             list(#separ=",", #elems=`*`); ")"; ";"; <br; }
+tpl [Ref] { if [not(@articlenr)] { "E"; } `@kind`; `@nr`; 
+            if [@articlenr] { ":"; `@articlenr`;} }
+
+// Skeleton steps
+tpl [Let] { "let C be "; 
+            list(#separ=", C be ", #elems=`*`); ";"; <br; }
+tpl [Assume] { "assume ";  if [count(*)>1] { "that "; }
+	       list(#separ=" and ", #elems=`*`); ";"; }
+tpl [Given] { "given C being "; 
+              list(#separ=", C being ", #elems=`Typ`); 
+	      " such that ";
+              list(#separ=" and ", #elems=`Proposition`);  } 
+tpl [Take] { "take "; apply; ";"; <br; }
+tpl [TakeAsVar] { "take C = ";   apply[*[2]]; ";"; <br; }
+tpl [Conclusion] { "thus "; apply; }
+tpl [Case] { "case "; if [count(*)>1] { "that ";}
+             list(#separ=" and ", #elems=`*`); ";"; <br; }
+tpl [Suppose] { "suppose "; if [count(*)>1] { "that ";} 
+                list(#separ=" and ", #elems=`*`); ";"; <br; }
+
+// Auxiliary items
+tpl [Consider] { "consider C being "; 
+                 list(#separ=", C being ", #elems=`Typ`);
+	         if [count(Proposition) > 1] { 
+                   " such that ";
+		   list(#separ=" and ", 
+                        #elems=`Proposition[position() > 1]`); } 
+                 apply[*[2]]; }
+
+tpl [Reconsider] { "reconsider C = "; 
+                 list(#separ=", C = ", #elems=`*[(position() > 1) 
+                                     and (position() < (last() - 1))]`);
+                    " as "; apply[*[1]]; " "; apply[*[last()]]; } 
+
+tpl [Set] { "set C = "; apply[*[1]]; ";"; <br; }
+tpl [DefFunc] { "deffunc F(";  
+                list(#separ=",", #elems=`ArgTypes/Typ`); ") -> ";
+                apply[*[3]]; " = ";
+	        apply[*[2]]; ";"; <br; }
+tpl [DefPred] { "defpred P["; 
+                list(#separ=",", #elems=`ArgTypes/Typ`); "] means ";
+	        apply[*[2]]; ";"; <br; }
+
+// Thesis after skeleton item, with definiens numbers
+tpl [Thesis] { "thesis: "; apply[*[1]]; " defs("; 
+               list(#separ=",", #elems=`ThesisExpansions/Pair[@x]`);
+	       ");"; <br; }
+
+// Registrations
+tpl [RCluster] { "cluster ";
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[3]]; " "; apply[*[2]]; }
+                 ";"; <br; }
+tpl [CCluster] { "cluster ";
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[2]]; " -> "; apply[*[4]]; " "; apply[*[3]]; }
+                 ";"; <br; }
+tpl [FCluster] { "cluster ";
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[2]]; " -> "; apply[*[3]]; }
+                 ";"; <br; }
+
+// List utility
+tpl list(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $separ; } }
+}
+
+// Default
+tpl [/] { <html { <body {  apply; }} } 
+tpl [*] { copy { apply [@*]; apply; } }
+tpl [@*] { copy-of `.`; }
+
