@@ -31,12 +31,12 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // Formulas
 tpl [For] { "for B being"; apply[*[1]]; 	
-                " holds "; <div { @class="add";  apply[*[2]]; }  }
-tpl [And/For] { <div {"for B being"; apply[*[1]]; 	
-                " holds "; <div { @class="add";  apply[*[2]]; } } }
+                " holds "; <br;  apply[*[2]];   }
+// tpl [And/For] { <div {"for B being"; apply[*[1]]; 	
+//                " holds "; <div { @class="add";  apply[*[2]]; } } }
 tpl [Not] { "not "; apply[*[1]]; }
-tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
-                else { "not "; apply[*[1]]; } }
+// tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
+//                else { "not "; apply[*[1]]; } }
 tpl [And] { "( "; list(#separ=" & ", #elems=`*`); " )"; }
 tpl [Pred] { `@kind`; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
 tpl [PrivPred] { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
@@ -112,7 +112,7 @@ tpl [IterStep] { apply;  }
 tpl [Let] { "let C be "; 
             list(#separ=", C be ", #elems=`*`); ";"; <br; }
 tpl [Assume] { "assume ";  if [count(*)>1] { "that "; }
-	       dlist(#separ="and ", #elems=`*`);
+	       nlist(#separ="and ", #elems=`*`);
                ";"; <br; }
 tpl [Given] { "given C being "; 
               list(#separ=", C being ", #elems=`Typ`); 
