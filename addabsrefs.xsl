@@ -49,6 +49,10 @@
   <xsl:param name="constrs">
     <xsl:value-of select="concat($anamelc, &apos;.atr&apos;)"/>
   </xsl:param>
+  <!-- .dco file with exported constructors -->
+  <xsl:param name="dcoconstrs">
+    <xsl:value-of select="concat($anamelc, &apos;.dco&apos;)"/>
+  </xsl:param>
   <!-- .eth file with imported theorems -->
   <xsl:param name="thms">
     <xsl:value-of select="concat($anamelc, &apos;.eth&apos;)"/>
@@ -168,6 +172,36 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- add absolute numbers to these (they are kind-dependent) -->
+  <xsl:template match="Theorem|Constructor|Pattern">
+    <xsl:variable name="n" select="name()"/>
+    <xsl:element name="{$n}">
+      <xsl:copy-of select="@*"/>
+      <xsl:variable name="k" select="@kind"/>
+      <xsl:attribute name="aid">
+        <xsl:value-of select="$aname"/>
+      </xsl:attribute>
+      <xsl:attribute name="nr">
+        <xsl:value-of select="1 + count(preceding::*[(name()=$n) and (@kind=$k)])"/>
+      </xsl:attribute>
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="Scheme|Definiens|RCluster|CCluster|FCluster">
+    <xsl:variable name="n" select="name()"/>
+    <xsl:element name="{$n}">
+      <xsl:copy-of select="@*"/>
+      <xsl:attribute name="aid">
+        <xsl:value-of select="$aname"/>
+      </xsl:attribute>
+      <xsl:attribute name="nr">
+        <xsl:value-of select="1 + count(preceding::*[(name()=$n)])"/>
+      </xsl:attribute>
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
+
   <!-- add the constructor href, $c tells if it is from current article -->
   <xsl:template name="absref">
     <xsl:param name="elems"/>
@@ -203,9 +237,20 @@
       </xsl:when>
       <xsl:otherwise>
         <xsl:for-each select="document($constrs,/)">
-          <xsl:call-template name="absref">
-            <xsl:with-param name="elems" select="key($k,$nr)"/>
-          </xsl:call-template>
+          <xsl:choose>
+            <xsl:when test="key($k,$nr)">
+              <xsl:call-template name="absref">
+                <xsl:with-param name="elems" select="key($k,$nr)"/>
+              </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:for-each select="document($dcoconstrs,/)">
+                <xsl:call-template name="absref">
+                  <xsl:with-param name="elems" select="key($k,$nr)"/>
+                </xsl:call-template>
+              </xsl:for-each>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:for-each>
       </xsl:otherwise>
     </xsl:choose>

@@ -50,6 +50,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // .atr file with imported constructors
 #constrs=  { `concat($anamelc, '.atr')`; }
 
+// .dco file with exported constructors
+#dcoconstrs=  { `concat($anamelc, '.dco')`; }
+
 // .eth file with imported theorems
 #thms=  { `concat($anamelc, '.eth')`; }
 
@@ -88,6 +91,18 @@ tpl [Ref] { if [not(@articlenr)] { copy-of `.`; }
             else { <Ref {  copy-of `@*`;
     getref(#k=`@kind`, #anr=`@articlenr`, #nr=`@nr`);} }}
 
+// add absolute numbers to these (they are kind-dependent)
+tpl [Theorem|Constructor|Pattern] { $n=`name()`; <$n { copy-of `@*`;
+             $k=`@kind`; @aid=$aname;
+             @nr=`1 + count(preceding::*[(name()=$n) and (@kind=$k)])`;
+             apply; }}
+
+tpl [Scheme|Definiens|RCluster|CCluster|FCluster] { 
+             $n=`name()`; <$n { copy-of `@*`; @aid=$aname;
+             @nr=`1 + count(preceding::*[(name()=$n)])`;
+             apply; }}
+
+
 // add the constructor href, $c tells if it is from current article
 tpl absref(#elems,#c) { for-each [$elems] { 
        @kind=`@kind`; // @kind=mkind(#kind=`@kind`); 
@@ -95,8 +110,12 @@ tpl absref(#elems,#c) { for-each [$elems] {
 
 tpl abs(#k,#nr) { 
    if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#c="1"); }
-   else { for-each [document($constrs,/)] { 
-      absref(#elems=`key($k,$nr)`); } } }
+   else { 
+     for-each [document($constrs,/)] { 
+       if [key($k,$nr)] { absref(#elems=`key($k,$nr)`); }  
+       else { 
+         for-each [document($dcoconstrs,/)] { 
+           absref(#elems=`key($k,$nr)`); } } } } }
 
 // theorem, definition and scheme references
 // add the reference's href, $c tells if it is from current article
