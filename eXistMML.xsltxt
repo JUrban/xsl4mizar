@@ -1,0 +1,243 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// for displaying MML items
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL foo.xsltxt >foo.xsl
+
+
+output method=html;
+
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+
+// mmlquery address
+#mmlq= { "http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry="; }
+
+// linking methods:
+// "q" - query, everything is linked to mmlquery
+// "s" - self, everything is linked to these xml files
+// "m" - mizaring, current article's constructs are linked to self,
+//       the rest is linked to mmlquery
+#linking = { "q"; }
+
+// Formulas
+
+// #i is nr of the bound variable, 1 by default 
+tpl [For](#i) { 
+  "for B";  if [$i] { $i;} else { "1"; }
+  " being"; apply[*[1]]; " holds "; <br; 
+  if [$i] {  apply[*[2]](#i=`$i+1`); } 
+  else { apply[*[2]](#i="2");   } }
+
+// tpl [And/For] { <div {"for B being"; apply[*[1]]; 	
+//                " holds "; <div { @class="add";  apply[*[2]]; } } }
+
+tpl [Not](#i) { "not "; apply[*[1]](#i=$i); }
+// tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
+//                else { "not "; apply[*[1]]; } }
+
+tpl [And](#i) { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }
+tpl [Pred](#i) { 
+    choose {
+      when [@kind='P'] { `@kind`; `@nr`; }
+      when [@kind='V']  { apply[*[position() = last()]]; " is ";  
+        mkref(#aid=`@aid`,  #nr=`@absnr`, #k=`@kind`); }
+      otherwise {  
+		mkref(#aid=`@aid`,  #nr=`@absnr`, #k=`@kind`);
+   "( "; list(#separ=",", #elems=`*`); ")"; } } }
+
+tpl [PrivPred](#i) { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
+tpl [Is](#i) { apply[*[1]]; " is "; apply[*[2]]; } 
+tpl [Verum](#i) { "verum"; }
+tpl [ErrorFrm](#i) { "errorfrm"; }
+
+// Terms
+tpl [Var] { "B"; `@nr`; }
+tpl [LocusVar] { "A"; `@nr`; }
+tpl [FreeVar] { "X"; `@nr`; }
+tpl [Const] { "C"; `@nr`; }
+tpl [InfConst] { "D"; `@nr`; }
+tpl [Num] {  `@nr`; }
+tpl [Func] { 
+    choose {
+      when [@kind='F'] { `@kind`; `@nr`; }
+      when [@kind='U'] { "the ";
+        mkref(#aid=`@aid`,  #nr=`@absnr`, #k=`@kind`);
+        " of "; apply[*[position() = last()]]; }
+      otherwise { mkref(#aid=`@aid`,  #nr=`@absnr`, #k=`@kind`);
+   "( "; list(#separ=",", #elems=`*`); ")"; } } }
+tpl [PrivFunc] { "H"; `@nr`; "( "; list(#separ=",", #elems=`*`); ")"; }
+tpl [ErrorTrm] { "errortrm"; }
+tpl [Fraenkel] { "{ "; 
+     apply[*[position() = last() - 1]]; 
+     if  [count(*)>2] { " where B is ";
+      list(#separ=", B is ", #elems=`*[position() < last() - 1]`); }
+     " : "; apply[*[position() = last()]]; " } "; }
+
+// Types
+tpl [Typ] { 
+   " ";
+   if [count(*)>0] { apply[*[1]]; }
+   if [(@kind="M") or (@kind="L")] { 
+       mkref(#aid=`@aid`,  #nr=`@absnr`, #k=`@kind`);
+       if [count(*)>1] { " of "; list(#separ=",", #elems=`*[position()>1]`); }}
+     else { `@kind`; }}
+
+// Clusters
+tpl [Cluster] { list(#separ=" ", #elems=`*`); " "; }
+
+// Adjective
+tpl [Adjective] { if [@value="false"] { "non "; } 
+       mkref(#aid=`@aid`,  #nr=`@absnr`, #k="V");
+       if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
+
+// Registrations
+tpl [RCluster] { <div { <b { "cluster "; }
+    <div { @class="add"; 
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[3]]; " "; apply[*[2]]; }
+                 ";"; <br; <br; } }}
+tpl [CCluster] { <div { <b { "cluster "; }
+    <div { @class="add"; 
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[2]]; " -> "; apply[*[4]]; " "; 
+                        apply[*[3]]; }
+                 ";"; <br; <br; } }}
+tpl [FCluster] { <div { <b { "cluster "; }
+    <div { @class="add"; 
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[2]]; " -> "; apply[*[3]]; }
+                 ";"; <br; <br; } } }
+
+tpl [Definiens] { 
+    <div { <b { "definiens "; } 
+    <div { @class="add"; apply; }
+    <b { "end;"; } } } 
+
+
+// List utilities
+
+tpl list(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $separ; } }
+}
+
+// List utility with additional arg
+tpl ilist(#separ,#elems,#i) { 
+ for-each [$elems] {
+  apply[.](#i=$i); if [not(position()=last())] { $separ; } }
+}
+
+// newlined list
+tpl nlist(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { <br; $separ; } }
+}
+
+tpl dlist(#separ,#elems) { 
+ for-each [$elems] {
+  <div { apply[.]; if [not(position()=last())] { $separ; } } }
+}
+
+// argument list
+tpl arglist(#separ,#letter,#elems) { 
+ for-each [$elems] {
+  $letter; `position()`; if [not(position()=last())] { $separ; } }
+}
+
+// add numbers starting at #j+1 between #sep1 and #sep2
+tpl jlist(#j,#sep1,#sep2,#elems) { 
+for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $sep1; `$j+position()`; $sep2; } }}
+
+
+
+
+// theorem, definition and scheme references
+// add the reference's href, $c tells if it is from current article
+tpl mkref(#aid,#nr,#k,#c) { 
+      $mk=mkind(#kind=$k);
+      <a { 
+       if [($linking = 'q') or (($linking = 'm') and not($c))] { 
+          @href=`concat($mmlq,$aid,":",$mk,".",$nr)`;
+	  @title=`concat($aid,":",$mk,".",$nr)`; }
+       else { 
+         @href=`concat(translate($aid,$ucletters,$lcletters),
+                       ".xml#",$k,$nr)`; 
+	 @title=`concat(translate($aid,$ucletters,$lcletters),
+                        ":",$mk,".",$nr)`;
+         if [$c] { @target="_self"; } }
+       $aid; ":"; $mk; " "; $nr;  } }
+
+// translate constructor kinds to their mizar/mmlquery names
+tpl mkind(#kind) {
+   choose { 
+      when [$kind = 'M'] { "mode";}
+      when [$kind = 'V'] { "attr";}
+      when [$kind = 'R'] { "pred";}
+      when [$kind = 'K'] { "func";}
+      when [$kind = 'G'] { "aggr";}
+      when [$kind = 'L'] { "struct";}
+      when [$kind = 'U'] { "sel";}
+      when [$kind = 'T'] { "th";}
+      when [$kind = 'D'] { "def";}
+      when [$kind = 'S'] { "sch";}
+ }}
+
+
+// processing of imported documents
+tpl [Theorem] { <div { <b { "theorem "; } 
+    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br; 
+    <div { @class="add"; apply; <br; <br; } }}
+
+tpl [Scheme] { <div { <b { "scheme "; } 
+    mkref(#aid=`@aid`, #nr=`@nr`, #k="S"); <br; 
+    <div { @class="add"; apply; <br; <br; } }}
+
+
+tpl [Constructor] { <div { <b { "constructor "; } 
+    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br;
+    <div { @class="add"; 
+    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); "( "; 
+    arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); ")";
+    if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
+        or (@kind= 'U') or (@kind= 'L')] 
+       { " -> "; list(#separ=",",#elems=`Typ`); }
+     ";"; <br; <br; } } }
+
+
+tpl [Pattern]  {
+   <div { <b { "pattern"; }
+   <div { @class="add"; apply; <br; <br; } } }
+
+tpl [Definiens]  {
+   <div { <b { "definiens"; }
+   <div { @class="add"; apply; <br; <br; } } }
+
+
+// Default
+tpl [/] { <html { 
+
+// output the css defaults for div and p (for indenting)
+        <style { @type="text/css"; 
+                 "div { padding: 0 0 0 0; margin: 0 0 0 0; } div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } p { margin: 0 0 0 0; }";
+	                } 
+        <head {  <base { @target="mmlquery"; } }
+        <body {  
+
+// first read the keys for imported stuff
+//          apply[document($constrs,/)/Constructors/Constructor]; 
+//          apply[document($thms,/)/Theorems/Theorem]; 
+//          apply[document($schms,/)/Schemes/Scheme];
+ 
+// then process the whole document
+	for-each [*/*] { apply[.]; <br; }
+          }} }
+  
+// tpl [*] { copy { apply [@*]; apply; } }
+// tpl [@*] { copy-of `.`; }
+
