@@ -349,12 +349,12 @@ tpl [Definition] {
         ")"; <br; }
    }
    else { 
-    if [@expandable="true"] { "expandable mode;"; <br; }
+    if [@expandable="true"] { <b { "expandable mode;"; } <br; }
     else {
      if [@redefinition="true"] { <b { "redefine "; } }
      for-each [Constructor] {
        <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
-       if [@redefinition="true"] { abs(#k=`@kind`,#nr=`@redefnr`); " as "; }
+       if [../@redefinition="true"] { abs(#k=`@kind`,#nr=`@redefnr`); " as "; }
        abs(#k=`@kind`,#nr=`@relnr`); "( ";
        arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); ")";
        if [(@kind = 'M') or (@kind = 'K')] { " -> "; apply[Typ]; }
@@ -437,7 +437,7 @@ tpl absref(#elems,#c) {
 tpl abs(#k,#nr) { 
    if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#c="1"); }
    else { 
-      for-each [document($constrs)] { 
+      for-each [document($constrs,/)] { 
       absref(#elems=`key($k,$nr)`); } } }
 
 // theorem, definition and scheme references
@@ -454,13 +454,13 @@ tpl mkref(#aid,#nr,#k,#c) {
        $aid; ":"; $mk; " "; $nr;  } }
 
 tpl getschref(#anr,#nr) {
-    if [$anr>0] { for-each [document($schms)] {
+    if [$anr>0] { for-each [document($schms,/)] {
 	for-each [key('S',concat($anr,':',$nr))] { 
            mkref(#aid=`@aid`, #nr=$nr, #k="S"); }}}
     else { mkref(#aid=$aname,#nr=$nr,#k="S",#c="1"); }}
 
 tpl getref(#k,#anr,#nr) {
-    if [$anr>0] { for-each [document($thms)] {
+    if [$anr>0] { for-each [document($thms,/)] {
 	for-each [key($k,concat($anr,':',$nr))] { 
            mkref(#aid=`@aid`, #nr=$nr, #k=$k); }}}
     else { mkref(#aid=$aname,#nr=$nr,#k=$k,#c="1"); }}
@@ -487,10 +487,13 @@ tpl refkind(#kind) {
 
 
 // separate top-level items by additional newline
-tpl [Article] { for-each [*] { apply[.]; <br;} }
+tpl [Article] { ":: "; `@name`; "  semantic presentation"; <br; <br;
+    for-each [*] { apply[.]; <br;} }
 
-// prevent processing of .atr 
+// prevent processing of imported documents
 tpl [/Constructors/Constructor] {}
+tpl [/Theorems/Theorem] {}
+tpl [/Schemes/Scheme] {}
 
 // Default
 tpl [/] { <html { 
@@ -502,9 +505,11 @@ tpl [/] { <html {
         <head {  <base { @target="mmlquery"; } }
         <body {  
 
-// first read the absolute constructor names from .atr
-          apply[document($constrs)/Constructors/Constructor]; 
-
+// first read the keys for imported stuff
+          apply[document($constrs,/)/Constructors/Constructor]; 
+          apply[document($thms,/)/Theorems/Theorem]; 
+          apply[document($schms,/)/Schemes/Scheme];
+ 
 // then process the whole document
           apply; }} }
   
