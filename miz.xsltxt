@@ -31,8 +31,12 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // Formulas
 tpl [For] { "for B being"; apply[*[1]]; 	
-                " holds "; <br;  apply[*[2]];  } 
+                " holds "; <div { @class="add";  apply[*[2]]; }  }
+tpl [And/For] { <div {"for B being"; apply[*[1]]; 	
+                " holds "; <div { @class="add";  apply[*[2]]; } } }
 tpl [Not] { "not "; apply[*[1]]; }
+tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
+                else { "not "; apply[*[1]]; } }
 tpl [And] { "( "; list(#separ=" & ", #elems=`*`); " )"; }
 tpl [Pred] { `@kind`; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
 tpl [PrivPred] { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
@@ -108,7 +112,7 @@ tpl [IterStep] { apply;  }
 tpl [Let] { "let C be "; 
             list(#separ=", C be ", #elems=`*`); ";"; <br; }
 tpl [Assume] { "assume ";  if [count(*)>1] { "that "; }
-	       nlist(#separ="and ", #elems=`*`);
+	       dlist(#separ="and ", #elems=`*`);
                ";"; <br; }
 tpl [Given] { "given C being "; 
               list(#separ=", C being ", #elems=`Typ`); 
@@ -174,38 +178,38 @@ tpl [BlockThesis] { } // "blockthesis: "; apply; ";"; <br; }
 //   (  ( elBlockThesis, elCase, elThesis, Reasoning )
 //   |  ( elCase, Reasoning, elBlockThesis ) )
 tpl [CaseBlock] { 
-    apply[Case];
-    <div { apply[*[not(name()='Case')]]; }
-    "end;"; <br; }
+    <div { apply[Case];
+    <div { @class="add"; apply[*[not(name()='Case')]]; }
+    "end;"; } }
 
 tpl [SupposeBlock] {
-    apply[Suppose];
-    <div { apply[*[not(name()='Suppose')]]; }
-    "end;"; <br; }
+    <div { apply[Suppose];
+    <div { @class="add"; apply[*[not(name()='Suppose')]]; }
+    "end;"; } }
 
 //   (  ( elBlockThesis, ( elCaseBlock+ | elSupposeBlock+ ),
 //        elPerCases, elThesis, elEndPosition  )
 //   |  ( ( elCaseBlock+ | elSupposeBlock+ ),
 //        elPerCases, elEndPosition, elBlockThesis ) )
 tpl [PerCasesReasoning] {
-    apply[PerCases];
-    <div { apply[BlockThesis];
+    <div { apply[PerCases];
+    <div { @class="add"; apply[BlockThesis];
            apply[Thesis];
            apply[CaseBlock | SupposeBlock]; }
-    "end;"; <br; }
+    "end;"; } }
 
 //   elBlockThesis, Reasoning 
 tpl [Proof] {
-    <br; "proof "; 
-    <div { apply; }
-    "end;"; <br; } 
+    <div { "proof "; 
+    <div { @class="add"; apply; }
+    "end;"; } } 
 
 //   Reasoning, elBlockThesis 
 tpl [Now] {
-    <br; "now ";
-    <div { apply[BlockThesis];
+    <div { "now ";
+    <div { @class="add"; apply[BlockThesis];
            apply[*[not(name()='BlockThesis')]]; } 
-    "end;"; <br; } 
+    "end;"; } } 
 
 
 // ignore them
@@ -244,12 +248,12 @@ tpl [SchemePredDecl] {
 //   element elSchemePremises { elProposition* },
 //   elProposition, Justification, elEndPosition
 tpl [SchemeBlock] {
-    "scheme s"; `@schemenr`; "{ ";
+    <div { "scheme s"; `@schemenr`; "{ ";
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`); 
     " } :"; <br;
-    <div { apply[Proposition]; } "provided";
-    <div { list(#separ=" and ", #elems=`SchemePremises/Proposition`); }
-    apply[*[position() = last() - 1]];  }
+    <div { @class="add"; apply[Proposition]; } "provided";
+    <div { @class="add"; list(#separ=" and ", #elems=`SchemePremises/Proposition`); }
+    apply[*[position() = last() - 1]];  }}
 
 
 //   ( ( CorrectnessCondition*, elCorrectness?,
@@ -300,9 +304,9 @@ tpl [Definition] {
 //   ( elLet | elAssume | elGiven | AuxiliaryItem |
 //     elCanceled | elDefinition )*, elEndPosition
 tpl [DefinitionBlock] {
-   "definition";
-   <div { apply[*[not(name()='EndPosition')]]; }
-   "end;"; <br;  } 
+   <div { "definition";
+   <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
+   "end;"; }  } 
 
 //   ( elRCluster | elFCluster | elCCluster ),
 //   CorrectnessCondition*, elCorrectness?
@@ -310,14 +314,14 @@ tpl [Registration] { apply; }
 
 //   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
 tpl [RegistrationBlock] {
-    "registration"; 
-    <div { apply[*[not(name()='EndPosition')]]; }
-    "end;"; <br;  } 
+    <div {"registration"; 
+    <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
+    "end;"; }  } 
 
 tpl [NotationBlock] {
-    "notation";
-    <div { apply[*[not(name()='EndPosition')]]; }
-    "end;"; <br;  } 
+    <div { "notation";
+    <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
+    "end;"; }  } 
 
 // List utility
 tpl list(#separ,#elems) { 
@@ -329,6 +333,11 @@ tpl list(#separ,#elems) {
 tpl nlist(#separ,#elems) { 
  for-each [$elems] {
   apply[.]; if [not(position()=last())] { <br; $separ; } }
+}
+
+tpl dlist(#separ,#elems) { 
+ for-each [$elems] {
+  <div { apply[.]; if [not(position()=last())] { $separ; } } }
 }
 
 
@@ -343,7 +352,7 @@ tpl [Article] { for-each [*] { apply[.]; <br;} }
 
 // Default
 tpl [/] { <html { <style { @type="text/css"; 
-                           "div { padding-left: 3mm; } span { padding-left: 3mm; }"; } 
+                           "div { padding: 0 0 0 0; margin: 0 0 0 0; } div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } p { margin: 0 0 0 0; }"; } 
                   <body {  apply; }} }  
 // tpl [*] { copy { apply [@*]; apply; } }
 // tpl [@*] { copy-of `.`; }
