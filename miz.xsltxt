@@ -8,13 +8,10 @@ stylesheet 1.0;
 
 // Then e.g.: xalan -XSL miz.xsl <ordinal2.pre >ordinal2.pre1
 
-// TODO: number B vars in 'for' and fraenkel
-//       number C vars in 'Let', 'Given', TakeAsVar, (Re)Consider,
-//                        'Set',
+// TODO: number B vars in fraenkel
 //       numbers for Deffunc, Defpred
 //       article numbering in Ref?
 //       absolute definiens numbers for thesisExpansions?
-//       add @name to Article
 //       do not display BlockThesis for Proof?
 //       add @nr to canceled
 //       Reservartion -> Reservation; displaying?
@@ -24,9 +21,14 @@ stylesheet 1.0;
 //       hacks here and in emacs.el
 //       display definiens?
 
+// NOTES: constructor disambiguation is done using the absolute numbers
+//        (attribute 'nr' and 'aid' of the Constructor element.
+//        This info for Constructors not defined in the article is
+//        taken from the .atr file (see variable $constrs)
+
 output method=html;
 
-key "type" [Typ] `@nr` ;
+// keys for fast constructor and reference lookup
 key "M" [Constructor[@kind='M']] `@relnr` ;
 key "L" [Constructor[@kind='L']] `@relnr` ;
 key "V" [Constructor[@kind='V']] `@relnr` ;
@@ -35,37 +37,68 @@ key "K" [Constructor[@kind='K']] `@relnr` ;
 key "U" [Constructor[@kind='U']] `@relnr` ;
 key "G" [Constructor[@kind='G']] `@relnr` ;
 
+key "T" [/Theorems/Theorem[@kind='T']] `concat(@articlenr,':',@nr)`;
+key "D" [/Theorems/Theorem[@kind='D']] `concat(@articlenr,':',@nr)`;
+key "S" [/Schemes/Scheme] `concat(@articlenr,':',@nr)`;
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
-// .atr file with constructors
-$constrs=  { `concat(translate(string(/Article/@name), 
-	                       $ucletters, $lcletters), '.atr')`; }
+// name of current article (upper case)
+$aname= { `string(/Article/@name)`; }
+
+// name of current article (lower case)
+$anamelc= { `translate($aname, $ucletters, $lcletters)`; }
+
+// .atr file with imported constructors
+$constrs=  { `concat($anamelc, '.atr')`; }
+
+// .eth file with imported theorems
+$thms=  { `concat($anamelc, '.eth')`; }
+
+// .esh file with imported schemes
+$schms=  { `concat($anamelc, '.esh')`; }
+
 
 // mmlquery address
-$mmlq= { "http://merak.pb.bialystok.pl/mmlquery/fillin.php?"; }
+$mmlq= { "http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry="; }
 
 // tells whether relative or absolute names are shown
 $relnames= { "1"; }
 
+// linking methods:
+// "q" - query, everything is linked to mmlquery
+// "s" - self, everything is linked to these xml files
+// "m" - mizaring, current article's constructs are linked to self,
+//       the rest is linked to mmlquery
+$linking = { "m"; }
+
+
 // Formulas
-tpl [For] { "for B being"; apply[*[1]]; 	
-                " holds "; <br;  apply[*[2]];   }
+
+// #i is nr of the bound variable, 1 by default 
+tpl [For](#i) { 
+  "for B";  if [$i] { $i;} else { "1"; }
+  " being"; apply[*[1]]; " holds "; <br; 
+  if [$i] {  apply[*[2]](#i=`$i+1`); } 
+  else { apply[*[2]](#i="2");   } }
+
 // tpl [And/For] { <div {"for B being"; apply[*[1]]; 	
 //                " holds "; <div { @class="add";  apply[*[2]]; } } }
-tpl [Not] { "not "; apply[*[1]]; }
+
+tpl [Not](#i) { "not "; apply[*[1]](#i=$i); }
 // tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
 //                else { "not "; apply[*[1]]; } }
-tpl [And] { "( "; list(#separ=" & ", #elems=`*`); " )"; }
-tpl [Pred] { 
-// `@kind`; `@nr`; 
-// absref(#elems=`key('pred',@nr)`);
-abs(#k=`@kind`, #nr=`@nr`);
- "[ "; list(#separ=",", #elems=`*`); "]"; }
-tpl [PrivPred] { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
-tpl [Is] { apply[*[1]]; " is "; apply[*[2]]; } 
-tpl [Verum] { "verum"; }
-tpl [ErrorFrm] { "errorfrm"; }
+
+tpl [And](#i) { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }
+tpl [Pred](#i) { 
+  if [@kind='P'] { `@kind`; `@nr`; }
+  else { abs(#k=`@kind`, #nr=`@nr`); }
+  "[ "; list(#separ=",", #elems=`*`); "]"; }
+tpl [PrivPred](#i) { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
+tpl [Is](#i) { apply[*[1]]; " is "; apply[*[2]]; } 
+tpl [Verum](#i) { "verum"; }
+tpl [ErrorFrm](#i) { "errorfrm"; }
 
 // Terms
 tpl [Var] { "B"; `@nr`; }
@@ -75,9 +108,9 @@ tpl [Const] { "C"; `@nr`; }
 tpl [InfConst] { "D"; `@nr`; }
 tpl [Num] { "N"; `@nr`; }
 tpl [Func] { 
-// `@kind`; `@nr`; 
-abs(#k=`@kind`, #nr=`@nr`);
-"( "; list(#separ=",", #elems=`*`); ")"; }
+   if [@kind='F'] { `@kind`; `@nr`; }
+   else { abs(#k=`@kind`, #nr=`@nr`); }
+   "( "; list(#separ=",", #elems=`*`); ")"; }
 tpl [PrivFunc] { "H"; `@nr`; "( "; list(#separ=",", #elems=`*`); ")"; }
 tpl [ErrorTrm] { "errortrm"; }
 tpl [Fraenkel] { "{ "; 
@@ -93,8 +126,6 @@ tpl [Typ] {
    if [@kind="M"] { abs(#k="M", #nr=`@nr`); }
    else { if [@kind="G"] { abs(#k="L", #nr=`@nr`); }
      else { `@kind`; }}
-//   if [@kind="G"] { "L"; } else { `@kind`;} `key('pred',@nr)`;
-//  `@nr`; 
    if [count(*)>2] { " of "; list(#separ=",", #elems=`*[position()>2]`); }
 }
 
@@ -103,8 +134,7 @@ tpl [Cluster] { list(#separ=" ", #elems=`*`); " "; }
 
 // Adjective
 tpl [Adjective] { if [@value="false"] { "non "; } 
-// "V"; `@nr`;
-abs(#k="V", #nr=`@nr`);
+                 abs(#k="V", #nr=`@nr`);
 	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
 
 tpl [Proposition] { if [@nr>0] { "E"; `@nr`; ": ";} apply; " ";}
@@ -120,14 +150,15 @@ tpl [IterStep/By] { if [(@linked="true") or (count(*)>0)] { "by "; }
            if [count(*)>0] { if [@linked="true"] { ","; }
                              list(#separ=",", #elems=`*`); } }
 
-tpl [From] { "from s"; `@nr`; if [@articlenr] { ":"; `@articlenr`; } "(";
+tpl [From] { "from ";
+             getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
              list(#separ=",", #elems=`*`); ")"; ";"; <br; }
 tpl [IterStep/From] { 
-        "from s"; `@nr`; if [@articlenr] { ":"; `@articlenr`; } "(";
+        "from "; getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
         list(#separ=",", #elems=`*`); ")"; }
 
-tpl [Ref] { if [not(@articlenr)] { "E"; } `@kind`; `@nr`; 
-            if [@articlenr] { ":"; `@articlenr`;} }
+tpl [Ref] { if [not(@articlenr)] { "E";`@nr`; }
+            else { getref(#k=`@kind`, #anr=`@articlenr`, #nr=`@nr`);} }
 tpl [ErrorInf] { "errorinference;"; <br; }
 tpl [IterStep/ErrorInf] { "errorinference"; }
 tpl [SkippedProof] { "skippedproof;"; <br; }
@@ -141,18 +172,19 @@ tpl [IterEquality] {
 tpl [IterStep] { apply;  }
 
 // Skeleton steps
-tpl [Let] { "let C be "; 
-            list(#separ=", C be ", #elems=`*`); ";"; <br; }
-tpl [Assume] { "assume ";  if [count(*)>1] { "that "; }
+tpl [Let] { $j=`@nr`; <b { "let"; } " C"; $j; " be "; 
+            jlist(#j=$j, #sep1=", C", #sep2=" be ", #elems=`*`); ";"; <br; }
+
+tpl [Assume] { <b { "assume "; }  if [count(*)>1] { "that "; }
 	       nlist(#separ="and ", #elems=`*`);
                ";"; <br; }
-tpl [Given] { "given C being "; 
-              list(#separ=", C being ", #elems=`Typ`); 
+tpl [Given] { $j=`@nr`; <b {"given";} " C"; $j; " being "; 
+              jlist(#j=$j, #sep1=", C", #sep2=" being ", #elems=`Typ`); 
 	      " such that ";
               nlist(#separ="and ",#elems=`Proposition`); 
               ";"; <br; }
-tpl [Take] { "take "; apply; ";"; <br; }
-tpl [TakeAsVar] { "take C = ";   apply[*[2]]; ";"; <br; }
+tpl [Take] { <b { "take ";} apply; ";"; <br; }
+tpl [TakeAsVar] { "take C"; `@nr`; " = ";   apply[*[2]]; ";"; <br; }
 tpl [Conclusion] { "thus "; apply; }
 tpl [Case] { "case "; if [count(*)>1] { "that ";}
              nlist(#separ="and ", #elems=`*`); ";"; <br; }
@@ -161,22 +193,22 @@ tpl [Suppose] { "suppose "; if [count(*)>1] { "that ";}
 tpl [PerCases] { "per cases "; apply; }
 
 // Auxiliary items
-tpl [Consider] { "consider C being "; 
-                 list(#separ=", C being ", #elems=`Typ`);
+tpl [Consider] { $j=`@nr`; "consider C"; $j; " being "; 
+                 jlist(#j=$j, #sep1=", C",#sep2=" being ", #elems=`Typ`);
 	         if [count(Proposition) > 1] { 
                    " such that "; <br; 
 		   nlist(#separ="and ",
                         #elems=`Proposition[position() > 1]`); } 
                  apply[*[2]]; }
 
-tpl [Reconsider] { 
-    "reconsider C = "; 
-    list(#separ=", C = ", #elems=`*[(position() > 1) 
+tpl [Reconsider] { $j=`@nr`;
+    "reconsider C"; $j; " = "; 
+    jlist(#j=$j, #sep1=", C", #sep2=" = ", #elems=`*[(position() > 1) 
                         and (position() < (last() - 1))]`);
     " as "; apply[*[1]]; " "; 
     apply[*[last()]]; } 
 
-tpl [Set] { "set C = "; apply[*[1]]; ";"; <br; }
+tpl [Set] { "set C"; `@nr`; " = "; apply[*[1]]; ";"; <br; }
 tpl [DefFunc] { "deffunc H(";  
                 list(#separ=",", #elems=`ArgTypes/Typ`); ") -> ";
                 apply[*[3]]; " = ";
@@ -294,39 +326,40 @@ tpl [SchemeBlock] {
 //       CorrectnessCondition*, elCorrectness? ))
 tpl [Definition] {     
    if [@kind = 'G'] { 
-      "struct G(# ";
+      for-each [Constructor[@kind="G"]] {
+        <a { @NAME=`concat("G",@nr)`; "aggr "; } 
+        abs(#k="G",#nr=`@relnr`); "(# "; }
       for-each [Constructor[@kind="L"]/Fields/Int] { 
-       "U"; `@x`; if [not(position()=last())] { ", "; } }
+       abs(#k="U",#nr=`@x`); if [not(position()=last())] { ", "; } }
       " #) -> "; apply[Constructor[@kind="G"]/Typ]; ";"; <br; 
-      "structmode L( ";
-      arglist(#separ=",", #letter="A", 
-              #elems=`Constructor[@kind="L"]/ArgTypes/Typ`);
-      ") -> ( "; 
-      list(#separ=", ", #elems=`Constructor/Typ`);
-      " );"; <br;
+      for-each [Constructor[@kind="L"]] {
+        <a { @NAME=`concat("L",@nr)`; "struct "; } 
+        abs(#k="L",#nr=`@relnr`); "( ";
+        arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`);
+        ") -> ( "; list(#separ=", ", #elems=`Typ`); " );"; <br; }
       for-each [Constructor[@kind="U"]] {
-        "selector U(";
+        <a { @NAME=`concat("U",@nr)`; "selector "; } 
+        abs(#k="U",#nr=`@relnr`); "( ";
         arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); 
         ") -> "; apply[Typ]; <br; } 
-      "attr strict V(";
-      arglist(#separ=",", #letter="A", 
-              #elems=`Constructor[@kind="V"]/ArgTypes/Typ`); 
-      ")"; <br;
+      for-each [Constructor[@kind="V"]] {
+        <a { @NAME=`concat("V",@nr)`; "attr strict "; } 
+        abs(#k="V",#nr=`@relnr`); "( ";
+        arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); 
+        ")"; <br; }
    }
    else { 
     if [@expandable="true"] { "expandable mode;"; <br; }
     else {
      if [@redefinition="true"] { "redefine "; }
-     mkind(#kind=`@kind`); " "; `@kind`;
-     if [@redefinition="true"] { `Constructor/@redefnr`; " as "; `@kind`; }
-     "("; 
-      arglist(#separ=",", #letter="A", 
-              #elems=`Constructor/ArgTypes/Typ`); 
-      ")";
-      if [(@kind = 'M') or (@kind = 'K')] { 
-         " -> "; apply[Constructor/Typ]; }
-      ";"; <br; 
-      apply[*[not(name()='Constructor')]];
+     for-each [Constructor] {
+       <a { @NAME=`concat(@kind,@nr)`; mkind(#kind=`@kind`);  " "; } 
+       if [@redefinition="true"] { abs(#k=`@kind`,#nr=`@redefnr`); " as "; }
+       abs(#k=`@kind`,#nr=`@relnr`); "( ";
+       arglist(#separ=",", #letter="A", #elems=`ArgTypes/Typ`); ")";
+       if [(@kind = 'M') or (@kind = 'K')] { " -> "; apply[Typ]; }
+       ";"; <br; }
+     apply[*[not(name()='Constructor')]];
 }}}
 
 //   ( elLet | elAssume | elGiven | AuxiliaryItem |
@@ -351,10 +384,17 @@ tpl [NotationBlock] {
     <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
     "end;"; }  } 
 
-// List utility
+// List utilities
+
 tpl list(#separ,#elems) { 
  for-each [$elems] {
   apply[.]; if [not(position()=last())] { $separ; } }
+}
+
+// List utility with additional arg
+tpl ilist(#separ,#elems,#i) { 
+ for-each [$elems] {
+  apply[.](#i=$i); if [not(position()=last())] { $separ; } }
 }
 
 // newlined list
@@ -368,26 +408,62 @@ tpl dlist(#separ,#elems) {
   <div { apply[.]; if [not(position()=last())] { $separ; } } }
 }
 
-
 // argument list
 tpl arglist(#separ,#letter,#elems) { 
  for-each [$elems] {
   $letter; `position()`; if [not(position()=last())] { $separ; } }
 }
 
-// add the constructor href
-tpl absref(#elems) { for-each [$elems] { 
-$mk=mkind(#kind=`@kind`);
-<a { @href=`concat("fillin.php?entry=",@aid,":",$mk,".",@nr)`;
+// add numbers starting at #j+1 between #sep1 and #sep2
+tpl jlist(#j,#sep1,#sep2,#elems) { 
+for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $sep1; `$j+position()`; $sep2; } }}
 
-if [$relnames>0] { `@kind`; `@relnr`; }
-else { `@kind`; `@nr`; "_"; `@aid`;  } } }}
+
+
+// add the constructor href, $c tells if it is from current article
+tpl absref(#elems,#c) { 
+     for-each [$elems] { $mk=mkind(#kind=`@kind`);
+      <a { 
+       if [($linking = 'q') or (($linking = 'm') and not($c))] { 
+          @href=`concat($mmlq,@aid,":",$mk,".",@nr)`; }
+       else { 
+         @href=`concat(translate(@aid,$ucletters,$lcletters),
+                       ".xml#",@kind,@nr)`; 
+         if [$c] { @target="_self"; } }
+       if [$relnames>0] { `@kind`; `@relnr`; }
+       else { `@kind`; `@nr`; "_"; `@aid`;  } } }}
 
 tpl abs(#k,#nr) { 
-   if [key($k,$nr)] { absref(#elems=`key($k,$nr)`); }
+   if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#c="1"); }
    else { 
       for-each [document($constrs)] { 
       absref(#elems=`key($k,$nr)`); } } }
+
+// theorem, definition and scheme references
+// add the reference's href, $c tells if it is from current article
+tpl mkref(#aid,#nr,#k,#c) { 
+      $mk=refkind(#kind=$k);
+      <a { 
+       if [($linking = 'q') or (($linking = 'm') and not($c))] { 
+          @href=`concat($mmlq,$aid,":",$mk,".",$nr)`; }
+       else { 
+         @href=`concat(translate($aid,$ucletters,$lcletters),
+                       ".xml#",$k,$nr)`; 
+         if [$c] { @target="_self"; } }
+       $aid; ":"; $mk; " "; $nr;  } }
+
+tpl getschref(#anr,#nr) {
+    if [$anr>0] { for-each [document($schms)] {
+	for-each [key('S',concat($anr,':',$nr))] { 
+           mkref(#aid=`@aid`, #nr=$nr, #k="S"); }}}
+    else { mkref(#aid=$aname,#nr=$nr,#k="S",#c="1"); }}
+
+tpl getref(#k,#anr,#nr) {
+    if [$anr>0] { for-each [document($thms)] {
+	for-each [key($k,concat($anr,':',$nr))] { 
+           mkref(#aid=`@aid`, #nr=$nr, #k=$k); }}}
+    else { mkref(#aid=$aname,#nr=$nr,#k=$k,#c="1"); }}
 
 // translate constructor kinds to their mizar/mmlquery names
 tpl mkind(#kind) {
@@ -398,13 +474,20 @@ choose {
       when [$kind = 'K'] { "func";}
       when [$kind = 'G'] { "aggr";}
       when [$kind = 'L'] { "struct";}
-      when [$kind = 'U'] { "sle";}
+      when [$kind = 'U'] { "sel";}
  }}
+
+// translate reference kinds to their mizar/mmlquery names
+tpl refkind(#kind) {
+  choose { 
+      when [$kind = 'T'] { "th";}
+      when [$kind = 'D'] { "def";}
+      when [$kind = 'S'] { "sch";}
+  }}
 
 
 // separate top-level items by additional newline
 tpl [Article] { for-each [*] { apply[.]; <br;} }
-
 
 // prevent processing of .atr 
 tpl [/Constructors/Constructor] {}
@@ -416,7 +499,7 @@ tpl [/] { <html {
         <style { @type="text/css"; 
                  "div { padding: 0 0 0 0; margin: 0 0 0 0; } div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } p { margin: 0 0 0 0; }";
 	                } 
-        <head {  <base { @href=$mmlq; @target="mmlquery"; } }
+        <head {  <base { @target="mmlquery"; } }
         <body {  
 
 // first read the absolute constructor names from .atr
