@@ -26,8 +26,27 @@ stylesheet 1.0;
 
 output method=html;
 
+key "type" [Typ] `@nr` ;
+key "M" [Constructor[@kind='M']] `@relnr` ;
+key "L" [Constructor[@kind='L']] `@relnr` ;
+key "V" [Constructor[@kind='V']] `@relnr` ;
+key "R" [Constructor[@kind='R']] `@relnr` ;
+key "K" [Constructor[@kind='K']] `@relnr` ;
+key "U" [Constructor[@kind='U']] `@relnr` ;
+key "G" [Constructor[@kind='G']] `@relnr` ;
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+// .atr file with constructors
+$constrs=  { `concat(translate(string(/Article/@name), 
+	                       $ucletters, $lcletters), '.atr')`; }
+
+// mmlquery address
+$mmlq= { "http://merak.pb.bialystok.pl/mmlquery/fillin.php?"; }
+
+// tells whether relative or absolute names are shown
+$relnames= { "1"; }
 
 // Formulas
 tpl [For] { "for B being"; apply[*[1]]; 	
@@ -38,7 +57,11 @@ tpl [Not] { "not "; apply[*[1]]; }
 // tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
 //                else { "not "; apply[*[1]]; } }
 tpl [And] { "( "; list(#separ=" & ", #elems=`*`); " )"; }
-tpl [Pred] { `@kind`; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
+tpl [Pred] { 
+// `@kind`; `@nr`; 
+// absref(#elems=`key('pred',@nr)`);
+abs(#k=`@kind`, #nr=`@nr`);
+ "[ "; list(#separ=",", #elems=`*`); "]"; }
 tpl [PrivPred] { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
 tpl [Is] { apply[*[1]]; " is "; apply[*[2]]; } 
 tpl [Verum] { "verum"; }
@@ -51,7 +74,10 @@ tpl [FreeVar] { "X"; `@nr`; }
 tpl [Const] { "C"; `@nr`; }
 tpl [InfConst] { "D"; `@nr`; }
 tpl [Num] { "N"; `@nr`; }
-tpl [Func] { `@kind`; `@nr`; "( "; list(#separ=",", #elems=`*`); ")"; }
+tpl [Func] { 
+// `@kind`; `@nr`; 
+abs(#k=`@kind`, #nr=`@nr`);
+"( "; list(#separ=",", #elems=`*`); ")"; }
 tpl [PrivFunc] { "H"; `@nr`; "( "; list(#separ=",", #elems=`*`); ")"; }
 tpl [ErrorTrm] { "errortrm"; }
 tpl [Fraenkel] { "{ "; 
@@ -64,7 +90,11 @@ tpl [Fraenkel] { "{ ";
 tpl [Typ] { 
    " ";
    if [count(*)>0] { apply[*[1]]; }
-   if [@kind="G"] { "L"; } else { `@kind`;} `@nr`; 
+   if [@kind="M"] { abs(#k="M", #nr=`@nr`); }
+   else { if [@kind="G"] { abs(#k="L", #nr=`@nr`); }
+     else { `@kind`; }}
+//   if [@kind="G"] { "L"; } else { `@kind`;} `key('pred',@nr)`;
+//  `@nr`; 
    if [count(*)>2] { " of "; list(#separ=",", #elems=`*[position()>2]`); }
 }
 
@@ -72,7 +102,9 @@ tpl [Typ] {
 tpl [Cluster] { list(#separ=" ", #elems=`*`); " "; }
 
 // Adjective
-tpl [Adjective] { if [@value="false"] { "non "; } "V"; `@nr`;
+tpl [Adjective] { if [@value="false"] { "non "; } 
+// "V"; `@nr`;
+abs(#k="V", #nr=`@nr`);
 	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
 
 tpl [Proposition] { if [@nr>0] { "E"; `@nr`; ": ";} apply; " ";}
@@ -285,11 +317,7 @@ tpl [Definition] {
     if [@expandable="true"] { "expandable mode;"; <br; }
     else {
      if [@redefinition="true"] { "redefine "; }
-     choose { 
-      when [@kind = 'M'] { "mode M";}
-      when [@kind = 'V'] { "attr V";}
-      when [@kind = 'R'] { "pred R";}
-      when [@kind = 'K'] { "func K";} }
+     mkind(#kind=`@kind`); " "; `@kind`;
      if [@redefinition="true"] { `Constructor/@redefnr`; " as "; `@kind`; }
      "("; 
       arglist(#separ=",", #letter="A", 
@@ -347,13 +375,56 @@ tpl arglist(#separ,#letter,#elems) {
   $letter; `position()`; if [not(position()=last())] { $separ; } }
 }
 
+// add the constructor href
+tpl absref(#elems) { for-each [$elems] { 
+$mk=mkind(#kind=`@kind`);
+<a { @href=`concat("fillin.php?entry=",@aid,":",$mk,".",@nr)`;
+
+if [$relnames>0] { `@kind`; `@relnr`; }
+else { `@kind`; `@nr`; "_"; `@aid`;  } } }}
+
+tpl abs(#k,#nr) { 
+   if [key($k,$nr)] { absref(#elems=`key($k,$nr)`); }
+   else { 
+      for-each [document($constrs)] { 
+      absref(#elems=`key($k,$nr)`); } } }
+
+// translate constructor kinds to their mizar/mmlquery names
+tpl mkind(#kind) {
+choose { 
+      when [$kind = 'M'] { "mode";}
+      when [$kind = 'V'] { "attr";}
+      when [$kind = 'R'] { "pred";}
+      when [$kind = 'K'] { "func";}
+      when [$kind = 'G'] { "aggr";}
+      when [$kind = 'L'] { "struct";}
+      when [$kind = 'U'] { "sle";}
+ }}
+
+
 // separate top-level items by additional newline
 tpl [Article] { for-each [*] { apply[.]; <br;} }
 
+
+// prevent processing of .atr 
+tpl [/Constructors/Constructor] {}
+
 // Default
-tpl [/] { <html { <style { @type="text/css"; 
-                           "div { padding: 0 0 0 0; margin: 0 0 0 0; } div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } p { margin: 0 0 0 0; }"; } 
-                  <body {  apply; }} }  
+tpl [/] { <html { 
+
+// output the css defaults for div and p (for indenting)
+        <style { @type="text/css"; 
+                 "div { padding: 0 0 0 0; margin: 0 0 0 0; } div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } p { margin: 0 0 0 0; }";
+	                } 
+        <head {  <base { @href=$mmlq; @target="mmlquery"; } }
+        <body {  
+
+// first read the absolute constructor names from .atr
+          apply[document($constrs)/Constructors/Constructor]; 
+
+// then process the whole document
+          apply; }} }
+  
 // tpl [*] { copy { apply [@*]; apply; } }
 // tpl [@*] { copy-of `.`; }
 
