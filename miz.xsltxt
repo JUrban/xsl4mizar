@@ -13,7 +13,7 @@ stylesheet 1.0;
 //                        'Set',
 //       numbers for Deffunc, Defpred
 //       article numbering in Ref?
-//       defineins nybers for thesisExpansions?
+//       absolute definiens numbers for thesisExpansions?
 
 output method=html;
 
@@ -130,6 +130,21 @@ tpl [FCluster] { "cluster ";
                  if [ErrorCluster] { "errorcluster"; }
 	         else { apply[*[2]]; " -> "; apply[*[3]]; }
                  ";"; <br; }
+// Blocks
+tpl [BlockThesis] { "blockthesis: "; apply; ";"; <br; }
+
+
+
+
+// Block starting with one case, the direct and diffuse version
+// (this depends on the kind of its parent block).
+// The block thesis is printed for proofs in the beginning and
+// for diffuse reasoning in the end.
+// tpl [CaseBlock] {
+//    Position,
+//    (  ( elBlockThesis, elCase, elThesis, Reasoning )
+//   |  ( elCase, Reasoning, elBlockThesis ) )
+
 
 // List utility
 tpl list(#separ,#elems) { 
