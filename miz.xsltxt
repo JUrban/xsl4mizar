@@ -33,9 +33,8 @@ $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
 // Formulas
-tpl [For](#i) { $j=`concat($i,$add)`; 
-                "for B being"; apply[*[1]](#i=$i); 	
-                 " holds "; <br; $j; apply[*[2]](#i=$j); } 
+tpl [For](#i) { "for B being"; apply[*[1]](#i=$i); 	
+                " holds "; <div { apply[*[2]](#i=$i); } } 
 tpl [Not](#i) { "not "; apply[*[1]](#i=$i); }
 tpl [And](#i) { "( "; list(#separ=" & ", #elems=`*`, #i=$i); " )"; }
 tpl [Pred](#i) { `@kind`; `@nr`; "[ "; 
@@ -80,11 +79,7 @@ tpl [Adjective](#i) { if [@value="false"] { "non "; } "V"; `@nr`;
 	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`, #i=$i); ")"; }}
 
 // indents unless inside one-line item
-tpl [Proposition](#i) { $i; if [@nr>0] { "E"; `@nr`; ": ";} apply(#i=$i); " ";}
-tpl [Assume/Proposition|Given/Proposition|Conclusion/Proposition](#i) 
-    { if [@nr>0] { "E"; `@nr`; ": "; } apply(#i=$i); " "; }
-tpl [Consider/Proposition[position() > 1]](#i)
-    { if [@nr>0] { "E"; `@nr`; ": "; } apply(#i=$i); " "; }
+tpl [Proposition](#i) { if [@nr>0] { "E"; `@nr`; ": ";} apply(#i=$i); " ";}
 
 // Justifications
 tpl [By](#i) { if [(@linked="true") or (count(*)>0)] { "by "; }  
@@ -135,7 +130,7 @@ tpl [Case](#i) { $i; "case "; if [count(*)>1] { "that ";}
              nlist(#separ=`concat($i,"and ")`, #elems=`*`, #i=$i); ";"; <br; }
 tpl [Suppose](#i) { $i; "suppose "; if [count(*)>1] { "that ";} 
              nlist(#separ=`concat($i,"and ")`, #elems=`*`, #i=$i); ";"; <br; }
-tpl [PerCases](#i) { $i; "per cases "; apply(#i=$i); ";"; <br; }
+tpl [PerCases](#i) { $i; "per cases "; apply(#i=$i); }
 
 // Auxiliary items
 tpl [Consider](#i) { $i; "consider C being "; 
@@ -187,42 +182,38 @@ tpl [BlockThesis](#i) { } // $i; "blockthesis: "; apply(#i=$i); ";"; <br; }
 //   (  ( elBlockThesis, elCase, elThesis, Reasoning )
 //   |  ( elCase, Reasoning, elBlockThesis ) )
 tpl [CaseBlock](#i) { 
-    $j=`concat($i,$add)`;
     apply[Case](#i=$i);
-    apply[*[not(name()='Case')]](#i=$j); 
-    $i; "end;"; <br; }
+    <div { apply[*[not(name()='Case')]](#i=$i); }
+    "end;"; <br; }
 
 tpl [SupposeBlock](#i) {
-    $j=`concat($i,$add)`;
     apply[Suppose](#i=$i);
-    apply[*[not(name()='Suppose')]](#i=$j); 
-    $i; "end;"; <br; }
+    <div { apply[*[not(name()='Suppose')]](#i=$i); }
+    "end;"; <br; }
 
 //   (  ( elBlockThesis, ( elCaseBlock+ | elSupposeBlock+ ),
 //        elPerCases, elThesis, elEndPosition  )
 //   |  ( ( elCaseBlock+ | elSupposeBlock+ ),
 //        elPerCases, elEndPosition, elBlockThesis ) )
 tpl [PerCasesReasoning](#i) {
-    $j=`concat($i,$add)`;
     apply[PerCases](#i=$i);
-    apply[BlockThesis](#i=$j);
-    apply[Thesis](#i=$j);
-    apply[CaseBlock | SupposeBlock](#i=$j);
-    $i; "end;"; <br; }
+    <div { apply[BlockThesis](#i=$i);
+           apply[Thesis](#i=$i);
+           apply[CaseBlock | SupposeBlock](#i=$i); }
+    "end;"; <br; }
 
 //   elBlockThesis, Reasoning 
 tpl [Proof](#i) {
-    $j=`concat($i,$add)`;
-    <br; $i; "proof "; <br; apply(#i=$j);
-    $i; "end;"; <br; } 
+    <br; "proof "; 
+    <div { apply(#i=$i); }
+    "end;"; <br; } 
 
 //   Reasoning, elBlockThesis 
 tpl [Now](#i) {
-    $j=`concat($i,$add)`;
-    $i; "now "; <br; 
-    apply[BlockThesis](#i=$j);
-    apply[*[not(name()='BlockThesis')]](#i=$j); 
-    $i; "end;"; <br; } 
+    <br; "now ";
+    <div { apply[BlockThesis](#i=$i);
+           apply[*[not(name()='BlockThesis')]](#i=$i); } 
+    "end;"; <br; } 
 
 
 // ignore them
@@ -261,12 +252,11 @@ tpl [SchemePredDecl](#i) {
 //   element elSchemePremises { elProposition* },
 //   elProposition, Justification, elEndPosition
 tpl [SchemeBlock](#i) {
-    $j=`concat($i,$add)`;
-    $i; "scheme s"; `@schemenr`; "{ ";
+    "scheme s"; `@schemenr`; "{ ";
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`, #i=$i); 
     " } :"; <br;
-    apply[Proposition](#i=$j); <br; $i; "provided"; <br;
-    list(#separ=" and ", #elems=`SchemePremises/Proposition`, #i=$j);
+    <div { apply[Proposition](#i=$i); } "provided";
+    <div { list(#separ=" and ", #elems=`SchemePremises/Proposition`, #i=$i); }
     apply[*[position() = last() - 1]](#i=$i);  }
 
 
@@ -318,10 +308,9 @@ tpl [Definition](#i) {     $i;
 //   ( elLet | elAssume | elGiven | AuxiliaryItem |
 //     elCanceled | elDefinition )*, elEndPosition
 tpl [DefinitionBlock](#i) {
-   $j=`concat($i,$add)`;
-   $i; "definition"; <br;
-   apply[*[not(name()='EndPosition')]](#i=$j);
-   $i; "end;"; <br;  } 
+   "definition";
+   <div { apply[*[not(name()='EndPosition')]](#i=$i); }
+   "end;"; <br;  } 
 
 //   ( elRCluster | elFCluster | elCCluster ),
 //   CorrectnessCondition*, elCorrectness?
@@ -329,16 +318,14 @@ tpl [Registration](#i) { apply(#i=$i); }
 
 //   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
 tpl [RegistrationBlock](#i) {
-    $j=`concat($i,$add)`;
-    $i; "registration"; <br;     
-    apply[*[not(name()='EndPosition')]](#i=$j);
-    $i; "end;"; <br;  } 
+    "registration"; 
+    <div { apply[*[not(name()='EndPosition')]](#i=$i); }
+    "end;"; <br;  } 
 
 tpl [NotationBlock] {
-    $j=`concat($i,$add)`;
-    $i; "notation"; <br;     
-    apply[*[not(name()='EndPosition')]](#i=$j);
-    $i; "end;"; <br;  } 
+    "notation";
+    <div { apply[*[not(name()='EndPosition')]](#i=$i); }
+    "end;"; <br;  } 
 
 // List utility
 tpl list(#separ,#elems,#i) { 
@@ -363,7 +350,8 @@ tpl arglist(#separ,#letter,#elems) {
 tpl [Article](#i) { for-each [*] { apply[.](#i=$i); <br;} }
 
 // Default
-tpl [/] { <html { <body {  apply(#i=""); }} }  
+tpl [/] { <html { <style { @type="text/css"; "div { padding-left: 3mm; }"; } 
+                  <body {  apply(#i=""); }} }  
 // tpl [*](#i) { copy { apply [@*](#i=$i); apply(#i=$i); } }
 // tpl [@*](#i) { copy-of `.`; }
 
