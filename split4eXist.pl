@@ -29,7 +29,7 @@ ONE: foreach my $f1 (@ARGV)
     {
 	my @result = $doc->xql ('/*/'.$exp_item);
 	foreach my $node (@result) {
-	    $node->printToFile ($f1."__".++$i);
+	    $node->printToFile ($f1."__".sprintf("%03d", ++$i)."xml");
 	}
     }
     $doc->dispose(); 
