@@ -122,9 +122,13 @@ tpl [Not](#i) { "not "; apply[*[1]](#i=$i); }
 
 tpl [And](#i) { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }
 tpl [Pred](#i) { 
-  if [@kind='P'] { `@kind`; `@nr`; }
-  else { abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`)); }
-  "[ "; list(#separ=",", #elems=`*`); "]"; }
+    choose {
+      when [@kind='P'] { `@kind`; `@nr`; }
+      when [@kind='V']  { apply[*[position() = last()]]; " is ";  
+        abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`)); }
+      otherwise { pp(#k=`@kind`,#nr=`@nr`,#args=`*`); }} }
+//,#sym1=abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`))); }}
+//  "[ "; list(#separ=",", #elems=`*`); "]"; }
 tpl [PrivPred](#i) { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
 tpl [Is](#i) { apply[*[1]]; " is "; apply[*[2]]; } 
 tpl [Verum](#i) { "verum"; }
@@ -136,11 +140,16 @@ tpl [LocusVar] { "A"; `@nr`; }
 tpl [FreeVar] { "X"; `@nr`; }
 tpl [Const] { "C"; `@nr`; }
 tpl [InfConst] { "D"; `@nr`; }
-tpl [Num] { "N"; `@nr`; }
+tpl [Num] {  `@nr`; }
 tpl [Func] { 
-   if [@kind='F'] { `@kind`; `@nr`; }
-   else { abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`)); }
-   "( "; list(#separ=",", #elems=`*`); ")"; }
+    choose {
+      when [@kind='F'] { `@kind`; `@nr`; }
+      when [@kind='U'] { "the ";
+        abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`));
+        " of "; apply[*[position() = last()]]; }
+      otherwise { pp(#k=`@kind`,#nr=`@nr`,#args=`*`); }}}
+// { abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`)); }
+//   "( "; list(#separ=",", #elems=`*`); ")"; }
 tpl [PrivFunc] { "H"; `@nr`; "( "; list(#separ=",", #elems=`*`); ")"; }
 tpl [ErrorTrm] { "errortrm"; }
 tpl [Fraenkel] { "{ "; 
@@ -153,10 +162,12 @@ tpl [Fraenkel] { "{ ";
 tpl [Typ] { 
    " ";
    if [count(*)>0] { apply[*[1]]; }
-   if [@kind="M"] { abs(#k="M", #nr=`@nr`, #sym=abs1(#k="M", #nr=`@nr`)); }
-   else { if [@kind="G"] { abs(#k="L", #nr=`@nr`, #sym=abs1(#k="G", #nr=`@nr`)); }
-     else { `@kind`; }}
+   if [@kind="M"] { pp(#k="M", #nr=`@nr`, #args=`*[position()>2]`); }
+   else { if [@kind="G"] { abs(#k="L", #nr=`@nr`, #sym=abs1(#k="G", #nr=`@nr`)); 
    if [count(*)>2] { " of "; list(#separ=",", #elems=`*[position()>2]`); }
+}
+     else { `@kind`; }}
+
 }
 
 // Clusters
@@ -164,8 +175,8 @@ tpl [Cluster] { list(#separ=" ", #elems=`*`); " "; }
 
 // Adjective
 tpl [Adjective] { if [@value="false"] { "non "; } 
-                 abs(#k="V", #nr=`@nr`, #sym=abs1(#k="V", #nr=`@nr`));
-	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
+                 abs(#k="V", #nr=`@nr`, #sym=abs1(#k="V", #nr=`@nr`)); }
+//	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
 
 tpl [Proposition] { if [@nr>0] { "E"; `@nr`; ": ";} apply; " ";}
 
@@ -480,34 +491,84 @@ tpl abs(#k,#nr,#sym) {
 
 
 // return first symbol corresponding to constructor;
-// if nothing found, just concat #k and #nr
-tpl abs1(#k,#nr) {
-     $pkey=`concat('P_',$k)`;
-     $fnr= { if [key($pkey,$nr)] { 
-              for-each [key($pkey,$nr)[position()=1]] {
-	        `@formatnr`; }}
-             else { for-each [document($patts,/)] {
-                     for-each [key($pkey,$nr)[position()=1]] {
-	               `@formatnr`; }}} }
-     for-each [document($formats,/)] {
-       if [not(key('F',$fnr))] { `concat($k,$nr)`; }
-       else {
-	for-each [key('F',$fnr)] {
+// if nothing found, just concat #k and #nr; #r says to look for
+// right bracket instead of left or fail if the format is not bracket
+tpl abs1(#k,#nr,#r) {
+   $fnr=formt_nr(#k=$k,#nr=$nr);
+   for-each [document($formats,/)] {
+     if [not(key('F',$fnr))] { `concat($k,$nr)`; }
+     else {
+       for-each [key('F',$fnr)] {
           $snr=`@symbolnr`; $sk=`@kind`; $dkey=`concat('D_',@kind)`;
           $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } } 
-        for-each [document($vocs,/)] {
-         if [key($dkey,$snr)] {
-	  for-each [key($dkey,$snr)] { 
-            `@name`; 
-             if [$sk='K'] { 
-               for-each [key('D_L',$rsnr)] { `@name`; } } 
+        if [not($r='1') or ($sk='K')] {
+         for-each [document($vocs,/)] {
+          if [key($dkey,$snr)] {
+	   for-each [key($dkey,$snr)] { 
+             if [($sk='K') and ($r='1')] { 
+               for-each [key('D_L',$rsnr)] { `@name`; } }
+	     else {  `@name`; }
              } } 
-         else { choose { 
-          when [($snr='1') and ($sk='M')] { "set"; }
-          when [($snr='1') and ($sk='R')] { "="; }
-          when [($snr='1') and ($sk='K')] { "[]"; } 
-          when [($snr='2') and ($sk='K')] { "{}"; } 
-	  otherwise { `concat($k,$nr)`; } } } } } } } }
+          else { choose { 
+           when [($snr='1') and ($sk='M')] { "set"; }
+           when [($snr='1') and ($sk='R')] { "="; }
+           when [($snr='1') and ($sk='K')] { if [$r='1'] { "]";} else {"[";} } 
+           when [($snr='2') and ($sk='K')] { if [$r='1'] { "}";} else {"{";} }
+	  otherwise { `concat($k,$nr)`; } } } } } } } } }
+
+tpl formt_nr(#k,#nr) {
+     $pkey=`concat('P_',$k)`;
+     if [key($pkey,$nr)] { 
+        for-each [key($pkey,$nr)[position()=1]] {
+	        `@formatnr`; } }
+     else { for-each [document($patts,/)] {
+                for-each [key($pkey,$nr)[position()=1]] {
+	               `@formatnr`; }}} }
+
+
+// pretty printer - gets arguments, visibility info from pattern,
+// format telling arities, the linked symbol and optionally right bracket
+tpl pp(#k,#nr,#args) {
+     $pkey=`concat('P_',$k)`;
+     if [key($pkey,$nr)] { 
+        for-each [key($pkey,$nr)[position()=1]] {
+       pp1(#k=$k,#nr=$nr,#args=$args,
+           #vis=`Visible/Int`, #fnr=`@formatnr`); } }
+     else { for-each [document($patts,/)] {
+                for-each [key($pkey,$nr)[position()=1]] { 
+     pp1(#k=$k,#nr=$nr,#args=$args,
+         #vis=`Visible/Int`, #fnr=`@formatnr`); } }}}
+ 
+
+tpl pp1(#k,#nr,#args, #vis, #fnr) {
+    $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
+            else { for-each [document($formats,/)] {
+                     for-each [key('F',$fnr)] { 
+                       if [@leftargnr] { `@leftargnr`;} else { "0";} }}} }
+    for-each [$vis] { 
+      if [position() <= $la] {
+	$x=`@x`;
+	apply[$args[position() = $x]]; 
+	if [position() < $la] { ",";} } }
+    " "; abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr)); " ";
+    for-each [$vis] { 
+      if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
+      if [position() > $la] {
+	$x=`@x`;
+        apply[$args[position()  = $x]]; 
+        if [position() < last()] { ",";} } }
+    // try if right bracket
+    if [($k='K') and ($la='0')] {
+       $rsym=abs1(#k=$k, #nr=$nr, #r="1"); 
+       if [$rsym] { abs(#k=$k, #nr=$nr, #sym=$rsym); } } 
+//  abs1(#k=$k, #nr=$nr, #r='1')); }
+ }
+
+
+//  apply[.]; if [not(position()=last())] { $sep1; `$j+position()`; $sep2; } }}
+
+
+
 
 // theorem, definition and scheme references
 // add the reference's href, $c tells if it is from current article
