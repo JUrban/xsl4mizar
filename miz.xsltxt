@@ -14,7 +14,6 @@ stylesheet 1.0;
 //       absolute definiens numbers for thesisExpansions?
 //       do not display BlockThesis for Proof?
 //       add @nr to canceled
-//       Reservartion -> Reservation; displaying?
 //       Constructor should know its serial number! - needed in defs
 //       possibly also article?
 //       change globally 'G' to 'L' for types? -> then change the
@@ -318,7 +317,7 @@ tpl [Now] {
 
 
 // ignore them
-tpl [Reservartion/Typ] { ""; }
+tpl [Reservation/Typ] { ""; }
 tpl [Definiens/*] { ""; }
 
 tpl [JustifiedTheorem] { <b { "theorem"; } <br; apply; }
@@ -622,7 +621,7 @@ tpl refkind(#kind) {
 // separate top-level items by additional newline
 tpl [Article] { ":: "; `@aid`; "  semantic presentation"; <br; <br;
     for-each [*] { apply[.]; 
-      if [(not(name()='Definiens')) and (not(name()='Reservartion')) 
+      if [(not(name()='Definiens')) and (not(name()='Reservation')) 
           and (not(name()='Pattern'))] { <br;} } }
 
 // processing of imported documents
