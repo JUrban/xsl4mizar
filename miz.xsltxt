@@ -79,8 +79,10 @@ tpl [Cluster](#i) { list(#separ=" ", #elems=`*`, #i=$i); " "; }
 tpl [Adjective](#i) { if [@value="false"] { "non "; } "V"; `@nr`;
 	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`, #i=$i); ")"; }}
 
-// Propositions - only newlines
-tpl [Proposition](#i) { if [@nr>0] { "E"; `@nr`; ": ";} apply(#i=$i); <br; }
+// indents unless inside one-line item
+tpl [Proposition](#i) { $i; if [@nr>0] { "E"; `@nr`; ": ";} apply(#i=$i); " ";}
+tpl [Assume/Proposition|Given/Proposition|Conclusion/Proposition](#i) 
+    { if [@nr>0] { "E"; `@nr`; ": "; } apply(#i=$i); " "; }
 
 // Justifications
 tpl [By](#i) { if [(@linked="true") or (count(*)>0)] { "by "; }  
@@ -88,30 +90,42 @@ tpl [By](#i) { if [(@linked="true") or (count(*)>0)] { "by "; }
            if [count(*)>0] { if [@linked="true"] { ","; }
                              list(#separ=",", #elems=`*`, #i=$i); }
            ";"; <br; }
+tpl [IterStep/By](#i) { if [(@linked="true") or (count(*)>0)] { "by "; }  
+           if [@linked="true"] { "previous"; } 
+           if [count(*)>0] { if [@linked="true"] { ","; }
+                             list(#separ=",", #elems=`*`, #i=$i); } }
+
 tpl [From](#i) { "from s"; `@nr`; if [@articlenr] { ":"; `@articlenr`; } "(";
              list(#separ=",", #elems=`*`, #i=$i); ")"; ";"; <br; }
+tpl [IterStep/From](#i) { 
+        "from s"; `@nr`; if [@articlenr] { ":"; `@articlenr`; } "(";
+        list(#separ=",", #elems=`*`, #i=$i); ")"; }
+
 tpl [Ref](#i) { if [not(@articlenr)] { "E"; } `@kind`; `@nr`; 
             if [@articlenr] { ":"; `@articlenr`;} }
 tpl [ErrorInf](#i) { "errorinference;"; <br; }
+tpl [IterStep/ErrorInf](#i) { "errorinference"; }
 tpl [SkippedProof](#i) { "skippedproof;"; <br; }
+tpl [IterStep/SkippedProof](#i) { "skippedproof"; }
 
 //   Term, elIterStep+
 tpl [IterEquality](#i) {
    $i; if [@nr>0] { "E"; `@nr`; ": ";}
    apply[*[1]](#i=$i); " = ";
-   list(#separ=" .= ", #elems=`IterStep`, #i=$i);
-   ";"; <br; }
-tpl [IterStep](#i) { $i; apply(#i=$i);  }
+   nlist(#separ=`concat($i, ".= ")`, #elems=`IterStep`, #i=$i); ";"; <br; }
+tpl [IterStep](#i) { apply(#i=$i);  }
 
 // Skeleton steps
 tpl [Let](#i) { $i; "let C be "; 
             list(#separ=", C be ", #elems=`*`, #i=$i); ";"; <br; }
 tpl [Assume](#i) { $i; "assume ";  if [count(*)>1] { "that "; }
-	       list(#separ=" and ", #elems=`*`, #i=$i); ";"; }
+	       nlist(#separ=`concat($i,"and ")`, #elems=`*`, #i=$i);
+               ";"; <br; }
 tpl [Given](#i) { $i; "given C being "; 
               list(#separ=", C being ", #elems=`Typ`, #i=$i); 
 	      " such that ";
-              list(#separ=" and ", #elems=`Proposition`, #i=$i);  } 
+              nlist(#separ=`concat($i,"and ")`,#elems=`Proposition`,#i=$i); 
+              ";"; <br; }
 tpl [Take](#i) { $i; "take "; apply(#i=$i); ";"; <br; }
 tpl [TakeAsVar](#i) { $i; "take C = ";   apply[*[2]](#i=$i); ";"; <br; }
 tpl [Conclusion](#i) { $i; "thus "; apply(#i=$i); }
@@ -197,7 +211,7 @@ tpl [PerCasesReasoning](#i) {
 //   elBlockThesis, Reasoning 
 tpl [Proof](#i) {
     $j=`concat($i,$add)`;
-    $i; "proof "; <br; apply(#i=$j);
+    <br; $i; "proof "; <br; apply(#i=$j);
     $i; "end;"; <br; } 
 
 //   Reasoning, elBlockThesis 
@@ -329,6 +343,13 @@ tpl list(#separ,#elems,#i) {
  for-each [$elems] {
   apply[.](#i=$i); if [not(position()=last())] { $separ; } }
 }
+
+// newlined list
+tpl nlist(#separ,#elems,#i) { 
+ for-each [$elems] {
+  apply[.](#i=$i); if [not(position()=last())] { <br; $separ; } }
+}
+
 
 // argument list
 tpl arglist(#separ,#letter,#elems) { 
