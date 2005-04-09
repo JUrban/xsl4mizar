@@ -40,13 +40,18 @@ key "T" [/Theorems/Theorem[@kind='T']] `concat(@articlenr,':',@nr)`;
 key "D" [/Theorems/Theorem[@kind='D']] `concat(@articlenr,':',@nr)`;
 key "S" [/Schemes/Scheme] `concat(@articlenr,':',@nr)`;
 
-key "P_M" [Pattern[@kind='M']] `@constrnr` ;
-key "P_L" [Pattern[@kind='L']] `@constrnr` ;
-key "P_V" [Pattern[@kind='V']] `@constrnr` ;
-key "P_R" [Pattern[@kind='R']] `@constrnr` ;
-key "P_K" [Pattern[@kind='K']] `@constrnr` ;
-key "P_U" [Pattern[@kind='U']] `@constrnr` ;
-key "P_G" [Pattern[@kind='G']] `@constrnr` ;
+// patterns are slightly tricky, since a predicate pattern
+// may be linked to an attribute constructor; hence the
+// indexing is done according to @constrkind and not @kind
+// TODO: the attribute<->predicate change should propagate to usage
+//       of "is"
+key "P_M" [Pattern[@constrkind='M']] `@constrnr` ;
+key "P_L" [Pattern[@constrkind='L']] `@constrnr` ;
+key "P_V" [Pattern[@constrkind='V']] `@constrnr` ;
+key "P_R" [Pattern[@constrkind='R']] `@constrnr` ;
+key "P_K" [Pattern[@constrkind='K']] `@constrnr` ;
+key "P_U" [Pattern[@constrkind='U']] `@constrnr` ;
+key "P_G" [Pattern[@constrkind='G']] `@constrnr` ;
 
 key "F" [Format] `@nr`;
 
