@@ -12,7 +12,6 @@
   <!-- absolute definiens numbers for thesisExpansions? -->
   <!-- do not display BlockThesis for Proof? -->
   <!-- add @nr to canceled -->
-  <!-- Reservartion -> Reservation; displaying? -->
   <!-- Constructor should know its serial number! - needed in defs -->
   <!-- possibly also article? -->
   <!-- change globally 'G' to 'L' for types? -> then change the -->
@@ -108,32 +107,59 @@
 
   <!-- Formulas -->
   <!-- #i is nr of the bound variable, 1 by default -->
+  <!-- #k is start of the sequence of vars with the same type, $i by default -->
+  <!-- we now output only one typing for such sequences -->
   <xsl:template match="For">
     <xsl:param name="i"/>
-    <xsl:text>for B</xsl:text>
+    <xsl:param name="k"/>
+    <xsl:variable name="j">
+      <xsl:choose>
+        <xsl:when test="$i">
+          <xsl:value-of select="$i"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>1</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="l">
+      <xsl:choose>
+        <xsl:when test="$k">
+          <xsl:value-of select="$k"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$j"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
     <xsl:choose>
-      <xsl:when test="$i">
-        <xsl:value-of select="$i"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:text>1</xsl:text>
-      </xsl:otherwise>
-    </xsl:choose>
-    <xsl:text> being</xsl:text>
-    <xsl:apply-templates select="*[1]"/>
-    <xsl:text> holds </xsl:text>
-    <xsl:element name="br"/>
-    <xsl:choose>
-      <xsl:when test="$i">
+      <xsl:when test="(name(*[2]) = &quot;For&quot;) and (*[1]/@nr = *[2]/*[1]/@nr) 
+      and (string(*[1]) = string(*[2]/*[1]))">
         <xsl:apply-templates select="*[2]">
-          <xsl:with-param name="i" select="$i+1"/>
+          <xsl:with-param name="i" select="$j+1"/>
+          <xsl:with-param name="k" select="$l"/>
         </xsl:apply-templates>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:apply-templates select="*[2]">
-          <xsl:with-param name="i">
-            <xsl:text>2</xsl:text>
+        <xsl:text>for </xsl:text>
+        <xsl:call-template name="ft_list">
+          <xsl:with-param name="f" select="$l"/>
+          <xsl:with-param name="t" select="$j"/>
+          <xsl:with-param name="sep">
+            <xsl:text>, </xsl:text>
           </xsl:with-param>
+          <xsl:with-param name="text">
+            <xsl:text>B</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+        <xsl:text> being</xsl:text>
+        <xsl:apply-templates select="*[1]"/>
+        <xsl:if test="not((name(*[2]) = &quot;For&quot;))">
+          <xsl:text> holds </xsl:text>
+        </xsl:if>
+        <xsl:element name="br"/>
+        <xsl:apply-templates select="*[2]">
+          <xsl:with-param name="i" select="$j+1"/>
         </xsl:apply-templates>
       </xsl:otherwise>
     </xsl:choose>
@@ -961,7 +987,7 @@
   </xsl:template>
 
   <!-- ignore them -->
-  <xsl:template match="Reservartion/Typ">
+  <xsl:template match="Reservation/Typ">
     <xsl:text/>
   </xsl:template>
 
@@ -1480,6 +1506,33 @@
     </xsl:for-each>
   </xsl:template>
 
+  <!-- from-to list starting numbering at $f ending at $t -->
+  <xsl:template name="ft_list">
+    <xsl:param name="f"/>
+    <xsl:param name="t"/>
+    <xsl:param name="sep"/>
+    <xsl:param name="text"/>
+    <xsl:choose>
+      <xsl:when test="$f = $t">
+        <xsl:value-of select="$text"/>
+        <xsl:value-of select="$f"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:if test="$f &lt; $t">
+          <xsl:value-of select="$text"/>
+          <xsl:value-of select="$f"/>
+          <xsl:value-of select="$sep"/>
+          <xsl:call-template name="ft_list">
+            <xsl:with-param name="f" select="$f+1"/>
+            <xsl:with-param name="t" select="$t"/>
+            <xsl:with-param name="sep" select="$sep"/>
+            <xsl:with-param name="text" select="$text"/>
+          </xsl:call-template>
+        </xsl:if>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <!-- add the constructor href, $c tells if it is from current article -->
   <!-- #sym is optional Mizar symbol -->
   <xsl:template name="absref">
@@ -1950,7 +2003,7 @@
     <xsl:element name="br"/>
     <xsl:for-each select="*">
       <xsl:apply-templates select="."/>
-      <xsl:if test="(not(name()=&apos;Definiens&apos;)) and (not(name()=&apos;Reservartion&apos;)) 
+      <xsl:if test="(not(name()=&apos;Definiens&apos;)) and (not(name()=&apos;Reservation&apos;)) 
           and (not(name()=&apos;Pattern&apos;))">
         <xsl:element name="br"/>
       </xsl:if>

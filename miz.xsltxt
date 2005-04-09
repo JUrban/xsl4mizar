@@ -106,11 +106,18 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // Formulas
 
 // #i is nr of the bound variable, 1 by default 
-tpl [For](#i) { 
-  "for B";  if [$i] { $i;} else { "1"; }
-  " being"; apply[*[1]]; " holds "; <br; 
-  if [$i] {  apply[*[2]](#i=`$i+1`); } 
-  else { apply[*[2]](#i="2");   } }
+// #k is start of the sequence of vars with the same type, $i by default 
+// we now output only one typing for such sequences
+tpl [For](#i,#k) { 
+  $j = { if [$i] { $i;} else { "1"; } }
+  $l = { if [$k] { $k;} else { $j; } }
+  if [(name(*[2]) = "For") and (*[1]/@nr = *[2]/*[1]/@nr) 
+      and (string(*[1]) = string(*[2]/*[1]))] { 
+     apply[*[2]](#i=`$j+1`,#k=$l); }
+  else {
+  "for "; ft_list(#f=$l,#t=$j,#sep=", ",#text="B");
+  " being"; apply[*[1]]; if [not((name(*[2]) = "For"))] {" holds ";} <br; 
+  apply[*[2]](#i=`$j+1`); } }
 
 // tpl [And/For] { <div {"for B being"; apply[*[1]]; 	
 //                " holds "; <div { @class="add";  apply[*[2]]; } } }
@@ -462,7 +469,11 @@ tpl jlist(#j,#sep1,#sep2,#elems) {
 for-each [$elems] {
   apply[.]; if [not(position()=last())] { $sep1; `$j+position()`; $sep2; } }}
 
-
+// from-to list starting numbering at $f ending at $t
+tpl ft_list(#f,#t,#sep,#text) {
+  if [$f = $t] { $text; $f; }
+  else { if [$f < $t] { $text; $f; $sep; 
+            ft_list(#f=`$f+1`,#t=$t,#sep=$sep,#text=$text); } }}
 
 // add the constructor href, $c tells if it is from current article
 // #sym is optional Mizar symbol
