@@ -9,6 +9,7 @@ stylesheet 1.0;
 // Then e.g.: xalan -XSL miz.xsl <ordinal2.pre >ordinal2.pre1
 
 // TODO: number B vars in fraenkel
+//       handle F and H parenthesis as K parenthesis
 //       numbers for Deffunc, Defpred
 //       article numbering in Ref?
 //       absolute definiens numbers for thesisExpansions?
@@ -115,6 +116,8 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 #labcolor = { "Green"; }
 
+// number of parenthesis colors (see the stylesheet in the bottom)
+#pcolors_nr = { "6"; }
 
 // Formulas
 
@@ -144,40 +147,51 @@ tpl [Not](#i) { "not "; apply[*[1]](#i=$i); }
 tpl [And](#i) { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }
 tpl [Pred](#i) { 
     choose {
-      when [@kind='P'] { `@kind`; `@nr`; }
+      when [@kind='P'] { "P"; `@nr`; "["; list(#separ=",", #elems=`*`); "]";}
       when [@kind='V']  { apply[*[position() = last()]]; " is ";  
         abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`)); }
       otherwise { pp(#k=`@kind`,#nr=`@nr`,#args=`*`); }} }
 //,#sym1=abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`))); }}
 //  "[ "; list(#separ=",", #elems=`*`); "]"; }
-tpl [PrivPred](#i) { "S"; `@nr`; "[ "; list(#separ=",", #elems=`*`); "]"; }
+tpl [PrivPred](#i) { "S"; `@nr`; "["; 
+    list(#separ=",", #elems=`*[position() < last()]`); "]"; }
 tpl [Is](#i) { apply[*[1]]; " is "; apply[*[2]]; } 
 tpl [Verum](#i) { "verum"; }
 tpl [ErrorFrm](#i) { "errorfrm"; }
 
 // Terms
-tpl [Var] { pvar(#nr=`@nr`); } 
-tpl [LocusVar] { ploci(#nr=`@nr`); } 
-tpl [FreeVar] { "X"; `@nr`; }
-tpl [Const] { pconst(#nr=`@nr`); }
-tpl [InfConst] { "D"; `@nr`; }
-tpl [Num] {  `@nr`; }
-tpl [Func] { 
+// #p is the parenthesis count
+tpl [Var](#p) { pvar(#nr=`@nr`); } 
+tpl [LocusVar](#p) { ploci(#nr=`@nr`); } 
+tpl [FreeVar](#p) { "X"; `@nr`; }
+tpl [Const](#p) { pconst(#nr=`@nr`); }
+tpl [InfConst](#p) { "D"; `@nr`; }
+tpl [Num](#p) {  `@nr`; }
+tpl [Func](#p) { 
     choose {
-      when [@kind='F'] { `@kind`; `@nr`; }
+      when [@kind='F'] { "F"; `@nr`; "("; list(#separ=",", #elems=`*`); ")";}
       when [@kind='U'] { "the ";
         abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`));
-        " of "; apply[*[position() = last()]]; }
-      otherwise { pp(#k=`@kind`,#nr=`@nr`,#args=`*`); }}}
-// { abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`)); }
-//   "( "; list(#separ=",", #elems=`*`); ")"; }
-tpl [PrivFunc] { "H"; `@nr`; "( "; list(#separ=",", #elems=`*`); ")"; }
-tpl [ErrorTrm] { "errortrm"; }
-tpl [Fraenkel] { "{ "; 
-     apply[*[position() = last() - 1]]; 
-     if  [count(*)>2] { " where B is ";
-      list(#separ=", B is ", #elems=`*[position() < last() - 1]`); }
-     " : "; apply[*[position() = last()]]; " } "; }
+        " of "; apply[*[position() = last()]](#p=$p); }
+      otherwise { 
+        $par = { if [$p>0] { `$p+1`;} else { 
+                 if [name(..)='Func'] { "1"; } else { "0";} }  }
+        pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#parenth=$par); }}} 
+
+tpl [PrivFunc](#p) { "H"; `@nr`; "("; 
+    list(#separ=",", #elems=`*[position()>1]`); ")"; }
+tpl [ErrorTrm](#p) { "errortrm"; }
+tpl [Fraenkel](#p) { 
+     $par = { if [$p>0] { `$p+1`;} else { "1"; } }
+     $paren_color = `$par mod $pcolors_nr`;
+     <span { @class=`concat("paren",$paren_color)`; "{"; 
+       <span { @class="default"; " ";
+         apply[*[position() = last() - 1]](#p=$par); 
+         if  [count(*)>2] { " where B is ";
+            list(#separ=", B is ", #elems=`*[position() < last() - 1]`); }
+         " : "; apply[*[position() = last()]]; " "; }
+       "}"; } " ";
+ }
 
 // Types
 tpl [Typ] { 
@@ -562,40 +576,55 @@ tpl formt_nr(#k,#nr) {
 
 // pretty printer - gets arguments, visibility info from pattern,
 // format telling arities, the linked symbol and optionally right bracket
-tpl pp(#k,#nr,#args) {
+// parenth hints to put the whole expression in parentheses, but this
+// is overrriden if the expression uses functor brackets
+tpl pp(#k,#nr,#args,#parenth) {
      $pkey=`concat('P_',$k)`;
      if [key($pkey,$nr)] { 
         for-each [key($pkey,$nr)[position()=1]] {
-       pp1(#k=$k,#nr=$nr,#args=$args,
-           #vis=`Visible/Int`, #fnr=`@formatnr`); } }
+       pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`, 
+           #fnr=`@formatnr`, #parenth=$parenth); } }
      else { for-each [document($patts,/)] {
                 for-each [key($pkey,$nr)[position()=1]] { 
-     pp1(#k=$k,#nr=$nr,#args=$args,
-         #vis=`Visible/Int`, #fnr=`@formatnr`); } }}}
+     pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`,
+         #fnr=`@formatnr`, #parenth=$parenth); } }}}
  
 
-tpl pp1(#k,#nr,#args, #vis, #fnr) {
+tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth) {
     $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
             else { for-each [document($formats,/)] {
                      for-each [key('F',$fnr)] { 
                        if [@leftargnr] { `@leftargnr`;} else { "0";} }}} }
+    // try if right bracket
+    $rsym = { if [($k='K') and ($la='0')] {
+                 abs1(#k=$k, #nr=$nr, #r="1"); } }
+    $np = { if [not($args)] { "0"; } else {
+               if [$parenth>0] { $parenth; } else { 
+                  if [not($rsym='')] { "1"; } else { "0";} } } }
+    $paren_color = `$np mod $pcolors_nr`;
+    // print spanned paranthesis or left bracket
+    if [($np>0)] { 
+      ~"<span class=\"paren"; $paren_color; ~"\">";
+      if [$rsym=''] { "("; } else { 
+         abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr)); }
+      ~"<span  class=\"default\">";}
     for-each [$vis] { 
       if [position() <= $la] {
 	$x=`@x`;
-	apply[$args[position() = $x]]; 
+	apply[$args[position() = $x]](#p=$np); 
 	if [position() < $la] { ",";} } }
-    " "; abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr)); " ";
+    if [$rsym=''] {
+      if [not($parenth>0) or ($la>0)] { " "; } 
+      abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr)); " "; }
     for-each [$vis] { 
       if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
       if [position() > $la] {
 	$x=`@x`;
-        apply[$args[position()  = $x]]; 
+        apply[$args[position()  = $x]](#p=$np); 
         if [position() < last()] { ",";} } }
-    // try if right bracket
-    if [($k='K') and ($la='0')] {
-       $rsym=abs1(#k=$k, #nr=$nr, #r="1"); 
-       if [$rsym] { abs(#k=$k, #nr=$nr, #sym=$rsym); } } 
-//  abs1(#k=$k, #nr=$nr, #r='1')); }
+    if [($np>0)] {  ~"</span>"; 
+       if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym); }
+       ~"</span>"; }
  }
 
 
@@ -683,8 +712,22 @@ tpl [Pattern] {}
 tpl [/] { <html { 
 
 // output the css defaults for div and p (for indenting)
-        <style { @type="text/css"; 
-                 "div { padding: 0 0 0 0; margin: 0 0 0 0; } div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } p { margin: 0 0 0 0; } a {text-decoration:none} a:hover { color: red; } a.ref:link { color:green; } a.ref:hover { color: red; }";
+        <style { @type="text/css";  "
+div { padding: 0 0 0 0; margin: 0 0 0 0; } 
+div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
+p { margin: 0 0 0 0; } 
+a {text-decoration:none} a:hover { color: red; } 
+a.ref:link { color:green; } 
+a.ref:hover { color: red; } 
+span.paren1:hover { color : inherit; background-color : #BAFFFF; } 
+span.paren2:hover { color : inherit; background-color : #FFCACA; }
+span.paren3:hover { color : inherit; background-color : #FFFFBA; }
+span.paren4:hover { color : inherit; background-color : #CACAFF; }
+span.paren5:hover { color : inherit; background-color : #CAFFCA; }
+span.paren6:hover { color : inherit; background-color : #FFBAFF; }
+.default { background-color: white; color: black; } 
+.default:hover { background-color: white; color: black; }
+";
 	                } 
         <head {  <base { @target="mmlquery"; } }
         <body {  
