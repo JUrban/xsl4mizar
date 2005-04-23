@@ -724,7 +724,7 @@ span.paren2:hover { color : inherit; background-color : #FFCACA; }
 span.paren3:hover { color : inherit; background-color : #FFFFBA; }
 span.paren4:hover { color : inherit; background-color : #CACAFF; }
 span.paren5:hover { color : inherit; background-color : #CAFFCA; }
-span.paren6:hover { color : inherit; background-color : #FFBAFF; }
+span.paren0:hover { color : inherit; background-color : #FFBAFF; }
 .default { background-color: white; color: black; } 
 .default:hover { background-color: white; color: black; }
 ";
