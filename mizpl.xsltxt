@@ -1,0 +1,156 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// Mizar XML terms, formulas and types to Prolog TSTP-like format.
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL mizpl.xsltxt >mizpl.xsl
+
+output method=text;
+
+// nr. of clusters in Typ
+// this needs to be set to 1 for processing MML files
+#cluster_nr = { "2"; }
+// symbols
+#not_s = { "~"; }
+#non_s = { "~"; }
+#and_s = { " & "; }
+#srt_s = { "sort"; }
+#frank_s = { "setof"; }
+
+// this will ensure failure of Prolog parsing
+#fail = { "zzz k l-**)))))))"; }
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+// Formulas
+
+// #i is nr of the bound variable, 1 by default 
+// empty list can be after ':' for type 'set'
+tpl [For](#i,#k) { 
+  $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
+  "!["; pvar(#nr=$j); ":"; apply[*[1]](#i=$j); "]:"; apply[*[2]](#i=$j); }
+
+tpl [Not](#i) { $not_s; apply[*[1]](#i=$i); }
+tpl [And](#i) { "( "; ilist(#separ=$and_s, #elems=`*`, #i=$i); " )"; }
+// here we differ from Mizar and ILF - all 'V' are turned into 'sort'
+tpl [Pred](#i) { 
+      if [@kind='V']  { 
+         $srt_s; "("; 
+         apply[*[position() = last()]](#i=$i); ",["; absc(#el=`.`); 
+         if [count(*)>1] { 
+            "("; ilist(#separ=",", #elems=`*[position() < last()]`, #i=$i); 
+            ")"; }
+         "])"; }
+      else { 
+         if [@kind='P'] { "p"; `@nr`; } else { absc(#el=`.`); }
+         if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }}
+
+tpl [PrivPred](#i) { apply[*[position() = last()]](#i=$i); }
+// empty list can be here - then it can be replaced by 'true'
+tpl [Is](#i) { $srt_s; "("; apply[*[1]](#i=$i); ","; apply[*[2]](#i=$i); ")"; }
+tpl [Verum](#i) { "true"; }
+tpl [ErrorFrm](#i) { "errorfrm"; }
+
+// Terms
+// #p is the parenthesis count
+tpl [Var](#i) { pvar(#nr=`@nr`); } 
+tpl [LocusVar](#i) { ploci(#nr=`@nr`); } 
+tpl [FreeVar](#i) { $fail; }
+tpl [Const](#i) { pconst(#nr=`@nr`); }
+tpl [InfConst](#i) { $fail; }
+tpl [Num](#i) {  `@nr`; }
+tpl [Func](#i) { 
+    if [@kind='F'] { "f"; `@nr`; }  else { absc(#el=`.`); }
+    if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }
+
+tpl [PrivFunc](#i) { apply[*[position() = 1]](#i=$i); }
+tpl [ErrorTrm](#i) { "errortrm"; }
+tpl [Fraenkel](#i) { 
+     $j = { if [$i>0] { $i;} else { "0"; } }
+     $frank_s; "(["; 
+     for-each [Typ] { 
+       $k = `$j + position()`;
+       pvar(#nr=$k); ":"; apply[.](#i=$k); 
+       if [not(position()=last())] { ","; } }
+     "],";
+     $l = `$j + count(Typ)`;
+     apply[*[position() = last() - 1]](#i=$l); ","; 
+     apply[*[position() = last()]](#i=$l); ")";
+}
+
+// Types - the list of attributes and radix type in square brackets
+// m1_hidden is not printed; we expect 'L' instead of 'G'
+tpl [Typ](#i) { "[";
+      if [@kind='errortyp'] { "errortyp"; }
+      else { if [(@kind="M") or (@kind="L")] {
+        $triv = { if [(@aid = "HIDDEN") and (@kind="M") and (@nr="1")]
+                         { "1"; } else { "0"; } }
+        apply[*[1]](#i=$i); 
+	if [(count(*[1]/*)>0) and ($triv = "0")] { ","; }
+        if [($triv = "0")] { 
+           absc(#el=`.`);
+           if [count(*) > $cluster_nr ] { 
+              "(";
+              ilist(#separ=",", #elems=`*[position() > $cluster_nr]`, #i=$i); 
+              ")"; } } }
+      else { $fail; } }
+      "]"; 
+}
+
+tpl [Cluster](#i) { ilist(#separ=",", #elems=`*`, #i=$i);}
+tpl [Adjective](#i) { if [@value="false"] { $non_s; } absc(#el=`.`);
+    if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }
+
+
+tpl pvar(#nr) { "B"; $nr; }
+tpl pconst(#nr) { "c"; $nr; }
+tpl ploci(#nr) { "A"; $nr; }
+tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
+
+// absolute constructor names
+tpl absc(#el) { for-each [$el] {
+    `translate(concat(@kind,@absnr,'_',@aid),$ucletters,$lcletters)`; }}
+
+// List utilities
+
+tpl list(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $separ; } }
+}
+
+// List utility with additional arg
+tpl ilist(#separ,#elems,#i) { 
+ for-each [$elems] {
+  apply[.](#i=$i); if [not(position()=last())] { $separ; } }
+}
+
+// newlined list
+tpl nlist(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { <br; $separ; } }
+}
+
+tpl dlist(#separ,#elems) { 
+ for-each [$elems] {
+  <div { apply[.]; if [not(position()=last())] { $separ; } } }
+}
+
+// argument list
+tpl arglist(#separ,#elems) { 
+ for-each [$elems] {
+  ploci(#nr=`position()`); if [not(position()=last())] { $separ; } }
+}
+
+// add numbers starting at #j+1 between #sep1 and #sep2 - now with constants
+tpl jlist(#j,#sep1,#sep2,#elems) { 
+for-each [$elems] {
+  apply[.]; if [not(position()=last())] 
+  {  $sep1; pconst(#nr=`$j+position()`); $sep2; } }}
+
+// from-to list of variables starting numbering at $f ending at $t
+tpl ft_list(#f,#t,#sep) {
+  if [$f = $t] {  pvar(#nr=$f); }
+  else { if [$f < $t] { pvar(#nr=$f); $sep; 
+            ft_list(#f=`$f+1`,#t=$t,#sep=$sep); } }}
