@@ -8,12 +8,14 @@ stylesheet 1.0;
 
 output method=text;
 
+strip-space "*";
 // nr. of clusters in Typ
 // this needs to be set to 1 for processing MML files
 #cluster_nr = { "2"; }
-// symbols
-#not_s = { "~"; }
-#non_s = { "~"; }
+// symbols, take care, the spaces are sometimes (e.g. for '~')
+// needed for correct Prolog parsing
+#not_s = { "~ "; }
+#non_s = { "~ "; }
 #and_s = { " & "; }
 #srt_s = { "sort"; }
 #frank_s = { "setof"; }
@@ -30,7 +32,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // empty list can be after ':' for type 'set'
 tpl [For](#i,#k) { 
   $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
-  "!["; pvar(#nr=$j); ":"; apply[*[1]](#i=$j); "]:"; apply[*[2]](#i=$j); }
+  "!["; pvar(#nr=$j); ":"; apply[*[1]](#i=$j); "]: "; apply[*[2]](#i=$j); }
 
 tpl [Not](#i) { $not_s; apply[*[1]](#i=$i); }
 tpl [And](#i) { "( "; ilist(#separ=$and_s, #elems=`*`, #i=$i); " )"; }
@@ -104,14 +106,31 @@ tpl [Adjective](#i) { if [@value="false"] { $non_s; } absc(#el=`.`);
     if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }
 
 
+tpl [Theorem] { 
+    if [@kind="T"] { "theorem"; } else {
+       if [@kind="D"] { "definition"; } else { $fail; } }
+    "("; absr(#el=`.`); ","; `translate(@aid,$ucletters,$lcletters)`;
+    ","; `@nr`; ","; apply; ").\n"; }
+
 tpl pvar(#nr) { "B"; $nr; }
 tpl pconst(#nr) { "c"; $nr; }
 tpl ploci(#nr) { "A"; $nr; }
 tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
 
-// absolute constructor names
+// absolute constructor names (use $fail for debugging absnrs)
 tpl absc(#el) { for-each [$el] {
-    `translate(concat(@kind,@absnr,'_',@aid),$ucletters,$lcletters)`; }}
+    if [@absnr and @aid] {
+     `translate(concat(@kind,@absnr,'_',@aid),$ucletters,$lcletters)`; }
+    else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
+} } }
+
+// absolute reference names (use $fail for debugging absnrs)
+tpl absr(#el) { for-each [$el] {
+    if [@nr and @aid and @kind] {
+     `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
+    else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
+} } }
+
 
 // List utilities
 
