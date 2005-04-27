@@ -18,7 +18,8 @@ strip-space "*";
 #non_s = { "~ "; }
 #and_s = { " & "; }
 #srt_s = { "sort"; }
-#frank_s = { "setof"; }
+#frank_s = { "all"; }
+#eq_s = { " = "; }
 
 // this will ensure failure of Prolog parsing
 #fail = { "zzz k l-**)))))))"; }
@@ -32,22 +33,27 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // empty list can be after ':' for type 'set'
 tpl [For](#i,#k) { 
   $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
-  "!["; pvar(#nr=$j); ":"; apply[*[1]](#i=$j); "]: "; apply[*[2]](#i=$j); }
+  "!["; pvar(#nr=$j); ": "; apply[*[1]](#i=$j); "]: "; apply[*[2]](#i=$j); }
 
-tpl [Not](#i) { $not_s; apply[*[1]](#i=$i); }
+tpl [Not](#i) { $not_s; 
+    if [For] { "("; apply[*[1]](#i=$i); ")"; } else { apply[*[1]](#i=$i); }}
 tpl [And](#i) { "( "; ilist(#separ=$and_s, #elems=`*`, #i=$i); " )"; }
 // here we differ from Mizar and ILF - all 'V' are turned into 'sort'
 tpl [Pred](#i) { 
       if [@kind='V']  { 
          $srt_s; "("; 
-         apply[*[position() = last()]](#i=$i); ",["; absc(#el=`.`); 
+         apply[*[position() = last()]](#i=$i); ","; absc(#el=`.`); 
          if [count(*)>1] { 
             "("; ilist(#separ=",", #elems=`*[position() < last()]`, #i=$i); 
             ")"; }
-         "])"; }
+         ")"; }
       else { 
-         if [@kind='P'] { "p"; `@nr`; } else { absc(#el=`.`); }
-         if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }}
+	 if [(@kind='R') and (@absnr=1) and (@aid="HIDDEN")] {
+	    "( "; apply[*[1]]; $eq_s; apply[*[2]]; " )"; }
+	 else {
+          if [@kind='P'] { "p"; `@nr`; } else { absc(#el=`.`); }
+          if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; }
+	 } }}
 
 tpl [PrivPred](#i) { apply[*[position() = last()]](#i=$i); }
 // empty list can be here - then it can be replaced by 'true'
@@ -84,24 +90,31 @@ tpl [Fraenkel](#i) {
 
 // Types - the list of attributes and radix type in square brackets
 // m1_hidden is not printed; we expect 'L' instead of 'G'
-tpl [Typ](#i) { "[";
+tpl [Typ](#i) { 
       if [@kind='errortyp'] { "errortyp"; }
       else { if [(@kind="M") or (@kind="L")] {
-        $triv = { if [(@aid = "HIDDEN") and (@kind="M") and (@nr="1")]
-                         { "1"; } else { "0"; } }
-        apply[*[1]](#i=$i); 
-	if [(count(*[1]/*)>0) and ($triv = "0")] { ","; }
-        if [($triv = "0")] { 
-           absc(#el=`.`);
-           if [count(*) > $cluster_nr ] { 
-              "(";
-              ilist(#separ=",", #elems=`*[position() > $cluster_nr]`, #i=$i); 
-              ")"; } } }
+        $radix = { if [(@aid = "HIDDEN") and (@kind="M") and (@nr="1")]
+                         { "0"; } else { "1"; } }
+        $adjectives = { `count(*[1]/*)`; }
+        if [($adjectives + $radix) = 0] { "true"; }
+        else {
+          if [($adjectives + $radix) > 1] { "( "; }
+          if [$adjectives > 0] {
+             apply[*[1]](#i=$i); 
+             if [$radix > 0] { $and_s; } }
+          if [($radix > 0)] { 
+             absc(#el=`.`);
+             if [count(*) > $cluster_nr ] { 
+               "(";
+               ilist(#separ=",", #elems=`*[position() > $cluster_nr]`, #i=$i); 
+               ")"; } }
+          if [($adjectives + $radix) > 1] { " )"; }
+         }
+      }
       else { $fail; } }
-      "]"; 
 }
 
-tpl [Cluster](#i) { ilist(#separ=",", #elems=`*`, #i=$i);}
+tpl [Cluster](#i) { ilist(#separ=$and_s, #elems=`*`, #i=$i); }
 tpl [Adjective](#i) { if [@value="false"] { $non_s; } absc(#el=`.`);
     if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }
 
