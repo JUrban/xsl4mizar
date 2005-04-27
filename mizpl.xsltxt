@@ -49,7 +49,7 @@ tpl [Pred](#i) {
          ")"; }
       else { 
 	 if [(@kind='R') and (@absnr=1) and (@aid="HIDDEN")] {
-	    "( "; apply[*[1]]; $eq_s; apply[*[2]]; " )"; }
+	    "( "; apply[*[1]](#i=$i); $eq_s; apply[*[2]](#i=$i); " )"; }
 	 else {
           if [@kind='P'] { "p"; `@nr`; } else { absc(#el=`.`); }
           if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; }
@@ -58,7 +58,7 @@ tpl [Pred](#i) {
 tpl [PrivPred](#i) { apply[*[position() = last()]](#i=$i); }
 // empty list can be here - then it can be replaced by 'true'
 tpl [Is](#i) { $srt_s; "("; apply[*[1]](#i=$i); ","; apply[*[2]](#i=$i); ")"; }
-tpl [Verum](#i) { "true"; }
+tpl [Verum](#i) { "$true"; }
 tpl [ErrorFrm](#i) { "errorfrm"; }
 
 // Terms
@@ -96,7 +96,7 @@ tpl [Typ](#i) {
         $radix = { if [(@aid = "HIDDEN") and (@kind="M") and (@nr="1")]
                          { "0"; } else { "1"; } }
         $adjectives = { `count(*[1]/*)`; }
-        if [($adjectives + $radix) = 0] { "true"; }
+        if [($adjectives + $radix) = 0] { "$true"; }
         else {
           if [($adjectives + $radix) > 1] { "( "; }
           if [$adjectives > 0] {
