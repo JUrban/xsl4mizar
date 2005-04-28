@@ -17,6 +17,7 @@ strip-space "*";
 #not_s = { "~ "; }
 #non_s = { "~ "; }
 #and_s = { " & "; }
+#imp_s = { " => "; }
 #srt_s = { "sort"; }
 #frank_s = { "all"; }
 #eq_s = { " = "; }
@@ -80,7 +81,7 @@ tpl [Fraenkel](#i) {
      $frank_s; "(["; 
      for-each [Typ] { 
        $k = `$j + position()`;
-       pvar(#nr=$k); ":"; apply[.](#i=$k); 
+       pvar(#nr=$k); ": "; apply[.](#i=$k); 
        if [not(position()=last())] { ","; } }
      "],";
      $l = `$j + count(Typ)`;
@@ -119,11 +120,63 @@ tpl [Adjective](#i) { if [@value="false"] { $non_s; } absc(#el=`.`);
     if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }
 
 
-tpl [Theorem] { 
-    if [@kind="T"] { "theorem"; } else {
-       if [@kind="D"] { "definition"; } else { $fail; } }
-    "("; absr(#el=`.`); ","; `translate(@aid,$ucletters,$lcletters)`;
-    ","; `@nr`; ","; apply; ").\n"; }
+tpl [Theorem] { "fof("; absr(#el=`.`); ",";
+    $kword = { if [@kind="T"] { "theorem"; } else {
+       if [@kind="D"] { "definition"; } else { $fail; } } }
+    $kword; ",";
+    apply; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    absr(#el=`.`); "),mptp_info("; `@nr`; ","; $kword; ")).\n"; }
+
+tpl [CCluster] { if [ErrorCluster] { } else {
+    "fof("; absk(#el=`.`,#kind="cc"); ",sort,";
+    $l = `1 + count(ArgTypes/Typ)`;
+    apply[ArgTypes];
+    "!["; ploci(#nr=$l); " : "; apply[Typ]; "]: "; 
+    $ante = { `count(*[2]/*)`; }
+    $succ = { `count(*[4]/*)`; }
+    $srt_s; "("; ploci(#nr=$l); ",";
+    if [$ante = 0] { "$true"; } else {
+    if [$ante = 1] { apply[*[2]]; } 
+    else { "( "; apply[*[2]]; " )"; } }
+    ")"; $imp_s; $srt_s; "("; ploci(#nr=$l); ",";
+    if [$succ = 0] { "$true"; } else {
+    if [$succ = 1] { apply[*[4]]; } 
+    else { "( "; apply[*[4]]; " )"; } }
+    ")"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    absk(#el=`.`,#kind="cc"); "),mptp_info("; `@nr`; ",ccluster)).\n"; } }
+
+tpl [FCluster] { if [ErrorCluster] { } else {
+    "fof("; absk(#el=`.`,#kind="fc"); ",sort,";
+    apply[ArgTypes];
+    $succ = { `count(Cluster/*)`; }
+    $srt_s; "("; apply[*[2]];  ",";
+    if [$succ = 0] { "$true"; } else {
+    if [$succ = 1] { apply[Cluster]; } 
+    else { "( "; apply[Cluster]; " )"; } }
+    ")"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    absk(#el=`.`,#kind="fc"); "),mptp_info("; `@nr`; ",fcluster)).\n"; } }
+
+tpl [RCluster] { if [ErrorCluster] { } else {
+    "fof("; absk(#el=`.`,#kind="rc"); ",sort,";
+    $l = `1 + count(ArgTypes/Typ)`;
+    apply[ArgTypes];
+    "?["; ploci(#nr=$l); " : "; apply[Typ]; "]: "; 
+    $succ = { `count(Cluster/*)`; }
+    $srt_s; "("; ploci(#nr=$l); ",";
+    if [$succ = 0] { "$true"; } else {
+    if [$succ = 1] { apply[Cluster]; } 
+    else { "( "; apply[Cluster]; " )"; } }
+    ")"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    absk(#el=`.`,#kind="rc"); "),mptp_info("; `@nr`; ",rcluster)).\n"; } }
+
+
+
+
+tpl [ArgTypes] { if [Typ] {
+       "!["; for-each [Typ] { 
+          ploci(#nr=`position()`); " : "; apply[.]; 
+          if [not(position()=last())] { ","; } }
+       "]: "; } }
 
 tpl pvar(#nr) { "B"; $nr; }
 tpl pconst(#nr) { "c"; $nr; }
@@ -143,6 +196,14 @@ tpl absr(#el) { for-each [$el] {
      `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
     else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
 } } }
+
+// absolute cluster and scheme names
+tpl absk(#el,#kind) { for-each [$el] {
+    if [@nr and @aid] {
+     `translate(concat($kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
+    else { `translate($kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
+} } }
+
 
 
 // List utilities
