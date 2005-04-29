@@ -127,11 +127,46 @@ tpl [Theorem] { "fof("; absr(#el=`.`); ",";
     apply; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
     absr(#el=`.`); "),mptp_info("; `@nr`; ","; $kword; ")).\n"; }
 
+// "M" | "L" | "V" | "R" | "K" | "U" | "G"
+tpl [Constructor] { 
+    $lkind = `translate(@kind,$ucletters,$lcletters)`;
+// the type hierarchy formula for "M" | "L" | "K" | "U" | "G"
+    if [(@kind='M') or (@kind='L') or (@kind='K') or 
+        (@kind='U') or (@kind='G')] {
+      "fof(dt_";  absc1(#el=`.`); ",sort,";
+      apply[ArgTypes];
+      $l = `1 + count(ArgTypes/Typ)`;
+      if [(@kind='M') or (@kind='L')] {
+        "!["; ploci(#nr=$l); " : "; "$true"; "]: ("; 
+        $srt_s; "("; ploci(#nr=$l); ","; absc1(#el=`.`); 
+        if [$l > 1] { "("; 
+           arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+        ")"; $imp_s;
+        if [count(Typ) = 0] { $srt_s; "("; ploci(#nr=$l); ",$true)"; }
+        if [count(Typ) > 1] { "("; }
+        for-each [Typ] {
+           $srt_s; "("; ploci(#nr=$l); ","; apply[.]; ")";
+           if [not(position()=last())] { $and_s; }
+        }
+        if [count(Typ) > 1] { ")"; }
+        ")";
+      }  else  { 
+      if [(@kind='K') or (@kind='U') or (@kind='G')] {
+        $srt_s; "("; absc1(#el=`.`);
+        if [$l > 1] { "("; 
+           arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+	",";
+        apply[Typ]; ")";
+      } }
+      ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+      absc1(#el=`.`); "),mptp_info("; `@nr`; ","; $lkind; ",ctype)).\n"; }
+}
+
 tpl [CCluster] { if [ErrorCluster] { } else {
     "fof("; absk(#el=`.`,#kind="cc"); ",sort,";
     $l = `1 + count(ArgTypes/Typ)`;
     apply[ArgTypes];
-    "!["; ploci(#nr=$l); " : "; apply[Typ]; "]: "; 
+    "!["; ploci(#nr=$l); " : "; apply[Typ]; "]: ("; 
     $ante = { `count(*[2]/*)`; }
     $succ = { `count(*[4]/*)`; }
     $srt_s; "("; ploci(#nr=$l); ",";
@@ -142,7 +177,7 @@ tpl [CCluster] { if [ErrorCluster] { } else {
     if [$succ = 0] { "$true"; } else {
     if [$succ = 1] { apply[*[4]]; } 
     else { "( "; apply[*[4]]; " )"; } }
-    ")"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    "))"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
     absk(#el=`.`,#kind="cc"); "),mptp_info("; `@nr`; ",ccluster)).\n"; } }
 
 tpl [FCluster] { if [ErrorCluster] { } else {
@@ -187,6 +222,12 @@ tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
 tpl absc(#el) { for-each [$el] {
     if [@absnr and @aid] {
      `translate(concat(@kind,@absnr,'_',@aid),$ucletters,$lcletters)`; }
+    else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
+} } }
+
+tpl absc1(#el) { for-each [$el] {
+    if [@aid and @nr] {
+     `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
     else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
 } } }
 
