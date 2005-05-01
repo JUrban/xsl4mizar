@@ -1996,15 +1996,106 @@
     </xsl:variable>
     <xsl:variable name="paren_color" select="$np mod $pcolors_nr"/>
     <!-- print spanned paranthesis or left bracket -->
-    <xsl:if test="($np&gt;0)">
-      <xsl:text disable-output-escaping="yes">&lt;span class=&quot;paren</xsl:text>
-      <xsl:value-of select="$paren_color"/>
-      <xsl:text disable-output-escaping="yes">&quot;&gt;</xsl:text>
-      <xsl:choose>
-        <xsl:when test="$rsym=&apos;&apos;">
-          <xsl:text>(</xsl:text>
-        </xsl:when>
-        <xsl:otherwise>
+    <xsl:choose>
+      <xsl:when test="($np&gt;0)">
+        <xsl:element name="span">
+          <xsl:attribute name="class">
+            <xsl:value-of select="concat(&quot;paren&quot;,$paren_color)"/>
+          </xsl:attribute>
+          <xsl:choose>
+            <xsl:when test="$rsym=&apos;&apos;">
+              <xsl:text>(</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:call-template name="abs">
+                <xsl:with-param name="k" select="$k"/>
+                <xsl:with-param name="nr" select="$nr"/>
+                <xsl:with-param name="sym">
+                  <xsl:call-template name="abs1">
+                    <xsl:with-param name="k" select="$k"/>
+                    <xsl:with-param name="nr" select="$nr"/>
+                  </xsl:call-template>
+                </xsl:with-param>
+              </xsl:call-template>
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:element name="span">
+            <xsl:attribute name="class">
+              <xsl:text>default</xsl:text>
+            </xsl:attribute>
+            <!-- this is duplicated later - needed for Mozilla - bad escaping -->
+            <xsl:for-each select="$vis">
+              <xsl:if test="position() &lt;= $la">
+                <xsl:variable name="x" select="@x"/>
+                <xsl:apply-templates select="$args[position() = $x]">
+                  <xsl:with-param name="p" select="$np"/>
+                </xsl:apply-templates>
+                <xsl:if test="position() &lt; $la">
+                  <xsl:text>,</xsl:text>
+                </xsl:if>
+              </xsl:if>
+            </xsl:for-each>
+            <xsl:if test="$rsym=&apos;&apos;">
+              <xsl:if test="not($parenth&gt;0) or ($la&gt;0)">
+                <xsl:text> </xsl:text>
+              </xsl:if>
+              <xsl:call-template name="abs">
+                <xsl:with-param name="k" select="$k"/>
+                <xsl:with-param name="nr" select="$nr"/>
+                <xsl:with-param name="sym">
+                  <xsl:call-template name="abs1">
+                    <xsl:with-param name="k" select="$k"/>
+                    <xsl:with-param name="nr" select="$nr"/>
+                  </xsl:call-template>
+                </xsl:with-param>
+              </xsl:call-template>
+              <xsl:text> </xsl:text>
+            </xsl:if>
+            <xsl:for-each select="$vis">
+              <xsl:if test="(position() = 1) and (($k=&apos;M&apos;) or ($k=&apos;L&apos;))">
+                <xsl:text>of </xsl:text>
+              </xsl:if>
+              <xsl:if test="position() &gt; $la">
+                <xsl:variable name="x" select="@x"/>
+                <xsl:apply-templates select="$args[position()  = $x]">
+                  <xsl:with-param name="p" select="$np"/>
+                </xsl:apply-templates>
+                <xsl:if test="position() &lt; last()">
+                  <xsl:text>,</xsl:text>
+                </xsl:if>
+              </xsl:if>
+            </xsl:for-each>
+          </xsl:element>
+          <xsl:choose>
+            <xsl:when test="$rsym=&apos;&apos;">
+              <xsl:text>)</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:call-template name="abs">
+                <xsl:with-param name="k" select="$k"/>
+                <xsl:with-param name="nr" select="$nr"/>
+                <xsl:with-param name="sym" select="$rsym"/>
+              </xsl:call-template>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:element>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:for-each select="$vis">
+          <xsl:if test="position() &lt;= $la">
+            <xsl:variable name="x" select="@x"/>
+            <xsl:apply-templates select="$args[position() = $x]">
+              <xsl:with-param name="p" select="$np"/>
+            </xsl:apply-templates>
+            <xsl:if test="position() &lt; $la">
+              <xsl:text>,</xsl:text>
+            </xsl:if>
+          </xsl:if>
+        </xsl:for-each>
+        <xsl:if test="$rsym=&apos;&apos;">
+          <xsl:if test="not($parenth&gt;0) or ($la&gt;0)">
+            <xsl:text> </xsl:text>
+          </xsl:if>
           <xsl:call-template name="abs">
             <xsl:with-param name="k" select="$k"/>
             <xsl:with-param name="nr" select="$nr"/>
@@ -2015,67 +2106,24 @@
               </xsl:call-template>
             </xsl:with-param>
           </xsl:call-template>
-        </xsl:otherwise>
-      </xsl:choose>
-      <xsl:text disable-output-escaping="yes">&lt;span  class=&quot;default&quot;&gt;</xsl:text>
-    </xsl:if>
-    <xsl:for-each select="$vis">
-      <xsl:if test="position() &lt;= $la">
-        <xsl:variable name="x" select="@x"/>
-        <xsl:apply-templates select="$args[position() = $x]">
-          <xsl:with-param name="p" select="$np"/>
-        </xsl:apply-templates>
-        <xsl:if test="position() &lt; $la">
-          <xsl:text>,</xsl:text>
+          <xsl:text> </xsl:text>
         </xsl:if>
-      </xsl:if>
-    </xsl:for-each>
-    <xsl:if test="$rsym=&apos;&apos;">
-      <xsl:if test="not($parenth&gt;0) or ($la&gt;0)">
-        <xsl:text> </xsl:text>
-      </xsl:if>
-      <xsl:call-template name="abs">
-        <xsl:with-param name="k" select="$k"/>
-        <xsl:with-param name="nr" select="$nr"/>
-        <xsl:with-param name="sym">
-          <xsl:call-template name="abs1">
-            <xsl:with-param name="k" select="$k"/>
-            <xsl:with-param name="nr" select="$nr"/>
-          </xsl:call-template>
-        </xsl:with-param>
-      </xsl:call-template>
-      <xsl:text> </xsl:text>
-    </xsl:if>
-    <xsl:for-each select="$vis">
-      <xsl:if test="(position() = 1) and (($k=&apos;M&apos;) or ($k=&apos;L&apos;))">
-        <xsl:text>of </xsl:text>
-      </xsl:if>
-      <xsl:if test="position() &gt; $la">
-        <xsl:variable name="x" select="@x"/>
-        <xsl:apply-templates select="$args[position()  = $x]">
-          <xsl:with-param name="p" select="$np"/>
-        </xsl:apply-templates>
-        <xsl:if test="position() &lt; last()">
-          <xsl:text>,</xsl:text>
-        </xsl:if>
-      </xsl:if>
-    </xsl:for-each>
-    <xsl:if test="($np&gt;0)">
-      <xsl:text disable-output-escaping="yes">&lt;/span&gt;</xsl:text>
-      <xsl:choose>
-        <xsl:when test="$rsym=&apos;&apos;">
-          <xsl:text>)</xsl:text>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:call-template name="abs">
-            <xsl:with-param name="k" select="$k"/>
-            <xsl:with-param name="nr" select="$nr"/>
-            <xsl:with-param name="sym" select="$rsym"/>
-          </xsl:call-template>
-        </xsl:otherwise>
-      </xsl:choose>
-      <xsl:text disable-output-escaping="yes">&lt;/span&gt;</xsl:text>
-    </xsl:if>
+        <xsl:for-each select="$vis">
+          <xsl:if test="(position() = 1) and (($k=&apos;M&apos;) or ($k=&apos;L&apos;))">
+            <xsl:text>of </xsl:text>
+          </xsl:if>
+          <xsl:if test="position() &gt; $la">
+            <xsl:variable name="x" select="@x"/>
+            <xsl:apply-templates select="$args[position()  = $x]">
+              <xsl:with-param name="p" select="$np"/>
+            </xsl:apply-templates>
+            <xsl:if test="position() &lt; last()">
+              <xsl:text>,</xsl:text>
+            </xsl:if>
+          </xsl:if>
+        </xsl:for-each>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- apply[.]; if [not(position()=last())] { $sep1; `$j+position()`; $sep2; } }} -->

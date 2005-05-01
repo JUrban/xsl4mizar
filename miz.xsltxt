@@ -602,29 +602,47 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth) {
                if [$parenth>0] { $parenth; } else { 
                   if [not($rsym='')] { "1"; } else { "0";} } } }
     $paren_color = `$np mod $pcolors_nr`;
+
     // print spanned paranthesis or left bracket
-    if [($np>0)] { 
-      ~"<span class=\"paren"; $paren_color; ~"\">";
+    if [($np>0)] { <span { @class=`concat("paren",$paren_color)`;
       if [$rsym=''] { "("; } else { 
          abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr)); }
-      ~"<span  class=\"default\">";}
-    for-each [$vis] { 
-      if [position() <= $la] {
+      <span { @class="default";
+
+    // this is duplicated later - needed for Mozilla - bad escaping
+      for-each [$vis] { 
+       if [position() <= $la] {
 	$x=`@x`;
 	apply[$args[position() = $x]](#p=$np); 
 	if [position() < $la] { ",";} } }
-    if [$rsym=''] {
-      if [not($parenth>0) or ($la>0)] { " "; } 
-      abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr)); " "; }
-    for-each [$vis] { 
-      if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
-      if [position() > $la] {
+      if [$rsym=''] {
+       if [not($parenth>0) or ($la>0)] { " "; } 
+       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr)); " "; }
+      for-each [$vis] { 
+       if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
+       if [position() > $la] {
 	$x=`@x`;
         apply[$args[position()  = $x]](#p=$np); 
         if [position() < last()] { ",";} } }
-    if [($np>0)] {  ~"</span>"; 
-       if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym); }
-       ~"</span>"; }
+       }
+      if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym); } }
+    } else {
+
+      for-each [$vis] { 
+       if [position() <= $la] {
+	$x=`@x`;
+	apply[$args[position() = $x]](#p=$np); 
+	if [position() < $la] { ",";} } }
+      if [$rsym=''] {
+       if [not($parenth>0) or ($la>0)] { " "; } 
+       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr)); " "; }
+      for-each [$vis] { 
+       if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
+       if [position() > $la] {
+	$x=`@x`;
+        apply[$args[position()  = $x]](#p=$np); 
+        if [position() < last()] { ",";} } }
+     }
  }
 
 
