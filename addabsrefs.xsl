@@ -184,6 +184,15 @@
       <xsl:attribute name="nr">
         <xsl:value-of select="1 + count(preceding::*[(name()=$n) and (@kind=$k)])"/>
       </xsl:attribute>
+      <xsl:if test="@redefnr &gt; 0">
+        <xsl:call-template name="abs">
+          <xsl:with-param name="k" select="$k"/>
+          <xsl:with-param name="nr" select="@redefnr"/>
+          <xsl:with-param name="r">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:if>
       <xsl:apply-templates/>
     </xsl:element>
   </xsl:template>
@@ -202,37 +211,61 @@
     </xsl:element>
   </xsl:template>
 
-  <!-- add the constructor href, $c tells if it is from current article -->
+  <xsl:template match="Field">
+    <xsl:element name="Field">
+      <xsl:copy-of select="@*"/>
+      <xsl:call-template name="abs">
+        <xsl:with-param name="k">
+          <xsl:text>U</xsl:text>
+        </xsl:with-param>
+        <xsl:with-param name="nr" select="@nr"/>
+      </xsl:call-template>
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
+
+  <!-- add the constructor href, $r tells if it is from redefinition -->
   <xsl:template name="absref">
     <xsl:param name="elems"/>
-    <xsl:param name="c"/>
+    <xsl:param name="r"/>
     <xsl:for-each select="$elems">
-      <xsl:attribute name="kind">
-        <xsl:value-of select="@kind"/>
-      </xsl:attribute>
-      <!-- @kind=mkind(#kind=`@kind`); -->
-      <xsl:attribute name="nr">
-        <xsl:value-of select="@relnr"/>
-      </xsl:attribute>
-      <xsl:attribute name="aid">
-        <xsl:value-of select="@aid"/>
-      </xsl:attribute>
-      <xsl:attribute name="absnr">
-        <xsl:value-of select="@nr"/>
-      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="$r=1">
+          <xsl:attribute name="redefaid">
+            <xsl:value-of select="@aid"/>
+          </xsl:attribute>
+          <xsl:attribute name="absredefnr">
+            <xsl:value-of select="@nr"/>
+          </xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:attribute name="kind">
+            <xsl:value-of select="@kind"/>
+          </xsl:attribute>
+          <!-- @kind=mkind(#kind=`@kind`); -->
+          <xsl:attribute name="nr">
+            <xsl:value-of select="@relnr"/>
+          </xsl:attribute>
+          <xsl:attribute name="aid">
+            <xsl:value-of select="@aid"/>
+          </xsl:attribute>
+          <xsl:attribute name="absnr">
+            <xsl:value-of select="@nr"/>
+          </xsl:attribute>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:for-each>
   </xsl:template>
 
   <xsl:template name="abs">
     <xsl:param name="k"/>
     <xsl:param name="nr"/>
+    <xsl:param name="r"/>
     <xsl:choose>
       <xsl:when test="key($k,$nr)">
         <xsl:call-template name="absref">
           <xsl:with-param name="elems" select="key($k,$nr)"/>
-          <xsl:with-param name="c">
-            <xsl:text>1</xsl:text>
-          </xsl:with-param>
+          <xsl:with-param name="r" select="$r"/>
         </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
@@ -241,12 +274,14 @@
             <xsl:when test="key($k,$nr)">
               <xsl:call-template name="absref">
                 <xsl:with-param name="elems" select="key($k,$nr)"/>
+                <xsl:with-param name="r" select="$r"/>
               </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
               <xsl:for-each select="document($dcoconstrs,/)">
                 <xsl:call-template name="absref">
                   <xsl:with-param name="elems" select="key($k,$nr)"/>
+                  <xsl:with-param name="r" select="$r"/>
                 </xsl:call-template>
               </xsl:for-each>
             </xsl:otherwise>

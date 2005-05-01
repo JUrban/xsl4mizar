@@ -95,6 +95,7 @@ tpl [Ref] { if [not(@articlenr)] { copy-of `.`; }
 tpl [Theorem|Constructor|Pattern] { $n=`name()`; <$n { copy-of `@*`;
              $k=`@kind`; @aid=$aname;
              @nr=`1 + count(preceding::*[(name()=$n) and (@kind=$k)])`;
+	     if [@redefnr > 0] { abs(#k=$k,#nr=`@redefnr`,#r="1"); } 
              apply; }}
 
 tpl [Scheme|Definiens|RCluster|CCluster|FCluster] { 
@@ -102,20 +103,25 @@ tpl [Scheme|Definiens|RCluster|CCluster|FCluster] {
              @nr=`1 + count(preceding::*[(name()=$n)])`;
              apply; }}
 
+tpl [Field] { <Field 
+    { copy-of `@*`; abs(#k="U", #nr=`@nr`); apply; }}
 
-// add the constructor href, $c tells if it is from current article
-tpl absref(#elems,#c) { for-each [$elems] { 
-       @kind=`@kind`; // @kind=mkind(#kind=`@kind`); 
-       @nr=`@relnr`; @aid=`@aid`; @absnr=`@nr`; }}
+// add the constructor href, $r tells if it is from redefinition
+tpl absref(#elems,#r) { for-each [$elems] { 
+    if [$r=1] { @redefaid=`@aid`; @absredefnr=`@nr`; }
+    else { @kind=`@kind`; // @kind=mkind(#kind=`@kind`); 
+           @nr=`@relnr`; @aid=`@aid`; @absnr=`@nr`; }} }
 
-tpl abs(#k,#nr) { 
-   if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#c="1"); }
+tpl abs(#k,#nr,#r) { 
+   if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#r=$r); }
    else { 
      for-each [document($constrs,/)] { 
-       if [key($k,$nr)] { absref(#elems=`key($k,$nr)`); }  
+       if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#r=$r); }  
        else { 
          for-each [document($dcoconstrs,/)] { 
-           absref(#elems=`key($k,$nr)`); } } } } }
+           absref(#elems=`key($k,$nr)`,#r=$r); } } } } }
+
+
 
 // theorem, definition and scheme references
 // add the reference's href, $c tells if it is from current article
