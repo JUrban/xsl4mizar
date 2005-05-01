@@ -1311,18 +1311,18 @@
           </xsl:call-template>
           <xsl:text>(# </xsl:text>
         </xsl:for-each>
-        <xsl:for-each select="Constructor[@kind=&quot;L&quot;]/Fields/Int">
+        <xsl:for-each select="Constructor[@kind=&quot;L&quot;]/Fields/Field">
           <xsl:call-template name="abs">
             <xsl:with-param name="k">
               <xsl:text>U</xsl:text>
             </xsl:with-param>
-            <xsl:with-param name="nr" select="@x"/>
+            <xsl:with-param name="nr" select="@nr"/>
             <xsl:with-param name="sym">
               <xsl:call-template name="abs1">
                 <xsl:with-param name="k">
                   <xsl:text>U</xsl:text>
                 </xsl:with-param>
-                <xsl:with-param name="nr" select="@x"/>
+                <xsl:with-param name="nr" select="@nr"/>
               </xsl:call-template>
             </xsl:with-param>
           </xsl:call-template>

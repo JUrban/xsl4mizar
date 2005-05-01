@@ -413,8 +413,8 @@ tpl [Definition] {
       for-each [Constructor[@kind="G"]] {
         <a { @NAME=`concat("G",@nr)`; <b { "aggr "; } } 
         abs(#k="G",#nr=`@relnr`,#sym=abs1(#k="G", #nr=`@relnr`)); "(# "; }
-      for-each [Constructor[@kind="L"]/Fields/Int] { 
-       abs(#k="U",#nr=`@x`,#sym=abs1(#k="U", #nr=`@x`)); 
+      for-each [Constructor[@kind="L"]/Fields/Field] { 
+       abs(#k="U",#nr=`@nr`,#sym=abs1(#k="U", #nr=`@nr`)); 
       if [not(position()=last())] { ", "; } }
       " #)"; <b {" -> ";} apply[Constructor[@kind="G"]/Typ]; ";"; <br; 
       for-each [Constructor[@kind="L"]] {
