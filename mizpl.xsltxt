@@ -18,6 +18,8 @@ strip-space "*";
 #non_s = { "~ "; }
 #and_s = { " & "; }
 #imp_s = { " => "; }
+#equiv_s = { " <=> "; }
+#or_s = { " | "; }
 #srt_s = { "sort"; }
 #frank_s = { "all"; }
 #eq_s = { " = "; }
@@ -27,6 +29,16 @@ strip-space "*";
 
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+// this is for lookup of selectors for Abstractness property
+key "L" [Constructor[@kind='L']] `@nr` ;
+
+// name of current article (upper case)
+#aname= { `string(/*/@aid)`; }
+
+// name of current article (lower case)
+#anamelc= { `translate($aname, $ucletters, $lcletters)`; }
+
 
 // Formulas
 
@@ -119,6 +131,12 @@ tpl [Cluster](#i) { ilist(#separ=$and_s, #elems=`*`, #i=$i); }
 tpl [Adjective](#i) { if [@value="false"] { $non_s; } absc(#el=`.`);
     if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }
 
+tpl [Proposition] { $pname = `concat("p", @plevel, "_", @propnr)`;
+    "fof(";  $pname; ","; apply; ",file("; $anamelc; ","; $pname;
+    "),mptp_info("; `@propnr`; ",["; `translate(@plevel,"_",",")`;
+     "],proposition("; `@line`; ","; `@col`; ","; 
+     if [@nr] { `@nr`;} else { "0";} "))).\n"; }
+
 
 tpl [Theorem] { "fof("; absr(#el=`.`); ",";
     $kword = { if [@kind="T"] { "theorem"; } else {
@@ -160,7 +178,209 @@ tpl [Constructor] {
       } }
       ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
       absc1(#el=`.`); "),mptp_info("; `@nr`; ","; $lkind; ",ctype)).\n"; }
+    apply[Properties](#el=`.`);
+    if [@kind='G'] { free_prop(#el=`.`); }
+    if [@redefnr > 0] { redefinition(#el=`.`); }
 }
+
+tpl redefinition(#el) { 
+    $lkind = `translate($el/@kind,$ucletters,$lcletters)`;
+    $redaid = `translate($el/@redefaid,$ucletters,$lcletters)`;
+    $absn = absc1(#el=$el); $n = `$el/@nr`;
+    $f = `translate($el/@aid,$ucletters,$lcletters)`;
+    $s = `@superfluous`;
+    for-each [$el] {
+      "fof(redefinition_"; $absn; ",definition,";
+      apply[ArgTypes]; 
+      $l0 = `count(ArgTypes/Typ)`;
+      if [(@kind = 'K') or (@kind = 'R')] { 
+        "( "; absc1(#el=`.`); 
+	if [$l0 > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+	if [@kind = 'K'] { $eq_s; } else { $equiv_s; }
+        absredef(#el=`.`); 
+	if [$l0 > $s] { "("; 
+           arglist(#separ=",",#elems=`ArgTypes/Typ[position() > $s]`,#s=$s); 
+	   ")";
+	} ")";
+      } else {
+      if [(@kind = 'V') or (@kind = 'M')] {
+	 $l = { if [@kind = 'V'] { $l0; } else { `$l0 + 1`; } }
+	 if [@kind = 'M'] { "!["; ploci(#nr=`$l`); ": "; apply[Typ]; "]: "; }
+	 "( "; $srt_s; "("; ploci(#nr=$l); ","; absc1(#el=`.`);
+	 if [$l>1] { 
+            "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < $l]`);
+            ")"; 
+	 }
+	 ")"; $equiv_s; $srt_s; "("; ploci(#nr=$l); ","; 
+	 absredef(#el=`.`); 
+	 if [($l - $s) > 1] { "("; 
+	    arglist(#separ=",",#elems=`ArgTypes/Typ[(position() > $s) 
+                                  and (position() < $l)]`, #s=$s); ")"; 
+	 } "))"; 
+      }}
+      ",file("; $f; ","; $absn; "),mptp_info("; $n; ","; $lkind; 
+      ",redefinition("; `@absredefnr`; ","; $lkind; ","; $redaid;
+      ","; absredef(#el=`.`); "))).\n"; }
+}
+
+// free property - this is rather definition than theorem
+// g(x1,x2) = g(x3,x4) implies (x1 = x2 and x3 = x4)
+tpl free_prop(#el) { 
+    $lkind = `translate($el/@kind,$ucletters,$lcletters)`;
+    $absn = absc1(#el=$el); $n = `$el/@nr`;
+    $f = `translate($el/@aid,$ucletters,$lcletters)`;
+    for-each [$el] {
+      "fof(free_"; $absn; ",definition,";
+      apply[ArgTypes]; 
+      $s=`count(ArgTypes/Typ)`;
+      "!["; for-each [ArgTypes/Typ] { 
+          ploci(#nr=`position() + $s`); " : $true"; 
+          if [not(position()=last())] { ","; } }
+       "]: ";
+      "(( "; absc1(#el=`.`); "("; 
+      arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; $eq_s; 
+      absc1(#el=`.`); "("; 
+      arglist(#separ=",",#elems=`ArgTypes/Typ`,#s=$s); "))"; $imp_s; "( ";
+      for-each [ArgTypes/Typ] { 
+	  $p=`position()`;
+	  "( "; ploci(#nr=$p); $eq_s;  ploci(#nr=`$p+$s`); ")";
+	  if [not($p=last())] { $and_s; }
+      }
+      "))";
+      ",file("; $f; ","; $absn; "),mptp_info("; $n; ","; 
+      $lkind; ",property(free))).\n"; }
+}
+
+tpl [Properties](#el) { 
+    $a1 = `@propertyarg1`; $a2=`@propertyarg2`;
+    $lkind = `translate($el/@kind,$ucletters,$lcletters)`;
+    $absn = absc1(#el=$el); $n = `$el/@nr`;
+    $f = `translate($el/@aid,$ucletters,$lcletters)`;
+    for-each [*] {
+      $nm = `translate(name(),$ucletters,$lcletters)`;
+      "fof(";  $nm; "_"; $absn; ",theorem,";
+      apply[.](#el=$el,#arg1=$a1,#arg2=$a2);
+      ",file("; $f; ","; $absn; "),mptp_info("; $n; ","; 
+      $lkind; ",property("; $nm; "))).\n"; }
+}
+
+
+tpl [UnexpectedProp](#el,#arg1,#arg2) { "$true"; } 
+
+tpl symmetry(#el,#arg1,#arg2,#anti) { for-each [$el] {
+    apply[ArgTypes]; "( "; absc1(#el=`.`); "("; 
+    arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; $imp_s;
+    if [$anti=1] { $not_s; } absc1(#el=`.`); "("; 
+    switchedargs(#nr="1",#nr1=$arg1,#nr2=$arg2,#lim=`count(ArgTypes/Typ)`); 
+    "))"; }}
+
+tpl [Symmetry](#el,#arg1,#arg2) { symmetry(#el=$el,#arg1=$arg1,#arg2=$arg2); } 
+tpl [Antisymmetry](#el,#arg1,#arg2) { 
+    symmetry(#el=$el,#arg1=$arg1,#arg2=$arg2,#anti="1"); } 
+
+tpl reflexivity(#el,#arg1,#arg2,#anti) { for-each [$el] {
+    apply[ArgTypes]; 
+    if [$anti=1] { $not_s; } absc1(#el=`.`); "("; 
+    switchedargs(#nr="1",#nr1=$arg1,#nr2=$arg2,
+                 #lim=`count(ArgTypes/Typ)`,#same="1"); ")"; } }
+
+tpl [Reflexivity](#el,#arg1,#arg2) { 
+    reflexivity(#el=$el,#arg1=$arg1,#arg2=$arg2); }
+tpl [Irreflexivity](#el,#arg1,#arg2) { 
+    reflexivity(#el=$el,#arg1=$arg1,#arg2=$arg2,#anti="1"); }
+
+tpl [Connectedness](#el,#arg1,#arg2) { for-each [$el] {
+    apply[ArgTypes]; "( "; absc1(#el=`.`); "("; 
+    arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; $or_s;
+    absc1(#el=`.`); "("; 
+    switchedargs(#nr="1",#nr1=$arg1,#nr2=$arg2,#lim=`count(ArgTypes/Typ)`); 
+    "))"; }}
+
+tpl [Commutativity](#el,#arg1,#arg2) { for-each [$el] {
+    apply[ArgTypes]; "( "; absc1(#el=`.`); "("; 
+    arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; $eq_s;
+    absc1(#el=`.`); "("; 
+    switchedargs(#nr="1",#nr1=$arg1,#nr2=$arg2,#lim=`count(ArgTypes/Typ)`); 
+    "))"; }}
+
+tpl [Idempotence](#el,#arg1,#arg2) { for-each [$el] {
+    apply[ArgTypes]; 
+    "("; absc1(#el=`.`); "("; 
+    switchedargs(#nr="1",#nr1=$arg1,#nr2=$arg2,
+                 #lim=`count(ArgTypes/Typ)`,#same="1"); ")"; $eq_s; 
+    ploci(#nr=$arg1); ")";
+ } }
+
+tpl [Involutiveness](#el,#arg1,#arg2) { for-each [$el] {
+    apply[ArgTypes]; 
+    "("; absc1(#el=`.`); "(";
+    $trm = { absc1(#el=`.`); "("; 
+             arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+    argsinsert(#nr="1",#nr1=$arg1,#arg=$trm,#lim=`count(ArgTypes/Typ)`);
+    ")"; $eq_s; ploci(#nr=$arg1); ")"; }}
+
+tpl [Projectivity](#el,#arg1,#arg2) { for-each [$el] {
+    apply[ArgTypes]; 
+    "("; absc1(#el=`.`); "(";
+    $trm = { absc1(#el=`.`); "("; 
+             arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+    argsinsert(#nr="1",#nr1=$arg1,#arg=$trm,#lim=`count(ArgTypes/Typ)`);
+    ")"; $eq_s; $trm; ")"; }}
+
+
+tpl [Abstractness](#el,#arg1,#arg2) { for-each [$el] {
+    apply[ArgTypes];
+    $l = `count(ArgTypes/Typ)`;
+    $lasttyp = `ArgTypes/Typ[position() = last()]`;
+    "(";  $srt_s; "("; ploci(#nr=$l); ","; absc1(#el=`.`);
+    if [$l > 1] { 
+     "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < last()]`); ")";
+    }
+    ")"; $imp_s; "("; ploci(#nr=$l); $eq_s;
+    if [key('L',$lasttyp/@absnr)] {  
+       for-each [key('L',$lasttyp/@absnr)] {  
+         "g"; `@nr`; "_"; `translate(@aid,$ucletters,$lcletters)`; 
+	 "("; 
+	 for-each [Fields/Field] {
+	     absc(#el=`.`); "("; $f=`1 + $l - @arity`;
+	     ft_list(#f=$f,#t=$l,#sep=",",#l="1"); ")";
+	     if [not(position()=last())] { ","; }
+	 } ")"; }}
+     else { $fail; }
+     "))";
+}}
+
+
+
+
+
+// tpl [Abstractness](#el,#arg1,#arg2) { for-each [$el] {
+//     apply[ArgTypes];
+//     $l = `count(ArgTypes/Typ)`;
+//     $lasttyp = `ArgTypes/Typ[position() = last()]`;
+//     "(";  $srt_s; "("; ploci(#nr=$l); ","; absc1(#el=`.`);
+//     if [$l > 1] { 
+//      "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < last()]`); ")";
+//     }
+//     ")"; $imp_s; "("; ploci(#nr=$l); $eq_s;
+//     if [key('L',$lasttyp/@absnr)] {  
+//        for-each [key('L',$lasttyp/@absnr)] {  
+//          "g"; `@nr`; "_"; `translate(@aid,$ucletters,$lcletters)`; 
+// 	 "("; 
+
+//     absref(#elems=`key($k,$nr)`,#r=$r); }
+
+ 
+//     "("; 
+
+// $srt_s; "("; 
+//          apply[*[position() = last()]](#i=$i); ","; absc(#el=`.`); 
+//          if [count(*)>1] { 
+//             "("; ilist(#separ=",", #elems=`*[position() < last()]`, #i=$i); 
+//             ")"; }
+//          ")"; }
+
+
 
 tpl [CCluster] { if [ErrorCluster] { } else {
     "fof("; absk(#el=`.`,#kind="cc"); ",sort,";
@@ -225,6 +445,14 @@ tpl absc(#el) { for-each [$el] {
     else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
 } } }
 
+// absolute redefinition names (use $fail for debugging absnrs)
+tpl absredef(#el) { for-each [$el] {
+    if [@redefaid and @absredefnr] {
+     `translate(concat(@kind,@absredefnr,'_',@redefaid),
+		$ucletters,$lcletters)`; }
+    else { `translate(@kind,$ucletters,$lcletters)`; `@redefnr`;  $fail; 
+} } }
+
 tpl absc1(#el) { for-each [$el] {
     if [@aid and @nr] {
      `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
@@ -272,9 +500,10 @@ tpl dlist(#separ,#elems) {
 }
 
 // argument list
-tpl arglist(#separ,#elems) { 
+tpl arglist(#separ,#elems,#s) { 
  for-each [$elems] {
-  ploci(#nr=`position()`); if [not(position()=last())] { $separ; } }
+  if [$s > 0] { ploci(#nr=`position() + $s`);} else {ploci(#nr=`position()`);} 
+  if [not(position()=last())] { $separ; } }
 }
 
 // add numbers starting at #j+1 between #sep1 and #sep2 - now with constants
@@ -284,7 +513,25 @@ for-each [$elems] {
   {  $sep1; pconst(#nr=`$j+position()`); $sep2; } }}
 
 // from-to list of variables starting numbering at $f ending at $t
-tpl ft_list(#f,#t,#sep) {
-  if [$f = $t] {  pvar(#nr=$f); }
-  else { if [$f < $t] { pvar(#nr=$f); $sep; 
-            ft_list(#f=`$f+1`,#t=$t,#sep=$sep); } }}
+// $l ouiputs loci vars
+tpl ft_list(#f,#t,#sep,#l) {
+  if [$f = $t] {  if [$l=1] { ploci(#nr=$f); } else { pvar(#nr=$f); } }
+  else { if [$f < $t] { 
+       if [$l=1] { ploci(#nr=$f); } else { pvar(#nr=$f); } $sep; 
+            ft_list(#f=`$f+1`,#t=$t,#sep=$sep,#l=$l); } }}
+
+// $same is used for reflexivity
+tpl switchedargs(#nr,#nr1,#nr2,#lim,#same) {
+    if [$nr = $nr2] { ploci(#nr=$nr1); } else {
+    if [$nr = $nr1] { 
+     if [$same=1] { ploci(#nr=$nr1); } else {  ploci(#nr=$nr2); } } 
+    else { ploci(#nr=$nr); }}
+    if [$nr < $lim] { ","; 
+     switchedargs(#nr=`$nr+1`,#nr1=$nr1,#nr2=$nr2,#lim=$lim,#same=$same); } }
+
+// $same is used for reflexivity
+tpl argsinsert(#nr,#nr1,#arg,#lim) {
+    if [$nr = $nr1] { $arg; } else { ploci(#nr=$nr); }
+    if [$nr < $lim] { ","; 
+     argsinsert(#nr=`$nr+1`,#nr1=$nr1,#arg=$arg,#lim=$lim); } } 
+
