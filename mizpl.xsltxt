@@ -1,4 +1,8 @@
-stylesheet 1.0;
+stylesheet "1.0" 
+extension-element-prefixes = "exsl exsl-str xt";
+xmlns exsl "http://exslt.org/common"; 
+xmlns exsl-str "http://exslt.org/strings";
+xmlns xt "http://www.jclark.com/xt";
 
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // Mizar XML terms, formulas and types to Prolog TSTP-like format.
@@ -33,6 +37,8 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // this is for lookup of selectors for Abstractness property
 key "L" [Constructor[@kind='L']] `@nr` ;
 
+key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
+
 // name of current article (upper case)
 #aname= { `string(/*/@aid)`; }
 
@@ -44,66 +50,72 @@ key "L" [Constructor[@kind='L']] `@nr` ;
 
 // #i is nr of the bound variable, 1 by default 
 // empty list can be after ':' for type 'set'
-tpl [For](#i,#k) { 
+tpl [For](#i,#pl,#k) { 
   $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
-  "!["; pvar(#nr=$j); ": "; apply[*[1]](#i=$j); "]: "; apply[*[2]](#i=$j); }
+  "!["; pvar(#nr=$j); ": "; apply[*[1]](#i=$j,#pl=$pl); "]: "; 
+  apply[*[2]](#i=$j,#pl=$pl); }
 
-tpl [Not](#i) { $not_s; 
-    if [For] { "("; apply[*[1]](#i=$i); ")"; } else { apply[*[1]](#i=$i); }}
-tpl [And](#i) { "( "; ilist(#separ=$and_s, #elems=`*`, #i=$i); " )"; }
+tpl [Not](#i,#pl) { $not_s; 
+    if [For] { "("; apply[*[1]](#i=$i,#pl=$pl); ")"; } 
+    else { apply[*[1]](#i=$i,#pl=$pl); }}
+tpl [And](#i,#pl) { "( "; 
+    ilist(#separ=$and_s, #elems=`*`, #i=$i,#pl=$pl); " )"; }
 // here we differ from Mizar and ILF - all 'V' are turned into 'sort'
-tpl [Pred](#i) { 
+tpl [Pred](#i,#pl) { 
       if [@kind='V']  { 
          $srt_s; "("; 
-         apply[*[position() = last()]](#i=$i); ","; absc(#el=`.`); 
-         if [count(*)>1] { 
-            "("; ilist(#separ=",", #elems=`*[position() < last()]`, #i=$i); 
+         apply[*[position() = last()]](#i=$i,#pl=$pl); ","; absc(#el=`.`); 
+         if [count(*)>1] { "("; 
+	    ilist(#separ=",", #elems=`*[position() < last()]`, #i=$i,#pl=$pl); 
             ")"; }
          ")"; }
       else { 
 	 if [(@kind='R') and (@absnr=1) and (@aid="HIDDEN")] {
-	    "( "; apply[*[1]](#i=$i); $eq_s; apply[*[2]](#i=$i); " )"; }
+	    "( "; apply[*[1]](#i=$i,#pl=$pl); $eq_s; 
+	    apply[*[2]](#i=$i,#pl=$pl); " )"; }
 	 else {
           if [@kind='P'] { "p"; `@nr`; } else { absc(#el=`.`); }
-          if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; }
+          if [count(*)>0] { "("; 
+	     ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; }
 	 } }}
 
-tpl [PrivPred](#i) { apply[*[position() = last()]](#i=$i); }
+tpl [PrivPred](#i,#pl) { apply[*[position() = last()]](#i=$i,#pl=$pl); }
 // empty list can be here - then it can be replaced by 'true'
-tpl [Is](#i) { $srt_s; "("; apply[*[1]](#i=$i); ","; apply[*[2]](#i=$i); ")"; }
-tpl [Verum](#i) { "$true"; }
-tpl [ErrorFrm](#i) { "errorfrm"; }
+tpl [Is](#i,#pl) { $srt_s; "("; apply[*[1]](#i=$i,#pl=$pl); ","; 
+		   apply[*[2]](#i=$i,#pl=$pl); ")"; }
+tpl [Verum](#i,#pl) { "$true"; }
+tpl [ErrorFrm](#i,#pl) { "errorfrm"; }
 
 // Terms
 // #p is the parenthesis count
-tpl [Var](#i) { pvar(#nr=`@nr`); } 
-tpl [LocusVar](#i) { ploci(#nr=`@nr`); } 
-tpl [FreeVar](#i) { $fail; }
-tpl [Const](#i) { pconst(#nr=`@nr`); }
-tpl [InfConst](#i) { $fail; }
-tpl [Num](#i) {  `@nr`; }
-tpl [Func](#i) { 
+tpl [Var](#i,#pl) { pvar(#nr=`@nr`); } 
+tpl [LocusVar](#i,#pl) { ploci(#nr=`@nr`); } 
+tpl [FreeVar](#i,#pl) { $fail; }
+tpl [Const](#i,#pl) { pconst(#nr=`@nr`,#pl=$pl); }
+tpl [InfConst](#i,#pl) { $fail; }
+tpl [Num](#i,#pl) {  `@nr`; }
+tpl [Func](#i,#pl) { 
     if [@kind='F'] { "f"; `@nr`; }  else { absc(#el=`.`); }
-    if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }
+    if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; } }
 
-tpl [PrivFunc](#i) { apply[*[position() = 1]](#i=$i); }
-tpl [ErrorTrm](#i) { "errortrm"; }
-tpl [Fraenkel](#i) { 
+tpl [PrivFunc](#i,#pl) { apply[*[position() = 1]](#i=$i,#pl=$pl); }
+tpl [ErrorTrm](#i,#pl) { "errortrm"; }
+tpl [Fraenkel](#i,#pl) { 
      $j = { if [$i>0] { $i;} else { "0"; } }
      $frank_s; "(["; 
      for-each [Typ] { 
        $k = `$j + position()`;
-       pvar(#nr=$k); ": "; apply[.](#i=$k); 
+       pvar(#nr=$k); ": "; apply[.](#i=$k,#pl=$pl); 
        if [not(position()=last())] { ","; } }
      "],";
      $l = `$j + count(Typ)`;
-     apply[*[position() = last() - 1]](#i=$l); ","; 
-     apply[*[position() = last()]](#i=$l); ")";
+     apply[*[position() = last() - 1]](#i=$l,#pl=$pl); ","; 
+     apply[*[position() = last()]](#i=$l,#pl=$pl); ")";
 }
 
 // Types - the list of attributes and radix type in square brackets
 // m1_hidden is not printed; we expect 'L' instead of 'G'
-tpl [Typ](#i) { 
+tpl [Typ](#i,#pl) { 
       if [@kind='errortyp'] { "errortyp"; }
       else { if [(@kind="M") or (@kind="L")] {
         $radix = { if [(@aid = "HIDDEN") and (@kind="M") and (@nr="1")]
@@ -113,13 +125,14 @@ tpl [Typ](#i) {
         else {
           if [($adjectives + $radix) > 1] { "( "; }
           if [$adjectives > 0] {
-             apply[*[1]](#i=$i); 
+             apply[*[1]](#i=$i,#pl=$pl); 
              if [$radix > 0] { $and_s; } }
           if [($radix > 0)] { 
              absc(#el=`.`);
              if [count(*) > $cluster_nr ] { 
                "(";
-               ilist(#separ=",", #elems=`*[position() > $cluster_nr]`, #i=$i); 
+               ilist(#separ=",", #elems=`*[position() > $cluster_nr]`, 
+	             #i=$i, #pl=$pl); 
                ")"; } }
           if [($adjectives + $radix) > 1] { " )"; }
          }
@@ -127,15 +140,16 @@ tpl [Typ](#i) {
       else { $fail; } }
 }
 
-tpl [Cluster](#i) { ilist(#separ=$and_s, #elems=`*`, #i=$i); }
-tpl [Adjective](#i) { if [@value="false"] { $non_s; } absc(#el=`.`);
-    if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i); ")"; } }
+tpl [Cluster](#i,#pl) { ilist(#separ=$and_s, #elems=`*`, #i=$i,#pl=$pl); }
+tpl [Adjective](#i,#pl) { if [@value="false"] { $non_s; } absc(#el=`.`);
+    if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i, #pl=$pl); 
+		      ")"; } }
 
-tpl [Proposition] { $pname = `concat("p", @plevel, "_", @propnr)`;
-    "fof(";  $pname; ","; apply; ",file("; $anamelc; ","; $pname;
-    "),mptp_info("; `@propnr`; ",["; `translate(@plevel,"_",",")`;
-     "],proposition("; `@line`; ","; `@col`; ","; 
-     if [@nr] { `@nr`;} else { "0";} "))).\n"; }
+tpl [Proposition] { $pname = `concat("p", @propnr, "_", @plevel)`;
+    "fof(";  $pname; ","; apply(#pl=`@plevel`); ",file("; $anamelc; 
+    ","; $pname; "),mptp_info("; `@propnr`; ",["; 
+    `translate(@plevel,"_",",")`; "],proposition("; `@line`; ","; 
+    `@col`; ","; if [@nr] { `@nr`;} else { "0";} "))).\n"; }
 
 
 tpl [Theorem] { "fof("; absr(#el=`.`); ",";
@@ -374,9 +388,9 @@ tpl [Abstractness](#el,#arg1,#arg2) { for-each [$el] {
 //     "("; 
 
 // $srt_s; "("; 
-//          apply[*[position() = last()]](#i=$i); ","; absc(#el=`.`); 
+//          apply[*[position() = last()]](#i=$i,#pl=$pl); ","; absc(#el=`.`); 
 //          if [count(*)>1] { 
-//             "("; ilist(#separ=",", #elems=`*[position() < last()]`, #i=$i); 
+//             "("; ilist(#separ=",", #elems=`*[position() < last()]`, #i=$i,#pl=$pl); 
 //             ")"; }
 //          ")"; }
 
@@ -434,7 +448,7 @@ tpl [ArgTypes] { if [Typ] {
        "]: "; } }
 
 tpl pvar(#nr) { "B"; $nr; }
-tpl pconst(#nr) { "c"; $nr; }
+tpl pconst(#nr,#pl) { "c"; $nr; "_"; absconst(#nr=$nr,#pl=$pl); }
 tpl ploci(#nr) { "A"; $nr; }
 tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
 
@@ -483,9 +497,9 @@ tpl list(#separ,#elems) {
 }
 
 // List utility with additional arg
-tpl ilist(#separ,#elems,#i) { 
+tpl ilist(#separ,#elems,#i,#pl) { 
  for-each [$elems] {
-  apply[.](#i=$i); if [not(position()=last())] { $separ; } }
+  apply[.](#i=$i,#pl=$pl); if [not(position()=last())] { $separ; } }
 }
 
 // newlined list
@@ -535,3 +549,26 @@ tpl argsinsert(#nr,#nr1,#arg,#lim) {
     if [$nr < $lim] { ","; 
      argsinsert(#nr=`$nr+1`,#nr1=$nr1,#arg=$arg,#lim=$lim); } } 
 
+// find the constant with #nr on level #pl or higher,
+// rpint @constnr "_" $pl
+tpl absconst(#nr,#pl) {
+    if [key("C",$pl)[@nr=$nr]] { `key("C",$pl)[@nr=$nr]/@constnr`; 
+			       if [string-length($pl)>0] { "_"; $pl; }}
+    else { if [key("C",$pl)[@nr < $nr]] { 
+      for-each [key("C",$pl)[@nr < $nr]] { if [position() = last()] {
+      $n1 = { if [(name() = "Reconsider")] { 
+	      `count(Var|LocusVar|Const|InfConst|Num|Func|PrivFunc|
+		     Fraenkel|QuaTrm|It|ErrorTrm)`; }
+	      else { `count(Typ)`; } }
+      if [@nr + $n1 >= $nr] { `@nr + @constnr - $nr`; 
+			 if [string-length($pl)>0] { "_"; $pl; }} 
+	 else { $fail;}}}}
+    else { if [string-length($pl)>0] { 
+	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
+	 $pl1= mjoin(#el=$ss,#s="_");
+//	 "bb"; $pl1; "bb";
+	 absconst(#nr=$nr,#pl=$pl1); } else { $fail;}}
+ }}
+
+tpl mjoin(#el,#s) {
+ for-each [$el] { `string(.)`; if [not(position()=last())] { $s; } }}
