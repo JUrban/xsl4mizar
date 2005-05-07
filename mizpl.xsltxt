@@ -13,9 +13,12 @@ xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
 strip-space "*";
-// nr. of clusters in Typ
+
 // this needs to be set to 1 for processing MML files
-#cluster_nr = { "2"; }
+#mml = { "0"; }
+// nr. of clusters in Typ
+// this is set to 1 for processing MML files
+#cluster_nr = { if [$mml = "0"] { "2"; } else { "1"; }}
 // symbols, take care, the spaces are sometimes (e.g. for '~')
 // needed for correct Prolog parsing
 #not_s = { "~ "; }
@@ -37,7 +40,12 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // this is for lookup of selectors for Abstractness property
 key "L" [Constructor[@kind='L']] `@nr` ;
 
+// lookup for local constants
 key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
+
+// lookup for propositions
+key "E" [Proposition|IterEquality|Now] `concat(@nr,":",@plevel)` ;
+
 
 // name of current article (upper case)
 #aname= { `string(/*/@aid)`; }
@@ -145,12 +153,50 @@ tpl [Adjective](#i,#pl) { if [@value="false"] { $non_s; } absc(#el=`.`);
     if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i, #pl=$pl); 
 		      ")"; } }
 
-tpl [Proposition] { $pname = `concat("p", @propnr, "_", @plevel)`;
-    "fof(";  $pname; ","; apply(#pl=`@plevel`); ",file("; $anamelc; 
+tpl addp(#pl) { if [string-length($pl)>0] { "_"; $pl; }}
+
+// concat number and level
+tpl propname(#n,#pl) { "p"; $n; addp(#pl=$pl); }
+
+tpl [Proposition] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
+    "fof(";  $pname; ","; 
+    if [following-sibling::*[1][name() = "By" or name() = "From" or
+      name() = "Proof"]] { "lemma-derived,"; } else { "unknown,"; }
+    apply(#pl=`@plevel`); ",file("; $anamelc; 
     ","; $pname; "),mptp_info("; `@propnr`; ",["; 
     `translate(@plevel,"_",",")`; "],proposition("; `@line`; ","; 
-    `@col`; ","; if [@nr] { `@nr`;} else { "0";} "))).\n"; }
+    `@col`; ","; if [@nr] { `@nr`;} else { "0";} ")"; 
+    if [following-sibling::*[1][name() = "By"]] { ",";
+       byinfer(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`); }
+    ")).\n"; }
 
+tpl [Now] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
+    "fof(";  $pname; ","; "lemma-derived,";
+    apply[BlockThesis/*](#pl=`@plevel`); ",file("; $anamelc; 
+    ","; $pname; "),mptp_info("; `@propnr`; ",["; 
+    `translate(@plevel,"_",",")`; "],proposition("; `@line`; ","; 
+    `@col`; ","; if [@nr] { `@nr`;} else { "0";} ")"; ")).\n"; }
+
+tpl [IterEquality] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
+    "fof(";  $pname; ","; "lemma-derived,";
+    "( "; apply[*[1]](#pl=`@plevel`); $eq_s; 
+    apply[IterStep[position() = last()]/*[1]](#pl=`@plevel`); " )";
+    apply[BlockThesis/*](#pl=`@plevel`); ",file("; $anamelc; 
+    ","; $pname; "),mptp_info("; `@propnr`; ",["; 
+    `translate(@plevel,"_",",")`; "],proposition("; `@line`; ","; 
+    `@col`; ","; if [@nr] { `@nr`;} else { "0";} ")"; ")).\n"; }
+
+
+// assumes By
+tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
+    "inference(mizar_by,[],[";
+    if [@linked] { 
+      if [$prnr>1] { propname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; }
+      if [Ref] { ","; } }
+    for-each [Ref] { refname(#el=`.`,#pl=$pl); 
+	if [not(position()=last())] { ","; } }
+    "])";
+}}
 
 tpl [Theorem] { "fof("; absr(#el=`.`); ",";
     $kword = { if [@kind="T"] { "theorem"; } else {
@@ -448,7 +494,7 @@ tpl [ArgTypes] { if [Typ] {
        "]: "; } }
 
 tpl pvar(#nr) { "B"; $nr; }
-tpl pconst(#nr,#pl) { "c"; $nr; "_"; absconst(#nr=$nr,#pl=$pl); }
+tpl pconst(#nr,#pl) { "c"; absconst(#nr=$nr,#pl=$pl); }
 tpl ploci(#nr) { "A"; $nr; }
 tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
 
@@ -553,15 +599,11 @@ tpl argsinsert(#nr,#nr1,#arg,#lim) {
 // rpint @constnr "_" $pl
 tpl absconst(#nr,#pl) {
     if [key("C",$pl)[@nr=$nr]] { `key("C",$pl)[@nr=$nr]/@constnr`; 
-			       if [string-length($pl)>0] { "_"; $pl; }}
+				 addp(#pl=$pl); }
     else { if [key("C",$pl)[@nr < $nr]] { 
       for-each [key("C",$pl)[@nr < $nr]] { if [position() = last()] {
-      $n1 = { if [(name() = "Reconsider")] { 
-	      `count(Var|LocusVar|Const|InfConst|Num|Func|PrivFunc|
-		     Fraenkel|QuaTrm|It|ErrorTrm)`; }
-	      else { `count(Typ)`; } }
-      if [@nr + $n1 >= $nr] { `@nr + @constnr - $nr`; 
-			 if [string-length($pl)>0] { "_"; $pl; }} 
+         $n1 = getcnr(#el=`.`); $lastnr = `@nr + $n1 - 1`;
+      if [$lastnr >= $nr] { `@constnr + ($nr - @nr)`; addp(#pl=$pl); }
 	 else { $fail;}}}}
     else { if [string-length($pl)>0] { 
 	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
@@ -572,3 +614,37 @@ tpl absconst(#nr,#pl) {
 
 tpl mjoin(#el,#s) {
  for-each [$el] { `string(.)`; if [not(position()=last())] { $s; } }}
+
+// count local constants introduced in the current element -
+// this asssumes Let | Given | TakeAsVar | Consider | Set | Reconsider
+tpl getcnr(#el) { for-each [$el] {
+    if [(name() = "Reconsider")] { `count(Var|LocusVar|Const|InfConst|
+		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|ErrorTrm)`; }
+    else { `count(Typ)`; } }}
+
+
+tpl refname(#el,#pl) { for-each [$el] {
+    if [(@kind = "T") or (@kind = "D")] { absr(#el=$el); }
+    else { privname(#nr=`@nr`,#pl=$pl); } }}
+
+tpl privname(#nr,#pl) {
+      $k1 = `concat($nr,":",$pl)`;
+      if [key("E",$k1)] { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
+      else { if [string-length($pl)>0] { 
+	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
+	 $pl1= mjoin(#el=$ss,#s="_");
+//	 "bb"; $pl1; "bb";
+	 privname(#nr=$nr,#pl=$pl1); } else { $fail;}}
+ }
+
+
+tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality]; }
+	  else { apply; } }
+
+
+
+
+
+
+
+ 
