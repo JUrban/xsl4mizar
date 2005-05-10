@@ -46,6 +46,10 @@ key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
 // lookup for propositions
 key "E" [Proposition|IterEquality|Now] `concat(@nr,":",@plevel)` ;
 
+// lookup for scheme functors and predicates
+key "f" [SchemeFuncDecl] `concat(@nr,":",@plevel)` ;
+key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
+
 
 // name of current article (upper case)
 #aname= { `string(/*/@aid)`; }
@@ -82,7 +86,8 @@ tpl [Pred](#i,#pl) {
 	    "( "; apply[*[1]](#i=$i,#pl=$pl); $eq_s; 
 	    apply[*[2]](#i=$i,#pl=$pl); " )"; }
 	 else {
-          if [@kind='P'] { "p"; `@nr`; } else { absc(#el=`.`); }
+          if [@kind='P'] { sch_fpname(#k="p",#nr=`@nr`,#pl=$pl); }
+	  else { absc(#el=`.`); }
           if [count(*)>0] { "("; 
 	     ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; }
 	 } }}
@@ -103,7 +108,8 @@ tpl [Const](#i,#pl) { pconst(#nr=`@nr`,#pl=$pl); }
 tpl [InfConst](#i,#pl) { $fail; }
 tpl [Num](#i,#pl) {  `@nr`; }
 tpl [Func](#i,#pl) { 
-    if [@kind='F'] { "f"; `@nr`; }  else { absc(#el=`.`); }
+    if [@kind='F'] { sch_fpname(#k="f",#nr=`@nr`,#pl=$pl); }
+    else { absc(#el=`.`); }
     if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; } }
 
 tpl [PrivFunc](#i,#pl) { apply[*[position() = 1]](#i=$i,#pl=$pl); }
@@ -156,7 +162,7 @@ tpl [Adjective](#i,#pl) { if [@value="false"] { $non_s; } absc(#el=`.`);
 tpl addp(#pl) { if [string-length($pl)>0] { "_"; $pl; }}
 
 // concat number and level
-tpl propname(#n,#pl) { "p"; $n; addp(#pl=$pl); }
+tpl propname(#n,#pl) { "e"; $n; addp(#pl=$pl); }
 
 tpl [Proposition] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; 
@@ -197,6 +203,55 @@ tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
 	if [not(position()=last())] { ","; } }
     "])";
 }}
+
+// uncomment apply[Proposition] if not used explicit descent
+tpl [Let|Given|TakeAsVar|Consider|Set] { $cnr = `@constnr`; $pl=`@plevel`; 
+    $rnm = `translate(name(),$ucletters,$lcletters)`;
+    for-each [Typ] {
+      $nr = `$cnr + position() - 1`; $nm =  { "c"; $nr; addp(#pl=$pl); }
+      $levl = { ",["; `translate($pl,"_",",")`; "],";}
+      "fof(dt_";  $nm; ",sort,"; $srt_s; "("; $nm; ",";
+      apply[.](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
+      "),mptp_info("; $nr; $levl; "constant("; $rnm; ",type))).\n"; 
+      if [($rnm = "takeasvar") or ($rnm = "set")] {
+	 "fof(de_";  $nm; ",definition,"; "( "; $nm; $eq_s; 
+	 apply[../*[not(name() = "Typ")]](#pl=$pl); " )";
+	 ",file("; $anamelc; ","; $nm; "),mptp_info("; $nr; $levl;
+	 "constant("; $rnm; ",equality))).\n"; } 
+    }
+//    apply[Proposition];
+}
+
+tpl [Reconsider] { $cnr = `@constnr`; $pl=`@plevel`; 
+    for-each [Var|LocusVar|Const|InfConst|Num|Func|PrivFunc|Fraenkel|
+	      QuaTrm|It|ErrorTrm] {
+      $nr = `$cnr + position() - 1`; $nm =  { "c"; $nr; addp(#pl=$pl); }
+      $levl = { ",["; `translate($pl,"_",",")`; "],";}
+      "fof(dt_";  $nm; ",sort,"; $srt_s; "("; $nm; ",";
+      apply[../Typ](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
+      "),mptp_info("; $nr; $levl; "constant(reconsider,type))).\n";
+      "fof(de_";  $nm; ",definition,"; "( "; $nm; $eq_s; 
+      apply[.](#pl=$pl); " )"; ",file("; $anamelc; ","; $nm; "),mptp_info("; 
+      $nr; $levl; "constant(reconsider,equality))).\n";
+}}
+
+// The argument types of scheme functors are forgotten by Mizar
+// so we do not use them either and use $true
+tpl [SchemeFuncDecl] { $pl=`@plevel`; 
+    $nm =  { "f"; `@nr`; addp(#pl=$pl); }
+    $levl = { ",["; `translate($pl,"_",",")`; "],";}
+    $l = `count(ArgTypes/Typ)`;
+    "fof(dt_";  $nm; ",sort,"; 
+    if [$l > 0] { 
+       "!["; for-each [ArgTypes/Typ] { 
+		      ploci(#nr=`position()`); " : $true"; 
+		      if [not(position()=last())] { ","; } }
+       "]: "; }
+    $srt_s; "("; $nm;
+    if [$l > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+    ","; apply[Typ](#pl=$pl); ")";
+    ",file("; $anamelc; ","; $nm; "),mptp_info("; `@nr`; $levl;
+    "functor(scheme,type))).\n"; }
 
 tpl [Theorem] { "fof("; absr(#el=`.`); ",";
     $kword = { if [@kind="T"] { "theorem"; } else {
@@ -240,8 +295,24 @@ tpl [Constructor] {
       absc1(#el=`.`); "),mptp_info("; `@nr`; ","; $lkind; ",ctype)).\n"; }
     apply[Properties](#el=`.`);
     if [@kind='G'] { free_prop(#el=`.`); }
+    if [(@kind='M') or (@kind='L')] {	 existence(#el=`.`); }
     if [@redefnr > 0] { redefinition(#el=`.`); }
 }
+
+tpl existence(#el) { for-each [$el] {
+      $lkind = `translate(@kind,$ucletters,$lcletters)`;
+      "fof(existence_"; absc1(#el=`.`); ",lemma-derived,";
+      apply[ArgTypes]; 
+      $l = `1 + count(ArgTypes/Typ)`;
+      "? ["; ploci(#nr=$l); " : "; "$true"; "]: "; 
+      $srt_s; "("; ploci(#nr=$l); ","; absc1(#el=`.`); 
+      if [$l > 1] { "("; 
+           arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+      ")";
+      ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+      absc1(#el=`.`); "),mptp_info("; `@nr`; ","; $lkind; 
+      ",existence)).\n"; 
+}}
 
 tpl redefinition(#el) { 
     $lkind = `translate($el/@kind,$ucletters,$lcletters)`;
@@ -627,18 +698,32 @@ tpl refname(#el,#pl) { for-each [$el] {
     if [(@kind = "T") or (@kind = "D")] { absr(#el=$el); }
     else { privname(#nr=`@nr`,#pl=$pl); } }}
 
+// name of private reference - name of the proposition
 tpl privname(#nr,#pl) {
       $k1 = `concat($nr,":",$pl)`;
       if [key("E",$k1)] { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
       else { if [string-length($pl)>0] { 
 	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
 	 $pl1= mjoin(#el=$ss,#s="_");
-//	 "bb"; $pl1; "bb";
 	 privname(#nr=$nr,#pl=$pl1); } else { $fail;}}
  }
 
+// name of scheme functor (#k='f') or predicate (#k='p')
+tpl sch_fpname(#k,#nr,#pl) {
+      $k1 = `concat($nr,":",$pl)`;
+      if [key($k,$k1)] { $k; `key($k,$k1)/@nr`; addp(#pl=$pl); }
+      else { if [string-length($pl)>0] { 
+	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
+	 $pl1= mjoin(#el=$ss,#s="_");
+	 sch_fpname(#k=$k,#nr=$nr,#pl=$pl1); } else { $fail;}}
+ }
 
-tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality]; }
+
+
+
+tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
+	     //Let|//Given|//TakeAsVar|//Consider|//Set|
+	     //Reconsider|//SchemeFuncDecl]; }
 	  else { apply; } }
 
 
