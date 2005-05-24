@@ -252,6 +252,7 @@ tpl [Assume/Proposition | Given/Proposition | Consider/Proposition |
     UnknownCorrCond/Proposition | Coherence/Proposition | 
     Compatibility/Proposition | Consistency/Proposition | 
     Existence/Proposition | Uniqueness/Proposition | 
+    SchemePremises/Proposition | 
     Correctness/Proposition | JustifiedProperty/Proposition](#s) {
     $s0 =  prevprops(#el=`..`); 
     $s1 =  `1 + $s0 + count(preceding-sibling::Proposition)`; //in this item
@@ -284,6 +285,7 @@ tpl prevprops(#el) { for-each [$el] {
 	or (name() = "UnknownCorrCond") or (name() = "Coherence") 
 	or (name() = "Compatibility") or (name() = "Consistency") 
 	or (name() = "Existence") or (name() = "Uniqueness")
+	or (name() = "SchemePremises")
 	or (name() = "Correctness") or (name() = "JustifiedProperty")]/*[(name() = "Now") 
 	or (name() = "Proposition") or (name() = "IterEquality")]) +
      count(preceding-sibling::*[(name() = "Now") or (name() = "Proposition") 
