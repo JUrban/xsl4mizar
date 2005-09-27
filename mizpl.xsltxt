@@ -67,8 +67,9 @@ tpl [For](#i,#pl,#k) {
   "!["; pvar(#nr=$j); ": "; apply[*[1]](#i=$j,#pl=$pl); "]: "; 
   apply[*[2]](#i=$j,#pl=$pl); }
 
+// need to put brackets around PrivPred here - may contain For
 tpl [Not](#i,#pl) { $not_s; 
-    if [For] { "("; apply[*[1]](#i=$i,#pl=$pl); ")"; } 
+    if [For|PrivPred] { "("; apply[*[1]](#i=$i,#pl=$pl); ")"; } 
     else { apply[*[1]](#i=$i,#pl=$pl); }}
 tpl [And](#i,#pl) { "( "; 
     ilist(#separ=$and_s, #elems=`*`, #i=$i,#pl=$pl); " )"; }
