@@ -712,7 +712,8 @@ tpl [Article] {
 
 // processing of imported documents
 tpl [Theorem] { <b { "theorem "; } 
-    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br; apply; <br; <br; }
+    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br; 
+    if [Verum] { <b { "canceled; "; } } else { apply; } <br; <br; }
 
 // now used only when #mml=1 - in article the block has them
 tpl [ArgTypes] { if [*] { <b { "let "; } ploci(#nr="1");

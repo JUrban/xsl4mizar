@@ -2278,7 +2278,16 @@
       <xsl:with-param name="k" select="@kind"/>
     </xsl:call-template>
     <xsl:element name="br"/>
-    <xsl:apply-templates/>
+    <xsl:choose>
+      <xsl:when test="Verum">
+        <xsl:element name="b">
+          <xsl:text>canceled; </xsl:text>
+        </xsl:element>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:apply-templates/>
+      </xsl:otherwise>
+    </xsl:choose>
     <xsl:element name="br"/>
     <xsl:element name="br"/>
   </xsl:template>
