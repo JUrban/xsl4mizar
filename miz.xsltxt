@@ -123,6 +123,8 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 #labcolor = { "Green"; }
 
+#commentcolor = { "Red"; }
+
 // number of parenthesis colors (see the stylesheet in the bottom)
 #pcolors_nr = { "6"; }
 
@@ -244,8 +246,8 @@ tpl [Ref] { if [not(@articlenr)] {  plab(#nr=`@nr`); }
             else { getref(#k=`@kind`, #anr=`@articlenr`, #nr=`@nr`);} }
 tpl [ErrorInf] { "errorinference;"; <br; }
 tpl [IterStep/ErrorInf] { "errorinference"; }
-tpl [SkippedProof] { "skippedproof;"; <br; }
-tpl [IterStep/SkippedProof] { "skippedproof"; }
+tpl [SkippedProof] { <b { "@proof .. end;"; } <br; }
+tpl [IterStep/SkippedProof] { <b { "@proof .. end;"; } }
 
 //   Term, elIterStep+
 tpl [IterEquality] {
@@ -369,13 +371,21 @@ tpl [Reservation/Typ] { ""; }
 tpl [Definiens/*] { ""; }
 
 tpl [JustifiedTheorem] { <b { "theorem "; } 
-    for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } <br; 
+    for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } 
+    $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
+    pcomment(#str=`concat($aname,":",$nr1)`);
     if [Proof] { <div { @class="add"; apply[*[1]/*[1]]; } apply[*[2]]; }
-    else { <div { @class="add"; apply[*[1]/*[1]]; " "; apply[*[2]]; } } }
+    else { <div { @class="add"; 
+        if [Proposition/Verum] { <b { "canceled; "; } }
+	else { apply[*[1]/*[1]]; " "; apply[*[2]]; } } } }
 
 tpl [DefTheorem] { <b { "deftheorem "; } 
-    for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } <br; 
-    <div { @class="add"; apply[*[1]/*[1]];  ";"; }  }
+    for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } 
+    $nr1 = `1+count(preceding-sibling::DefTheorem)`;
+    pcomment(#str=`concat($aname,":def ",$nr1)`);
+    <div { @class="add"; 
+         if [Proposition/Verum] { <b { "canceled; "; } }
+	 else { apply[*[1]/*[1]];  ";"; }  } }
 
 
 //   Property, elProposition, Justification
@@ -641,6 +651,7 @@ tpl pvar(#nr) { <font { @color=$varcolor; "b"; <sub { $nr;} } }
 tpl pconst(#nr) { <font { @color=$constcolor; "c"; <sub { $nr;} } }
 tpl ploci(#nr) { <font { @color=$locicolor; "a"; <sub { $nr;} } }
 tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
+tpl pcomment(#str) { <i { <font {@color=$commentcolor; ":: "; $str; <br;}}}
 
 // theorem, definition and scheme references
 // add the reference's href, $c tells if it is from current article
@@ -693,7 +704,8 @@ tpl refkind(#kind) {
 
 
 // separate top-level items by additional newline
-tpl [Article] { ":: "; `@aid`; "  semantic presentation"; <br; <br;
+tpl [Article] { 
+    pcomment(#str=`concat($aname, "  semantic presentation")`); <br;
     for-each [*] { apply[.]; 
       if [(not(name()='Definiens')) and (not(name()='Reservation')) 
           and (not(name()='Pattern'))] { <br;} } }

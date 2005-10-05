@@ -145,6 +145,9 @@
   <xsl:param name="labcolor">
     <xsl:text>Green</xsl:text>
   </xsl:param>
+  <xsl:param name="commentcolor">
+    <xsl:text>Red</xsl:text>
+  </xsl:param>
   <!-- number of parenthesis colors (see the stylesheet in the bottom) -->
   <xsl:param name="pcolors_nr">
     <xsl:text>6</xsl:text>
@@ -687,12 +690,16 @@
   </xsl:template>
 
   <xsl:template match="SkippedProof">
-    <xsl:text>skippedproof;</xsl:text>
+    <xsl:element name="b">
+      <xsl:text>@proof .. end;</xsl:text>
+    </xsl:element>
     <xsl:element name="br"/>
   </xsl:template>
 
   <xsl:template match="IterStep/SkippedProof">
-    <xsl:text>skippedproof</xsl:text>
+    <xsl:element name="b">
+      <xsl:text>@proof .. end;</xsl:text>
+    </xsl:element>
   </xsl:template>
 
   <!-- Term, elIterStep+ -->
@@ -1169,7 +1176,10 @@
       </xsl:call-template>
       <xsl:text>: </xsl:text>
     </xsl:for-each>
-    <xsl:element name="br"/>
+    <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat($aname,&quot;:&quot;,$nr1)"/>
+    </xsl:call-template>
     <xsl:choose>
       <xsl:when test="Proof">
         <xsl:element name="div">
@@ -1185,9 +1195,18 @@
           <xsl:attribute name="class">
             <xsl:text>add</xsl:text>
           </xsl:attribute>
-          <xsl:apply-templates select="*[1]/*[1]"/>
-          <xsl:text> </xsl:text>
-          <xsl:apply-templates select="*[2]"/>
+          <xsl:choose>
+            <xsl:when test="Proposition/Verum">
+              <xsl:element name="b">
+                <xsl:text>canceled; </xsl:text>
+              </xsl:element>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:apply-templates select="*[1]/*[1]"/>
+              <xsl:text> </xsl:text>
+              <xsl:apply-templates select="*[2]"/>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
@@ -1203,13 +1222,25 @@
       </xsl:call-template>
       <xsl:text>: </xsl:text>
     </xsl:for-each>
-    <xsl:element name="br"/>
+    <xsl:variable name="nr1" select="1+count(preceding-sibling::DefTheorem)"/>
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat($aname,&quot;:def &quot;,$nr1)"/>
+    </xsl:call-template>
     <xsl:element name="div">
       <xsl:attribute name="class">
         <xsl:text>add</xsl:text>
       </xsl:attribute>
-      <xsl:apply-templates select="*[1]/*[1]"/>
-      <xsl:text>;</xsl:text>
+      <xsl:choose>
+        <xsl:when test="Proposition/Verum">
+          <xsl:element name="b">
+            <xsl:text>canceled; </xsl:text>
+          </xsl:element>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="*[1]/*[1]"/>
+          <xsl:text>;</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:element>
   </xsl:template>
 
@@ -2053,6 +2084,20 @@
     </xsl:element>
   </xsl:template>
 
+  <xsl:template name="pcomment">
+    <xsl:param name="str"/>
+    <xsl:element name="i">
+      <xsl:element name="font">
+        <xsl:attribute name="color">
+          <xsl:value-of select="$commentcolor"/>
+        </xsl:attribute>
+        <xsl:text>:: </xsl:text>
+        <xsl:value-of select="$str"/>
+        <xsl:element name="br"/>
+      </xsl:element>
+    </xsl:element>
+  </xsl:template>
+
   <!-- theorem, definition and scheme references -->
   <!-- add the reference's href, $c tells if it is from current article -->
   <xsl:template name="mkref">
@@ -2209,10 +2254,9 @@
 
   <!-- separate top-level items by additional newline -->
   <xsl:template match="Article">
-    <xsl:text>:: </xsl:text>
-    <xsl:value-of select="@aid"/>
-    <xsl:text>  semantic presentation</xsl:text>
-    <xsl:element name="br"/>
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat($aname, &quot;  semantic presentation&quot;)"/>
+    </xsl:call-template>
     <xsl:element name="br"/>
     <xsl:for-each select="*">
       <xsl:apply-templates select="."/>
