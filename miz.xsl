@@ -1213,6 +1213,24 @@
   </xsl:template>
 
   <xsl:template match="DefTheorem">
+    <xsl:if test="@constrkind">
+      <xsl:call-template name="pcomment0">
+        <xsl:with-param name="str">
+          <xsl:text>defines </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
+      <xsl:call-template name="abs">
+        <xsl:with-param name="k" select="@constrkind"/>
+        <xsl:with-param name="nr" select="@constrnr"/>
+        <xsl:with-param name="sym">
+          <xsl:call-template name="abs1">
+            <xsl:with-param name="k" select="@constrkind"/>
+            <xsl:with-param name="nr" select="@constrnr"/>
+          </xsl:call-template>
+        </xsl:with-param>
+      </xsl:call-template>
+      <xsl:element name="br"/>
+    </xsl:if>
     <xsl:element name="b">
       <xsl:text>deftheorem </xsl:text>
     </xsl:element>
@@ -2084,7 +2102,7 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template name="pcomment">
+  <xsl:template name="pcomment0">
     <xsl:param name="str"/>
     <xsl:element name="i">
       <xsl:element name="font">
@@ -2093,9 +2111,16 @@
         </xsl:attribute>
         <xsl:text>:: </xsl:text>
         <xsl:value-of select="$str"/>
-        <xsl:element name="br"/>
       </xsl:element>
     </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="pcomment">
+    <xsl:param name="str"/>
+    <xsl:call-template name="pcomment0">
+      <xsl:with-param name="str" select="$str"/>
+    </xsl:call-template>
+    <xsl:element name="br"/>
   </xsl:template>
 
   <!-- theorem, definition and scheme references -->

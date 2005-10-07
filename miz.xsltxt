@@ -379,10 +379,14 @@ tpl [JustifiedTheorem] { <b { "theorem "; }
         if [Proposition/Verum] { <b { "canceled; "; } }
 	else { apply[*[1]/*[1]]; " "; apply[*[2]]; } } } }
 
-tpl [DefTheorem] { <b { "deftheorem "; } 
+tpl [DefTheorem] { 
+    if [@constrkind] { pcomment0(#str="defines "); 
+		abs(#k=`@constrkind`, #nr=`@constrnr`, 
+                    #sym=abs1(#k=`@constrkind`, #nr=`@constrnr`)); <br;}
+    <b { "deftheorem "; } 
     for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } 
     $nr1 = `1+count(preceding-sibling::DefTheorem)`;
-    pcomment(#str=`concat($aname,":def ",$nr1)`);
+    pcomment(#str=`concat($aname,":def ",$nr1)`);     
     <div { @class="add"; 
          if [Proposition/Verum] { <b { "canceled; "; } }
 	 else { apply[*[1]/*[1]];  ";"; }  } }
@@ -651,7 +655,8 @@ tpl pvar(#nr) { <font { @color=$varcolor; "b"; <sub { $nr;} } }
 tpl pconst(#nr) { <font { @color=$constcolor; "c"; <sub { $nr;} } }
 tpl ploci(#nr) { <font { @color=$locicolor; "a"; <sub { $nr;} } }
 tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
-tpl pcomment(#str) { <i { <font {@color=$commentcolor; ":: "; $str; <br;}}}
+tpl pcomment0(#str) { <i { <font {@color=$commentcolor; ":: "; $str;}}}
+tpl pcomment(#str) { pcomment0(#str=$str); <br;}
 
 // theorem, definition and scheme references
 // add the reference's href, $c tells if it is from current article
