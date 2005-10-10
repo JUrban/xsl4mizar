@@ -34,6 +34,7 @@
   <xsl:key name="T" match="/Theorems/Theorem[@kind=&apos;T&apos;]" use="concat(@articlenr,&apos;:&apos;,@nr)"/>
   <xsl:key name="D" match="/Theorems/Theorem[@kind=&apos;D&apos;]" use="concat(@articlenr,&apos;:&apos;,@nr)"/>
   <xsl:key name="S" match="/Schemes/Scheme" use="concat(@articlenr,&apos;:&apos;,@nr)"/>
+  <xsl:key name="DF" match="Definiens" use="@relnr"/>
   <!-- patterns are slightly tricky, since a predicate pattern -->
   <!-- may be linked to an attribute constructor; hence the -->
   <!-- indexing is done according to @constrkind and not @kind -->
@@ -116,6 +117,10 @@
   <!-- .dcx file with vocabulary -->
   <xsl:param name="vocs">
     <xsl:value-of select="concat($anamelc, &apos;.dcx&apos;)"/>
+  </xsl:param>
+  <!-- .dfs file with imported definientia -->
+  <xsl:param name="dfs">
+    <xsl:value-of select="concat($anamelc, &apos;.dfs&apos;)"/>
   </xsl:param>
   <!-- mmlquery address -->
   <xsl:param name="mmlq">
@@ -747,6 +752,9 @@
       <xsl:with-param name="elems" select="*"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
+    <xsl:call-template name="try_th_exps">
+      <xsl:with-param name="el" select="."/>
+    </xsl:call-template>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -764,6 +772,9 @@
       <xsl:with-param name="elems" select="*"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
+    <xsl:call-template name="try_th_exps">
+      <xsl:with-param name="el" select="."/>
+    </xsl:call-template>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -794,6 +805,9 @@
       <xsl:with-param name="elems" select="Proposition"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
+    <xsl:call-template name="try_th_exps">
+      <xsl:with-param name="el" select="."/>
+    </xsl:call-template>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -803,6 +817,9 @@
     </xsl:element>
     <xsl:apply-templates/>
     <xsl:text>;</xsl:text>
+    <xsl:call-template name="try_th_exps">
+      <xsl:with-param name="el" select="."/>
+    </xsl:call-template>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -816,6 +833,9 @@
     <xsl:text> = </xsl:text>
     <xsl:apply-templates select="*[2]"/>
     <xsl:text>;</xsl:text>
+    <xsl:call-template name="try_th_exps">
+      <xsl:with-param name="el" select="."/>
+    </xsl:call-template>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -979,11 +999,66 @@
   </xsl:template>
 
   <!-- Thesis after skeleton item, with definiens numbers -->
+  <!-- forbid as default -->
   <xsl:template match="Thesis"/>
 
-  <!-- "thesis: "; apply[*[1]]; " defs("; -->
-  <!-- list(#separ=",", #elems=`ThesisExpansions/Pair[@x]`); -->
-  <!-- ");"; <br; } -->
+  <xsl:template name="try_th_exps">
+    <xsl:param name="el"/>
+    <xsl:for-each select="$el">
+      <xsl:apply-templates select="./following-sibling::*[1][name()=&quot;Thesis&quot;]/ThesisExpansions"/>
+    </xsl:for-each>
+  </xsl:template>
+
+  <xsl:template match="ThesisExpansions">
+    <xsl:if test="Pair">
+      <xsl:text> </xsl:text>
+      <xsl:call-template name="pcomment0">
+        <xsl:with-param name="str">
+          <xsl:text>uses </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
+      <xsl:call-template name="list">
+        <xsl:with-param name="separ">
+          <xsl:text>,</xsl:text>
+        </xsl:with-param>
+        <xsl:with-param name="elems" select="Pair[@x]"/>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template match="ThesisExpansions/Pair">
+    <xsl:variable name="x" select="@x"/>
+    <xsl:choose>
+      <xsl:when test="key(&apos;DF&apos;,$x)">
+        <xsl:for-each select="key(&apos;DF&apos;,$x)">
+          <xsl:call-template name="mkref">
+            <xsl:with-param name="aid" select="@aid"/>
+            <xsl:with-param name="nr" select="@defnr"/>
+            <xsl:with-param name="k">
+              <xsl:text>D</xsl:text>
+            </xsl:with-param>
+            <xsl:with-param name="c">
+              <xsl:text>1</xsl:text>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:for-each select="document($dfs,/)">
+          <xsl:for-each select="key(&apos;DF&apos;,$x)">
+            <xsl:call-template name="mkref">
+              <xsl:with-param name="aid" select="@aid"/>
+              <xsl:with-param name="nr" select="@defnr"/>
+              <xsl:with-param name="k">
+                <xsl:text>D</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+          </xsl:for-each>
+        </xsl:for-each>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <!-- Registrations -->
   <xsl:template match="RCluster">
     <xsl:if test="$mml=&quot;1&quot;">

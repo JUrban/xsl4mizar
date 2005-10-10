@@ -40,6 +40,7 @@ key "G" [Constructor[@kind='G']] `@relnr` ;
 key "T" [/Theorems/Theorem[@kind='T']] `concat(@articlenr,':',@nr)`;
 key "D" [/Theorems/Theorem[@kind='D']] `concat(@articlenr,':',@nr)`;
 key "S" [/Schemes/Scheme] `concat(@articlenr,':',@nr)`;
+key "DF" [Definiens] `@relnr` ;
 
 // patterns are slightly tricky, since a predicate pattern
 // may be linked to an attribute constructor; hence the
@@ -100,6 +101,8 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // .dcx file with vocabulary
 #vocs=  { `concat($anamelc, '.dcx')`; }
 
+// .dfs file with imported definientia
+#dfs=  { `concat($anamelc, '.dfs')`; }
 
 
 // mmlquery address
@@ -259,19 +262,23 @@ tpl [IterStep] { apply;  }
 // Skeleton steps
 tpl [Let] { $j=`@nr`; <b { "let "; } pconst(#nr=$j);
              " be "; 
-            jlist(#j=$j, #sep1=", ", #sep2=" be ", #elems=`*`); ";"; <br; }
+            jlist(#j=$j, #sep1=", ", #sep2=" be ", #elems=`*`); 
+	    ";"; try_th_exps(#el=`.`); <br; }
 
 tpl [Assume] { <b { "assume "; }  if [count(*)>1] { "that "; }
 	       nlist(#separ="and ", #elems=`*`);
-               ";"; <br; }
+               ";"; try_th_exps(#el=`.`); <br; } 
+
 tpl [Given] { $j=`@nr`; <b {"given ";} pconst(#nr=$j);
               " being "; 
               jlist(#j=$j, #sep1=", ", #sep2=" being ", #elems=`Typ`); 
 	      " such that ";
               nlist(#separ="and ",#elems=`Proposition`); 
-              ";"; <br; }
-tpl [Take] { <b { "take ";} apply; ";"; <br; }
-tpl [TakeAsVar] { <b { "take "; } pconst(#nr=`@nr`); " = ";   apply[*[2]]; ";"; <br; }
+              ";"; try_th_exps(#el=`.`); <br; }
+
+tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(#el=`.`); <br; }
+tpl [TakeAsVar] { <b { "take "; } pconst(#nr=`@nr`); " = ";   apply[*[2]]; 
+		  ";"; try_th_exps(#el=`.`); <br; }
 tpl [Conclusion] { <b { "thus "; } apply; }
 tpl [Case] { <b { "case "; } if [count(*)>1] { "that ";}
              nlist(#separ="and ", #elems=`*`); ";"; <br; }
@@ -305,9 +312,25 @@ tpl [DefPred] { <b { "defpred";} " S[";
 	        apply[*[2]]; ";"; <br; }
 
 // Thesis after skeleton item, with definiens numbers
-tpl [Thesis] { } // "thesis: "; apply[*[1]]; " defs("; 
-               // list(#separ=",", #elems=`ThesisExpansions/Pair[@x]`);
-	       // ");"; <br; }
+// forbid as default
+tpl [Thesis] { }
+
+tpl try_th_exps(#el) { for-each [$el] {
+    apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; } }
+
+tpl [ThesisExpansions] { if [Pair] {
+    " "; pcomment0(#str="uses "); 
+    list(#separ=",", #elems=`Pair[@x]`); } }
+
+tpl [ThesisExpansions/Pair] { 
+   $x= `@x`;
+   if [key('DF',$x)] { 
+      for-each [key('DF',$x)] { 
+	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D", #c="1"); }}
+   else { 
+      for-each [document($dfs,/)] { 
+            for-each [key('DF',$x)] { 
+	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D"); } }}}
 
 // Registrations
 tpl [RCluster] { if [$mml="1"] { apply[ArgTypes]; }
