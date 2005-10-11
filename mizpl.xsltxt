@@ -64,7 +64,7 @@ key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
 // empty list can be after ':' for type 'set'
 tpl [For](#i,#pl,#k) { 
   $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
-  "!["; pvar(#nr=$j); ": "; apply[*[1]](#i=$j,#pl=$pl); "]: "; 
+  "!["; pvar(#nr=$j); ": "; apply[Typ[1]](#i=$j,#pl=$pl); "]: "; 
   apply[*[2]](#i=$j,#pl=$pl); }
 
 // need to put brackets around PrivPred here - may contain For
