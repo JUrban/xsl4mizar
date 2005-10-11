@@ -37,6 +37,7 @@ key "G" [Constructor[@kind='G']] `@relnr` ;
 key "T" [/Theorems/Theorem[@kind='T']] `concat(@articlenr,':',@nr)`;
 key "D" [/Theorems/Theorem[@kind='D']] `concat(@articlenr,':',@nr)`;
 key "S" [/Schemes/Scheme] `concat(@articlenr,':',@nr)`;
+key "DF" [Definiens] `@relnr` ;
 
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
@@ -58,6 +59,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // .esh file with imported schemes
 #schms=  { `concat($anamelc, '.esh')`; }
+
+// .dfs file with imported definientia
+#dfs=  { `concat($anamelc, '.dfs')`; }
 
 // tpl [Const](#s) {  <Const { copy-of `@*`; @plevel=$s; }}
 
@@ -91,6 +95,19 @@ tpl [From](#s){ <From { copy-of `@*`;
 tpl [Ref](#s) { if [not(@articlenr)] { copy { apply [@*](#s=$s); apply(#s=$s); } }
             else { <Ref {  copy-of `@*`;
     getref(#k=`@kind`, #anr=`@articlenr`, #nr=`@nr`);} }}
+
+tpl [ThesisExpansions/Pair] { 
+   $x= `@x`;
+   <Ref {
+   if [key('DF',$x)] { 
+      for-each [key('DF',$x)] { 
+	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D", #c="1"); }}
+   else { 
+      for-each [document($dfs,/)] { 
+         if [key('DF',$x)] { 
+            for-each [key('DF',$x)] { 
+	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D"); } }
+	 else { "errorexpansion"; }}}}}
 
 // add absolute numbers to these (they are kind-dependent)
 tpl [Theorem|Constructor|Pattern](#s) { $n=`name()`; <$n { copy-of `@*`;
@@ -176,7 +193,7 @@ tpl abs(#k,#nr,#r) {
 // add the reference's href, $c tells if it is from current article
 tpl mkref(#aid,#nr,#k,#c) { 
       @kind=`$k`; // @kind=refkind(#kind=$k);
-      @aid=`@aid`; @absnr=`@nr`; }
+      @aid=`$aid`; @absnr=`$nr`; }
 
 tpl getschref(#anr,#nr) {
     if [$anr>0] { for-each [document($schms,/)] {
