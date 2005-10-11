@@ -101,12 +101,14 @@ tpl [ThesisExpansions/Pair] {
    <Ref {
    if [key('DF',$x)] { 
       for-each [key('DF',$x)] { 
+	       @nr=`@defnr`;
 	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D", #c="1"); }}
    else { 
       for-each [document($dfs,/)] { 
          if [key('DF',$x)] { 
             for-each [key('DF',$x)] { 
-	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D"); } }
+		     @nr=`@defnr`;
+		     mkref(#aid=`@aid`, #nr=`@defnr`, #k="D"); } }
 	 else { "errorexpansion"; }}}}}
 
 // add absolute numbers to these (they are kind-dependent)
