@@ -175,6 +175,8 @@ tpl [Proposition] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
     `@col`; ","; if [@nr] { `@nr`;} else { "0";} ")"; 
     if [following-sibling::*[1][name() = "By"]] { ",";
        byinfer(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`); }
+    if [following-sibling::*[1][name() = "From"]] { ",";
+       frominfer(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`); }
     ")).\n"; }
 
 tpl [Now] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
@@ -200,6 +202,15 @@ tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
     if [@linked] { 
       if [$prnr>1] { propname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; }
       if [Ref] { ","; } }
+    for-each [Ref] { refname(#el=`.`,#pl=$pl); 
+	if [not(position()=last())] { ","; } }
+    "])";
+}}
+
+// assumes From
+tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
+    "inference(mizar_from,[],[";
+    absr(#el=`.`); if [Ref] { ","; }
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
     "])";
@@ -592,6 +603,7 @@ tpl absc1(#el) { for-each [$el] {
 } } }
 
 // absolute reference names (use $fail for debugging absnrs)
+// also used for From to get the scheme name
 tpl absr(#el) { for-each [$el] {
     if [@nr and @aid and @kind] {
      `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
