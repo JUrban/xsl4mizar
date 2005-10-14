@@ -178,6 +178,8 @@ tpl [Proposition] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
        byinfer(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`); }
     if [following-sibling::*[1][name() = "From"]] { ",";
        frominfer(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`); }
+    if [following-sibling::*[1][name() = "Proof"]] { ",";
+       proofinfer(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`); }
     ")).\n"; }
 
 tpl [Now] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
@@ -199,13 +201,15 @@ tpl [IterEquality] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
 
 // assumes By
 tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
-    "inference(mizar_by,[],[";
+    "inference(mizar_by,[],["; byrefs(#el=`.`,#pl=$pl,#prnr=$prnr); "])"; }}
+
+tpl byrefs(#el,#pl,#prnr) { for-each [$el] {
     if [@linked] { 
       if [$prnr>1] { propname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; }
       if [Ref] { ","; } }
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
-    "])";
+
 }}
 
 // assumes From, introduces a unique name for this scheme instance
@@ -222,6 +226,28 @@ tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
 	if [not(position()=last())] { ","; } }
     "])";
 }}
+
+// ###TODO: finish this!!
+// assumes Proof, introduces a unique name for this scheme instance
+// ##GRM: Proof_Inference : 
+//          "inference(mizar_proof,[proof(" 
+//          Scheme_Instance_Name "," Scheme_Name "," Proposition_Name
+//          "," Aid ")],[" Scheme_Name [ "," References ] "])" .   
+tpl proofinfer(#el,#pl,#prnr) { for-each [$el] {
+    "inference(mizar_proof,[proof("; 
+//    sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
+//    absr(#el=`.`); ","; propname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
+//    absr(#el=`.`); if [Ref] { ","; }
+    for-each [.//By[(name(preceding-sibling::*[1])="Proposition") and 
+	         ((@linked="true") or (count(Ref)>0))]] { 
+//    $el1 = { `preceding-sibling::*[1]`; }
+    byrefs( #el=`.`,#pl=`preceding-sibling::*[1]/@plevel`,
+            #prnr=`preceding-sibling::*[1]/@propnr`);
+	if [not(position()=last())] { ","; } }
+    "])";
+}}
+
+
 
 // create name and info for a scheme instance
 tpl sch_inst(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`); 
@@ -722,10 +748,17 @@ tpl refname(#el,#pl) { for-each [$el] {
     if [(@kind = "T") or (@kind = "D")] { absr(#el=$el); }
     else { privname(#nr=`@nr`,#pl=$pl); } }}
 
+tpl top_propname(#el) { for-each [$el/..] {
+    if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] 
+       { absr(#el=`.`); }
+    else { privname(#nr=`$el/@nr`); } } }
+
 // name of private reference - name of the proposition
 tpl privname(#nr,#pl) {
       $k1 = `concat($nr,":",$pl)`;
-      if [key("E",$k1)] { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
+      if [key("E",$k1)] { 
+	 if [not(string-length($pl)>0)] { top_propname(#el=`key("E",$k1)`); }
+	 else { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } }
       else { if [string-length($pl)>0] { 
 	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
 	 $pl1= mjoin(#el=$ss,#s="_");
