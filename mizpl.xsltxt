@@ -164,6 +164,7 @@ tpl addp(#pl) { if [string-length($pl)>0] { "_"; $pl; }}
 
 // concat number and level
 tpl propname(#n,#pl) { "e"; $n; addp(#pl=$pl); }
+tpl abspropname(#n,#pl) { propname(#n=$n,#pl=$pl); "__"; $anamelc; }
 
 tpl [Proposition] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; 
@@ -207,14 +208,24 @@ tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
     "])";
 }}
 
-// assumes From
+// assumes From, introduces a unique name for this scheme instance
+// ##GRM: Scheme_Inference : 
+//          "inference(mizar_from,[scheme_instance(" 
+//          Scheme_Instance_Name "," Scheme_Name "," Proposition_Name
+//          "," Aid ")],[" Scheme_Name [ "," References ] "])" .   
 tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
-    "inference(mizar_from,[],[";
+    "inference(mizar_from,[scheme_instance("; 
+    sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
+    absr(#el=`.`); ","; propname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
     absr(#el=`.`); if [Ref] { ","; }
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
     "])";
 }}
+
+// create name and info for a scheme instance
+tpl sch_inst(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`); 
+    "__"; abspropname(#n=$prnr,#pl=$pl); }}
 
 // uncomment apply[Proposition] if not used explicit descent
 tpl [Let|Given|TakeAsVar|Consider|Set] { $cnr = `@constnr`; $pl=`@plevel`; 
