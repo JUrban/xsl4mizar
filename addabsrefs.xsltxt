@@ -229,10 +229,21 @@ tpl refkind(#kind) {
       when [$kind = 'S'] { "sch";}
   }}
 
+// add plevel and also @kind, @nr and @aid
+tpl [JustifiedTheorem](#s) { 
+    $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
+    copy { copy-of `@*`; @plevel=$s;  @aid=$aname; @kind="T"; @nr=$nr1;
+	   apply(#s=$s); }}
+
+tpl [DefTheorem](#s) { 
+    $nr1 = `1+count(preceding-sibling::DefTheorem)`;
+    copy { copy-of `@*`; @plevel=$s;  @aid=$aname; @kind="D"; @nr=$nr1;
+	   apply(#s=$s); }}
+
 // add plevel explicitly to items and propositions
 tpl [Conclusion | Assume | Take | Thesis | BlockThesis | 
     Case | Suppose | PerCases | SchemeFuncDecl | SchemePredDecl |
-   JustifiedTheorem | DefTheorem | UnknownCorrCond | Coherence | 
+   UnknownCorrCond | Coherence | 
    Compatibility | Consistency | Existence | Uniqueness | 
    Correctness | JustifiedProperty](#s) {
   copy { copy-of `@*`; @plevel=$s;  apply(#s=$s);}}
