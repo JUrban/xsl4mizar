@@ -277,7 +277,7 @@ tpl prevconsts(#el) { for-each [$el] {
 // adds the @plevel and @propnr  attributes
 tpl [Assume/Proposition | Given/Proposition | Consider/Proposition |
      Reconsider/Proposition | Conclusion/Proposition | PerCases/Proposition |
-     Case/Proposition | Suppose/Proposition | Conclusion/IterEquality |
+     Case/Proposition | Suppose/Proposition | 
     JustifiedTheorem/Proposition | DefTheorem/Proposition | 
     UnknownCorrCond/Proposition | Coherence/Proposition | 
     Compatibility/Proposition | Consistency/Proposition | 
@@ -288,7 +288,7 @@ tpl [Assume/Proposition | Given/Proposition | Consider/Proposition |
     $s1 =  `1 + $s0 + count(preceding-sibling::Proposition)`; //in this item
     copy { copy-of `@*`; @plevel=$s; @propnr=$s1; apply(#s=$s); }}
 
-tpl [Conclusion/Now](#s) {
+tpl [Conclusion/Now | Conclusion/IterEquality](#s) {
     $p0 =  prevprops(#el=`..`); $p1 = `1 + $p0`;
     $s0 =  prevblocks(#el=`.`); $s1 = `1 + $s0`;
     $s2 = { if [$s] { `concat($s,"_",$s1)`; } else { $s1; } }
@@ -296,15 +296,21 @@ tpl [Conclusion/Now](#s) {
 	   apply(#s=$s2); }}
 
 // lemmas - both proof items and propositions
-tpl [ IterEquality | Proposition](#s) {
+tpl [ Proposition](#s) {
     $s0 =  prevprops(#el=`.`); $s1 = `1 + $s0`;
     copy { copy-of `@*`; @plevel=$s;  @propnr=$s1; apply(#s=$s); }}
 
-tpl [ Now ] { $p0 =  prevprops(#el=`.`); $p1 = `1 + $p0`;
+tpl [ Now | IterEquality] { 
+    $p0 =  prevprops(#el=`.`); $p1 = `1 + $p0`;
     $s0 =  prevblocks(#el=`.`); $s1 = `1 + $s0`;
     $s2 = { if [$s] { `concat($s,"_",$s1)`; } else { $s1; } }
     copy { copy-of `@*`; @plevel=$s; @newlevel=$s2; @propnr=$p1; 
 	   apply(#s=$s2); }}
+
+tpl [ IterStep](#s) {
+    $s1 =  `1 + count(preceding-sibling::IterStep)`; //in this IterEquality
+    copy { copy-of `@*`; @plevel=$s; @propnr=$s1; apply(#s=$s); }}
+
 
 tpl prevprops(#el) { for-each [$el] {
     `count(preceding-sibling::*[(name() = "Assume") or (name() = "Given") 
@@ -333,7 +339,9 @@ tpl [Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|Registration
 tpl [*](#s) { copy { apply [@*](#s=$s); apply(#s=$s); } }
 tpl [@*] { copy-of `.`; }
 
-// count previous blocks on the same level
+// count previous blocks on the same level\
+// IterEquality counts as a block too - reserved for 
+// propositions created from IterSteps
 tpl prevblocks(#el) { for-each [$el] {
     if [parent::*[(name() = "Conclusion") or (name() = "JustifiedTheorem")
        or (name() = "UnknownCorrCond") or (name() = "Coherence") 
@@ -344,7 +352,7 @@ tpl prevblocks(#el) { for-each [$el] {
 	`count(preceding-sibling::*[(name() = "Proof") or (name() = "Now") 
 	or (name() = "CaseBlock") or (name() = "SupposeBlock") or 
 	(name() = "PerCasesReasoning") or (name() = "Definition") or
-	(name() = "Registration") or
+	(name() = "Registration") or (name() = "IterEquality") or
 	(name() = "DefinitionBlock") or (name() = "RegistrationBlock") or 
 	(name() = "NotationBlock") or (name() = "SchemeBlock")]) +
 	count(preceding-sibling::*[(name() = "Conclusion") 
@@ -353,12 +361,12 @@ tpl prevblocks(#el) { for-each [$el] {
 	 or (name() = "Consistency") or (name() = "Existence") 
 	 or (name() = "Uniqueness") or (name() = "Correctness")
 	 or (name() = "JustifiedProperty")]/*[(name() = "Proof") or 
-	 (name() = "Now")])`; }}
+	 (name() = "Now") or (name() = "IterEquality")])`; }}
     else  {
 	`count(preceding-sibling::*[(name() = "Proof") or (name() = "Now") 
 	or (name() = "CaseBlock") or (name() = "SupposeBlock") or 
 	(name() = "PerCasesReasoning") or (name() = "Definition") or
-	(name() = "Registration") or
+	(name() = "Registration") or (name() = "IterEquality") or
 	(name() = "DefinitionBlock") or (name() = "RegistrationBlock") or 
 	(name() = "NotationBlock") or (name() = "SchemeBlock")]) +
          count(preceding-sibling::*[(name() = "Conclusion") 
@@ -366,6 +374,7 @@ tpl prevblocks(#el) { for-each [$el] {
 	 or (name() = "Coherence") or (name() = "Compatibility") 
 	 or (name() = "Consistency") or (name() = "Existence") 
 	 or (name() = "Uniqueness") or (name() = "Correctness")
-	 or (name() = "JustifiedProperty")]/*[(name() = "Proof") or (name() = "Now")])`;
+	 or (name() = "JustifiedProperty")]/*[(name() = "Proof") or 
+	 (name() = "Now") or (name() = "IterEquality")])`;
 }}}
 
