@@ -166,7 +166,9 @@ tpl addp(#pl) { if [string-length($pl)>0] { "_"; $pl; }}
 tpl propname(#n,#pl) { "e"; $n; addp(#pl=$pl); }
 tpl abspropname(#n,#pl) { propname(#n=$n,#pl=$pl); "__"; $anamelc; }
 tpl lemmaname(#n) { "l"; $n; "_"; $anamelc; } 
-
+tpl plname(#n,#pl) {
+    if [string-length($pl)>0] { propname(#n=$n, #pl=$pl); }
+    else { lemmaname(#n=$n); } }
 
 tpl [JustifiedTheorem/Proposition] { "fof("; absr(#el=`..`); ",theorem,";
     apply(#pl=`@plevel`);
@@ -192,9 +194,7 @@ tpl [DefTheorem/Proposition] { "fof("; absr(#el=`..`); ",definition,";
 
 
 tpl [Proposition] { 
-    $pname = { if [string-length(@plevel)>0] { 
-		  propname(#n=`@propnr`, #pl=`@plevel`); }
-	       else { lemmaname(#n=`@propnr`); } }
+    $pname = plname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; 
     if [following-sibling::*[1][name() = "By" or name() = "From" or
       name() = "Proof"]] { "lemma-derived,"; } else { "unknown,"; }
@@ -205,7 +205,7 @@ tpl [Proposition] {
     try_inference(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`);
     ")).\n"; }
 
-tpl [Now] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
+tpl [Now] { $pname = plname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; "lemma-derived,";
     apply[BlockThesis/*](#pl=`@plevel`); ",file("; $anamelc; 
     ","; $pname; "),mptp_info("; `@propnr`; ",["; 
@@ -214,7 +214,7 @@ tpl [Now] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
      proofinfer(#el=`.`,#pl=`@plevel`,#prnr=`@propnr`);
      ")).\n"; }
 
-tpl [IterEquality] { $pname = propname(#n=`@propnr`, #pl=`@plevel`);
+tpl [IterEquality] { $pname = plname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; "lemma-derived,";
     "( "; apply[*[1]](#pl=`@plevel`); $eq_s; 
     apply[IterStep[position() = last()]/*[1]](#pl=`@plevel`); " )";
@@ -248,9 +248,9 @@ tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
 tpl byrefs(#el,#pl,#prnr) { for-each [$el] {
     if [@linked] { 
        if [name(..)="IterStep"] {
-	  propname(#n=`../../@propnr - 1`,#pl=`../../@plevel`); } 
+	  plname(#n=`../../@propnr - 1`,#pl=`../../@plevel`); } 
        else { if [$prnr>1] {
-	  propname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; } }
+	  plname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; } }
       if [Ref] { ","; } }
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
@@ -264,7 +264,7 @@ tpl byrefs(#el,#pl,#prnr) { for-each [$el] {
 tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
     "inference(mizar_from,[scheme_instance("; 
     sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
-    absr(#el=`.`); ","; propname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
+    absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
     absr(#el=`.`); if [Ref] { ","; }
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
@@ -280,9 +280,9 @@ tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
 //          Scheme_Instance_Name "," Scheme_Name "," Proposition_Name
 //          "," Aid ")],[" Scheme_Name [ "," References ] "])" .   
 tpl proofinfer(#el,#pl,#prnr) { for-each [$el] {
-    "inference(mizar_proof,[proof()],["; 
+    "inference(mizar_proof,[],["; 
 //    sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
-//    absr(#el=`.`); ","; propname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
+//    absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
 //    absr(#el=`.`); if [Ref] { ","; }
     for-each [.//By[((name(preceding-sibling::*[1])="Proposition") 
 	     or (name(..)="IterStep"))
