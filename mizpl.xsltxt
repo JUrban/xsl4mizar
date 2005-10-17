@@ -10,6 +10,12 @@ xmlns xt "http://www.jclark.com/xt";
 // To produce standard XSLT from this do e.g.: 
 // java -jar xsltxt.jar toXSL mizpl.xsltxt >mizpl.xsl
 
+// ##NOTE: TPTP types 'theorem' and 'definition' are wider
+//   than in Mizar. Mizar 'property' is also exported as
+//   TPTP 'theorem', and there are various Mizar items
+//   exported as TPTP 'definition'. Use the 'mptp_info' slot
+//   to determine the Mizar item kind.
+
 output method=text;
 
 strip-space "*";
@@ -172,26 +178,28 @@ tpl plname(#n,#pl) {
 
 tpl [JustifiedTheorem/Proposition] { "fof("; absr(#el=`..`); ",theorem,";
     apply(#pl=`@plevel`);
-    ",file("; $anamelc; ","; absr(#el=`..`); "),mptp_info("; 
-    `../@nr`; ","; "theorem("; `@line`; ","; 
-    `@col`; ","; if [@nr] { `@nr`;} else { "0";} ")"; 
+    ",file("; $anamelc; ","; absr(#el=`..`); "),[mptp_info("; 
+    `../@nr`; ",[],"; "theorem,position("; `@line`; ","; 
+    `@col`; "),["; if [@nr] { `@nr`;} else { "0";} "])"; 
     try_inference(#el=`../*[2]`,#pl=`@plevel`, #prnr=`@propnr`);
-    ")).\n"; }
+    "]).\n"; }
 
 tpl [Theorem] { "fof("; absr(#el=`.`); ",";
     $kword = { if [@kind="T"] { "theorem"; } else {
        if [@kind="D"] { "definition"; } else { $fail; } } }
     $kword; ",";
     apply; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
-    absr(#el=`.`); "),mptp_info("; `@nr`; ","; $kword; ")).\n"; }
+    absr(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $kword; 
+    ",position(0,0),[0])]).\n"; }
 
-
+// ##GRM: Mptp_Info : "mptp_info(" 
+//           Item_Number "," Level "," Item_Kind ","
+//           Position "," "[" Item_Arguments "]" ")" .
 tpl [DefTheorem/Proposition] { "fof("; absr(#el=`..`); ",definition,";
     apply(#pl=`@plevel`);
-    ",file("; $anamelc; ","; absr(#el=`..`); "),mptp_info("; 
-    `../@nr`; ","; "definition("; `@line`; ","; 
-    `@col`; ","; if [@nr] { `@nr`;} else { "0";} ")"; ")).\n"; }
-
+    ",file("; $anamelc; ","; absr(#el=`..`); "),[mptp_info("; 
+    `../@nr`; ",[],"; "definition,position("; `@line`; ","; 
+    `@col`; "),["; if [@nr] { `@nr`;} else { "0";} "]"; ")]).\n"; }
 
 tpl [Proposition] { 
     $pname = plname(#n=`@propnr`, #pl=`@plevel`);
@@ -199,33 +207,31 @@ tpl [Proposition] {
     if [following-sibling::*[1][name() = "By" or name() = "From" or
       name() = "Proof"]] { "lemma-derived,"; } else { "unknown,"; }
     apply(#pl=`@plevel`); ",file("; $anamelc; 
-    ","; $pname; "),mptp_info("; `@propnr`; ",["; 
-    `translate(@plevel,"_",",")`; "],proposition("; `@line`; ","; 
-    `@col`; ","; if [@nr] { `@nr`;} else { "0";} ")";
+    ","; $pname; "),[mptp_info("; `@propnr`; ",["; 
+    `translate(@plevel,"_",",")`; "],proposition,position("; `@line`; ","; 
+    `@col`; "),["; if [@nr] { `@nr`;} else { "0";} "])";
     try_inference(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`);
-    ")).\n"; }
+    "]).\n"; }
 
 tpl [Now] { $pname = plname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; "lemma-derived,";
     apply[BlockThesis/*](#pl=`@plevel`); ",file("; $anamelc; 
-    ","; $pname; "),mptp_info("; `@propnr`; ",["; 
-    `translate(@plevel,"_",",")`; "],proposition("; `@line`; ","; 
-    `@col`; ","; if [@nr] { `@nr`;} else { "0";} "),"; 
+    ","; $pname; "),[mptp_info("; `@propnr`; ",["; 
+    `translate(@plevel,"_",",")`; "],proposition,position("; `@line`; ","; 
+    `@col`; "),["; if [@nr] { `@nr`;} else { "0";} "]),"; 
      proofinfer(#el=`.`,#pl=`@plevel`,#prnr=`@propnr`);
-     ")).\n"; }
+     "]).\n"; }
 
 tpl [IterEquality] { $pname = plname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; "lemma-derived,";
     "( "; apply[*[1]](#pl=`@plevel`); $eq_s; 
     apply[IterStep[position() = last()]/*[1]](#pl=`@plevel`); " )";
     ",file("; $anamelc; 
-    ","; $pname; "),mptp_info("; `@propnr`; ",["; 
-    `translate(@plevel,"_",",")`; "],proposition("; `@line`; ","; 
-    `@col`; ","; if [@nr] { `@nr`;} else { "0";} "),"; 
+    ","; $pname; "),[mptp_info("; `@propnr`; ",["; 
+    `translate(@plevel,"_",",")`; "],proposition,position("; `@line`; ","; 
+    `@col`; "),["; if [@nr] { `@nr`;} else { "0";} "]),"; 
      proofinfer(#el=`.`,#pl=`@plevel`,#prnr=`@propnr`);
-     ")).\n"; }
-
-
+     "]).\n"; }
 
 tpl try_inference(#el,#pl,#prnr) { for-each [$el] {
     if [name() = "By"] { ",";
@@ -317,12 +323,13 @@ tpl [Let|Given|TakeAsVar|Consider|Set] { $cnr = `@constnr`; $pl=`@plevel`;
       $levl = { ",["; `translate($pl,"_",",")`; "],";}
       "fof(dt_";  $nm; ",sort,"; $srt_s; "("; $nm; ",";
       apply[.](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
-      "),mptp_info("; $nr; $levl; "constant("; $rnm; ",type))).\n"; 
+      "),[mptp_info("; $nr; $levl; "constant,position(0,0),["; $rnm; 
+      ",type])]).\n"; 
       if [($rnm = "takeasvar") or ($rnm = "set")] {
 	 "fof(de_";  $nm; ",definition,"; "( "; $nm; $eq_s; 
 	 apply[../*[not(name() = "Typ")]](#pl=$pl); " )";
-	 ",file("; $anamelc; ","; $nm; "),mptp_info("; $nr; $levl;
-	 "constant("; $rnm; ",equality))).\n"; } 
+	 ",file("; $anamelc; ","; $nm; "),[mptp_info("; $nr; $levl;
+	 "constant,position(0,0),["; $rnm; ",equality])]).\n"; } 
     }
 //    apply[Proposition];
 }
@@ -334,10 +341,11 @@ tpl [Reconsider] { $cnr = `@constnr`; $pl=`@plevel`;
       $levl = { ",["; `translate($pl,"_",",")`; "],";}
       "fof(dt_";  $nm; ",sort,"; $srt_s; "("; $nm; ",";
       apply[../Typ](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
-      "),mptp_info("; $nr; $levl; "constant(reconsider,type))).\n";
+      "),[mptp_info("; $nr; $levl; 
+      "constant,position(0,0),[reconsider,type])]).\n";
       "fof(de_";  $nm; ",definition,"; "( "; $nm; $eq_s; 
-      apply[.](#pl=$pl); " )"; ",file("; $anamelc; ","; $nm; "),mptp_info("; 
-      $nr; $levl; "constant(reconsider,equality))).\n";
+      apply[.](#pl=$pl); " )"; ",file("; $anamelc; ","; $nm; "),[mptp_info("; 
+      $nr; $levl; "constant,position(0,0),[reconsider,equality])]).\n";
 }}
 
 // The argument types of scheme functors are forgotten by Mizar
@@ -355,15 +363,8 @@ tpl [SchemeFuncDecl] { $pl=`@plevel`;
     $srt_s; "("; $nm;
     if [$l > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
     ","; apply[Typ](#pl=$pl); ")";
-    ",file("; $anamelc; ","; $nm; "),mptp_info("; `@nr`; $levl;
-    "functor(scheme,type))).\n"; }
-
-tpl [Theorem] { "fof("; absr(#el=`.`); ",";
-    $kword = { if [@kind="T"] { "theorem"; } else {
-       if [@kind="D"] { "definition"; } else { $fail; } } }
-    $kword; ",";
-    apply; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
-    absr(#el=`.`); "),mptp_info("; `@nr`; ","; $kword; ")).\n"; }
+    ",file("; $anamelc; ","; $nm; "),[mptp_info("; `@nr`; $levl;
+    "functor,position(0,0),[scheme,type])]).\n"; }
 
 
 // "M" | "L" | "V" | "R" | "K" | "U" | "G"
@@ -382,6 +383,7 @@ tpl [Constructor] {
            arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
         ")"; $imp_s;
         if [count(Typ) = 0] { $srt_s; "("; ploci(#nr=$l); ",$true)"; }
+
         if [count(Typ) > 1] { "("; }
         for-each [Typ] {
            $srt_s; "("; ploci(#nr=$l); ","; apply[.]; ")";
@@ -398,7 +400,8 @@ tpl [Constructor] {
         apply[Typ]; ")";
       } }
       ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
-      absc1(#el=`.`); "),mptp_info("; `@nr`; ","; $lkind; ",ctype)).\n"; }
+      absc1(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $lkind; 
+      ",position(0,0),[ctype])]).\n"; }
     apply[Properties](#el=`.`);
     if [@kind='G'] { free_prop(#el=`.`); }
     if [(@kind='M') or (@kind='L')] {	 existence(#el=`.`); }
@@ -416,10 +419,14 @@ tpl existence(#el) { for-each [$el] {
            arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
       ")";
       ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
-      absc1(#el=`.`); "),mptp_info("; `@nr`; ","; $lkind; 
-      ",existence)).\n"; 
+      absc1(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $lkind; 
+      ",position(0,0),[existence])]).\n"; 
 }}
 
+
+// ##GRM: Redef_Info : "redefinition(" Redefined_Constr_Nr "," 
+//           Redefined_Constr_Kind "," Redefined_Constr_Aid "," 
+//           Redefined_Constr_Name ")" .
 tpl redefinition(#el) { 
     $lkind = `translate($el/@kind,$ucletters,$lcletters)`;
     $redaid = `translate($el/@redefaid,$ucletters,$lcletters)`;
@@ -455,9 +462,9 @@ tpl redefinition(#el) {
                                   and (position() < $l)]`, #s=$s); ")"; 
 	 } "))"; 
       }}
-      ",file("; $f; ","; $absn; "),mptp_info("; $n; ","; $lkind; 
-      ",redefinition("; `@absredefnr`; ","; $lkind; ","; $redaid;
-      ","; absredef(#el=`.`); "))).\n"; }
+      ",file("; $f; ","; $absn; "),[mptp_info("; $n; ",[],"; $lkind; 
+      ",position(0,0),[redefinition("; `@absredefnr`; ","; $lkind; 
+      ","; $redaid; ","; absredef(#el=`.`); ")])]).\n"; }
 }
 
 // free property - this is rather definition than theorem
@@ -484,8 +491,8 @@ tpl free_prop(#el) {
 	  if [not($p=last())] { $and_s; }
       }
       "))";
-      ",file("; $f; ","; $absn; "),mptp_info("; $n; ","; 
-      $lkind; ",property(free))).\n"; }
+      ",file("; $f; ","; $absn; "),[mptp_info("; $n; ",[],"; 
+      $lkind; ",position(0,0),[property(free)])]).\n"; }
 }
 
 tpl [Properties](#el) { 
@@ -497,8 +504,8 @@ tpl [Properties](#el) {
       $nm = `translate(name(),$ucletters,$lcletters)`;
       "fof(";  $nm; "_"; $absn; ",theorem,";
       apply[.](#el=$el,#arg1=$a1,#arg2=$a2);
-      ",file("; $f; ","; $absn; "),mptp_info("; $n; ","; 
-      $lkind; ",property("; $nm; "))).\n"; }
+      ",file("; $f; ","; $absn; "),[mptp_info("; $n; ",[],"; 
+      $lkind; ",position(0,0),[property("; $nm; ")])]).\n"; }
 }
 
 
@@ -635,7 +642,8 @@ tpl [CCluster] { if [ErrorCluster] { } else {
     if [$succ = 1] { apply[*[4]]; } 
     else { "( "; apply[*[4]]; " )"; } }
     "))"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
-    absk(#el=`.`,#kind="cc"); "),mptp_info("; `@nr`; ",ccluster)).\n"; } }
+    absk(#el=`.`,#kind="cc"); "),[mptp_info("; `@nr`; 
+    ",[],ccluster,position(0,0),[])]).\n"; } }
 
 tpl [FCluster] { if [ErrorCluster] { } else {
     "fof("; absk(#el=`.`,#kind="fc"); ",sort,";
@@ -646,7 +654,8 @@ tpl [FCluster] { if [ErrorCluster] { } else {
     if [$succ = 1] { apply[Cluster]; } 
     else { "( "; apply[Cluster]; " )"; } }
     ")"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
-    absk(#el=`.`,#kind="fc"); "),mptp_info("; `@nr`; ",fcluster)).\n"; } }
+    absk(#el=`.`,#kind="fc"); "),[mptp_info("; `@nr`; 
+    ",[],fcluster,position(0,0),[])]).\n"; } }
 
 tpl [RCluster] { if [ErrorCluster] { } else {
     "fof("; absk(#el=`.`,#kind="rc"); ",sort,";
@@ -659,9 +668,8 @@ tpl [RCluster] { if [ErrorCluster] { } else {
     if [$succ = 1] { apply[Cluster]; } 
     else { "( "; apply[Cluster]; " )"; } }
     ")"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
-    absk(#el=`.`,#kind="rc"); "),mptp_info("; `@nr`; ",rcluster)).\n"; } }
-
-
+    absk(#el=`.`,#kind="rc"); "),[mptp_info("; `@nr`; 
+    ",[],rcluster,position(0,0),[])]).\n"; } }
 
 
 tpl [ArgTypes] { if [Typ] {
