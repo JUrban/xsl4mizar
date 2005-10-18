@@ -266,12 +266,12 @@ tpl byrefs(#el,#pl,#prnr) { for-each [$el] {
 // ##GRM: Scheme_Inference : 
 //          "inference(mizar_from,[scheme_instance(" 
 //          Scheme_Instance_Name "," Scheme_Name "," Proposition_Name
-//          "," Aid ")],[" Scheme_Name [ "," References ] "])" .   
+//          "," Aid ")],[" Scheme_Instance_Name [ "," References ] "])" .   
 tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
     "inference(mizar_from,[scheme_instance("; 
     sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
     absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
-    absr(#el=`.`); if [Ref] { ","; }
+    sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); if [Ref] { ","; }
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
     "])";
