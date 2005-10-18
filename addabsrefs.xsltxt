@@ -75,6 +75,13 @@ tpl [Func](#s) {
   else { <Func {  
    abs(#k=`@kind`, #nr=`@nr`); apply(#s=$s); }}}
 
+// for .fex (FromExopnations file)
+tpl [FuncInstance | PredInstance](#s) { 
+    $n=`name()`; <$n { copy-of `@*`;
+    if [(@kind='K') or (@kind='R') or (@kind='V')]  
+       { abs(#k=`@kind`, #nr=`@nr`); }
+    apply(#s=$s); } }
+
 // Adjective
 tpl [Adjective](#s) { <Adjective 
     { copy-of `@*`; abs(#k="V", #nr=`@nr`); apply(#s=$s); }}
