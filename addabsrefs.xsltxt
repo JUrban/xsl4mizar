@@ -39,6 +39,10 @@ key "D" [/Theorems/Theorem[@kind='D']] `concat(@articlenr,':',@nr)`;
 key "S" [/Schemes/Scheme] `concat(@articlenr,':',@nr)`;
 key "DF" [Definiens] `@relnr` ;
 
+// lookup for FromExplanations (in .fex)
+key "SI" [/FromExplanations/SchemeInstantiation] `concat(@line,':',@col)`;
+
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
@@ -63,41 +67,72 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // .dfs file with imported definientia
 #dfs=  { `concat($anamelc, '.dfs')`; }
 
+// .fex file with FromExplanations
+#fex=  { `concat($anamelc, '.fex')`; }
+
+// top level element instead of top-level document, which is hard to
+// know
+#top = `/`;
+
 // tpl [Const](#s) {  <Const { copy-of `@*`; @plevel=$s; }}
 
-tpl [Pred](#i,#s) { 
-  if [@kind='P'] {  copy { apply [@*](#s=$s); apply(#s=$s); } }
-  else { <Pred {  
-   abs(#k=`@kind`, #nr=`@nr`); apply(#s=$s); }}}
+// #e optionally is the element giving context, e.g. for schemes
+tpl [Pred](#i,#s,#e) {
+  <Pred {
+  if [@kind='P'] { copy-of `@*`; 
+      if [$e] { abs_fp(#el=$e); } else { abs_fp(#el=`.`); }
+      apply(#s=$s,#e=$e); }
+  else { abs(#k=`@kind`, #nr=`@nr`); apply(#s=$s,#e=$e); }}}
 
-tpl [Func](#s) { 
-  if [@kind='F']  {  copy { apply [@*](#s=$s); apply(#s=$s); } }
-  else { <Func {  
-   abs(#k=`@kind`, #nr=`@nr`); apply(#s=$s); }}}
+tpl [Func](#s,#e) { <Func {  
+  if [@kind='F']  { copy-of `@*`; 
+     if [$e] { abs_fp(#el=$e); } else { abs_fp(#el=`.`); }
+     apply(#s=$s,#e=$e); } 
+  else { abs(#k=`@kind`, #nr=`@nr`); apply(#s=$s,#e=$e); }}}
 
 // for .fex (FromExopnations file)
-tpl [FuncInstance | PredInstance](#s) { 
+tpl [FuncInstance | PredInstance](#s,#e) { 
     $n=`name()`; <$n { copy-of `@*`;
     if [(@kind='K') or (@kind='R') or (@kind='V')]  
        { abs(#k=`@kind`, #nr=`@nr`); }
-    apply(#s=$s); } }
+    apply(#s=$s,#e=$e); } }
 
 // Adjective
-tpl [Adjective](#s) { <Adjective 
-    { copy-of `@*`; abs(#k="V", #nr=`@nr`); apply(#s=$s); }}
+tpl [Adjective](#s,#e) { <Adjective 
+    { copy-of `@*`; abs(#k="V", #nr=`@nr`); apply(#s=$s,#e=$e); }}
 
 // Types
-tpl [Typ](#s) { 
+tpl [Typ](#s,#e) { 
    <Typ {
    if [@kind="M"] { abs(#k="M", #nr=`@nr`); }
    else { if [@kind="G"] { abs(#k="L", #nr=`@nr`); }
      else { `@kind`; }}
-   apply(#s=$s);}
+   apply(#s=$s,#e=$e);}
 }
 
 tpl [From](#s){ <From { copy-of `@*`;
-             getschref(#anr=`@articlenr`, #nr=`@nr`);
-             apply(#s=$s); }}
+    $schnr = `@nr`; $el = `.`; $anr=`@articlenr`;
+    getschref(#anr=$anr, #nr=$schnr);
+    // insert the SchemeInstantiation element from $fex, make 
+    // them absolute by adding @schemnr, @aid, @instaid, @instschemenr
+    $l = `@line`; $c = `@col`;
+    $pos = `concat($l,':',$c)`;
+    for-each [document($fex,/)] { 
+      for-each [key('SI',$pos)] { 
+        for-each [FuncInstance | PredInstance] {  $nm = `name()`;
+	  <$nm { 
+	  copy-of `@*`; 
+	  getschattrs(#anr=$anr,#nr=$schnr,#i="1");
+          $k = `@kind`;
+	  // instantiated to other functor
+	  if [$k] { 
+	  choose { 
+	     when [($k="K") or ($k="R") or ($k="V")] { abs(#k=$k, #nr=`@nr`); }
+	     when [($k="F") or ($k= "P")] { getschattrs(#anr="0",#nr=$schnr); }
+	     otherwise {  }
+	  }}
+          apply(#s=$s,#e=$el); }}}}
+    apply(#s=$s); }}
 
 tpl [Ref](#s) { if [not(@articlenr)] { copy { apply [@*](#s=$s); apply(#s=$s); } }
             else { <Ref {  copy-of `@*`;
@@ -188,14 +223,29 @@ tpl absref(#elems,#r) { for-each [$elems] {
            @nr=`@relnr`; @aid=`@aid`; @absnr=`@nr`; }} }
 
 tpl abs(#k,#nr,#r) { 
+   for-each [$top] { 
    if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#r=$r); }
    else { 
      for-each [document($constrs,/)] { 
        if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#r=$r); }  
        else { 
          for-each [document($dcoconstrs,/)] { 
-           absref(#elems=`key($k,$nr)`,#r=$r); } } } } }
+           absref(#elems=`key($k,$nr)`,#r=$r); } } } } } }
 
+// add the @aid and @schemenr attrs to scheme functor or predicate
+// must get the element explicitely, resolves by its SchemeBlock
+// or Scheme ancestor
+tpl abs_fp(#el) { for-each [$el] {
+    if [ancestor::SchemeBlock] {
+       for-each [ancestor::SchemeBlock] {getschattrs(#nr=`@schemenr`); }}
+    else { for-each [ancestor::Scheme] {
+       $anr1 = { if [@articlenr] { `@articlenr`; } else { "0"; } }
+       $n1 =  { if [@nr] { `@nr`; } else { 
+               `1 + count(preceding::*[(name()="Scheme")])`; }}
+		getschattrs(#anr=$anr1, #nr=$n1); }}
+ }}
+
+    
 
 
 // theorem, definition and scheme references
@@ -209,6 +259,18 @@ tpl getschref(#anr,#nr) {
 	for-each [key('S',concat($anr,':',$nr))] { 
            mkref(#aid=`@aid`, #nr=$nr, #k="S"); }}}
     else { mkref(#aid=$aname,#nr=$nr,#k="S",#c="1"); }}
+
+// insert schemenr and aid attrs for scheme functors,
+// possibly change to inst... if #i > 0
+tpl mkschattrs(#aid,#nr,#i) { 
+    if [$i>0] { @instaid=`$aid`; @instschemenr=`$nr`; }
+    else {  @aid=`$aid`; @schemenr=`$nr`;  }}
+
+tpl getschattrs(#anr,#nr,#i) {
+    if [$anr>0] { for-each [document($schms,/)] {
+	for-each [key('S',concat($anr,':',$nr))] { 
+           mkschattrs(#aid=`@aid`, #nr=$nr, #i=$i); }}}
+    else { mkschattrs(#aid=$aname,#nr=$nr,#i=$i); }}
 
 tpl getref(#k,#anr,#nr) {
     if [$anr>0] { for-each [document($thms,/)] {
@@ -343,7 +405,7 @@ tpl [Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|Registration
   $s2 = { if [$s] { `concat($s,"_",$s1)`; } else { $s1; } }
   copy { copy-of `@*`; @plevel=$s; @newlevel=$s2; apply(#s=$s2); }}
 
-tpl [*](#s) { copy { apply [@*](#s=$s); apply(#s=$s); } }
+tpl [*](#s,#e) { copy { apply [@*](#s=$s,#e=$e); apply(#s=$s,#e=$e); } }
 tpl [@*] { copy-of `.`; }
 
 // count previous blocks on the same level\
