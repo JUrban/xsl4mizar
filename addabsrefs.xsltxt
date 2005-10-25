@@ -322,10 +322,10 @@ tpl [Conclusion | Assume | Take | Thesis | BlockThesis |
 // scheme funcs and preds are numbered by the standard @nr attribute and plevel
 // adds the @plevel and @nr and @nr attributes
 tpl [DefFunc](#s) { $c =`1 + count(preceding-sibling::DefFunc)`; 
-    copy { copy-of `@*`; @plevel=$s; @nr=$c; apply(#s=$s);}}
+    copy { copy-of `@*`; @plevel=$s; @privnr=$c; apply(#s=$s);}}
 
 tpl [DefPred](#s) { $c =`1 + count(preceding-sibling::DefPred)`; 
-    copy { copy-of `@*`; @plevel=$s; @nr=$c; apply(#s=$s);}}
+    copy { copy-of `@*`; @plevel=$s; @privnr=$c; apply(#s=$s);}}
 
 
 // numbering of constants
