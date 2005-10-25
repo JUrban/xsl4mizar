@@ -56,13 +56,15 @@ key "E" [Proposition|IterEquality|Now] `concat(@nr,":",@plevel)` ;
 key "f" [SchemeFuncDecl] `concat(@nr,":",@plevel)` ;
 key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
 
+// lookup for private functors and predicates
+key "pf" [DefFunc] `concat(@nr,":",@plevel)` ;
+key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
 
 // name of current article (upper case)
 #aname= { `string(/*/@aid)`; }
 
 // name of current article (lower case)
 #anamelc= { `translate($aname, $ucletters, $lcletters)`; }
-
 
 // Formulas
 
@@ -80,6 +82,7 @@ tpl [Not](#i,#pl) { $not_s;
 tpl [And](#i,#pl) { "( "; 
     ilist(#separ=$and_s, #elems=`*`, #i=$i,#pl=$pl); " )"; }
 // here we differ from Mizar and ILF - all 'V' are turned into 'sort'
+// ##GRM: Sch_Pred : "p" Number "_" Scheme_Name
 tpl [Pred](#i,#pl) { 
       if [@kind='V']  { 
          $srt_s; "("; 
@@ -93,7 +96,7 @@ tpl [Pred](#i,#pl) {
 	    "( "; apply[*[1]](#i=$i,#pl=$pl); $eq_s; 
 	    apply[*[2]](#i=$i,#pl=$pl); " )"; }
 	 else {
-          if [@kind='P'] { sch_fpname(#k="p",#nr=`@nr`,#pl=$pl); }
+          if [@kind='P'] { abs_fp(#k="p",#el=`.`); }
 	  else { absc(#el=`.`); }
           if [count(*)>0] { "("; 
 	     ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; }
@@ -114,8 +117,9 @@ tpl [FreeVar](#i,#pl) { $fail; }
 tpl [Const](#i,#pl) { pconst(#nr=`@nr`,#pl=$pl); }
 tpl [InfConst](#i,#pl) { $fail; }
 tpl [Num](#i,#pl) {  `@nr`; }
+// ##GRM: Sch_Func : "f" Number "_" Scheme_Name
 tpl [Func](#i,#pl) { 
-    if [@kind='F'] { sch_fpname(#k="f",#nr=`@nr`,#pl=$pl); }
+    if [@kind='F'] { abs_fp(#k="f",#el=`.`); }
     else { absc(#el=`.`); }
     if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; } }
 
@@ -262,16 +266,47 @@ tpl byrefs(#el,#pl,#prnr) { for-each [$el] {
 	if [not(position()=last())] { ","; } }
 }}
 
+
+tpl [FuncInstance](#pl) { $k = `@kind`;
+    sch_fpname(#k="f",#nr=`@instnr`,#schnr=`@instschemenr`, #aid=`@instaid`); 
+    "/";
+    // instantiated to other functor
+    if [$k] { choose { 
+       when [$k="K"] { absc(#el=`.`); }
+       when [$k="F"] { abs_fp(#k="f",#el=`.`); }
+       when [$k="H"] { priv_def(#k="pf",#nr=`@nr`,#pl=$pl); }
+       otherwise { $fail; }
+    }}
+    // instantiated to term
+    else { if [*[1]] { apply[*[1]](#pl=$pl); } else { $fail; } } }
+
+tpl [PredInstance](#pl) { $k = `@kind`;
+    sch_fpname(#k="p",#nr=`@instnr`,#schnr=`@instschemenr`, #aid=`@instaid`); 
+    "/";
+    choose { 
+	     when [$k="R"] { absc(#el=`.`); }
+	     when [$k="P"] { abs_fp(#k="p",#el=`.`); }
+	     when [$k="S"] { priv_def(#k="pp",#nr=`@nr`,#pl=$pl); }
+	     otherwise { $fail; }
+    }}
+
+tpl [SchemeInstantiation](#pl) { "[";
+    for-each [FuncInstance | PredInstance] { apply[.](#pl=$pl); 
+	     if [not(position()=last())] { ","; } }
+    "]"; }
+
 // assumes From, introduces a unique name for this scheme instance
 // ##GRM: Scheme_Inference : 
 //          "inference(mizar_from,[scheme_instance(" 
 //          Scheme_Instance_Name "," Scheme_Name "," Proposition_Name
-//          "," Aid ")],[" Scheme_Instance_Name [ "," References ] "])" .   
+//          "," Aid "," Scheme_Instantiation ")],[" 
+//          Scheme_Instance_Name [ "," References ] "])" .   
 tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
     "inference(mizar_from,[scheme_instance("; 
-    sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
-    absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
-    sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); if [Ref] { ","; }
+    sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
+    absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ",";
+    apply[SchemeInstantiation](#pl=$pl); ")],[";
+    sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); if [Ref] { ","; }
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
     "])";
@@ -287,7 +322,7 @@ tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
 //          "," Aid ")],[" Scheme_Name [ "," References ] "])" .   
 tpl proofinfer(#el,#pl,#prnr) { for-each [$el] {
     "inference(mizar_proof,[],["; 
-//    sch_inst(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
+//    sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
 //    absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
 //    absr(#el=`.`); if [Ref] { ","; }
     for-each [.//By[((name(preceding-sibling::*[1])="Proposition") 
@@ -312,7 +347,7 @@ tpl proofinfer(#el,#pl,#prnr) { for-each [$el] {
 
 
 // create name and info for a scheme instance
-tpl sch_inst(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`); 
+tpl sch_instname(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`); 
     "__"; abspropname(#n=$prnr,#pl=$pl); }}
 
 // uncomment apply[Proposition] if not used explicit descent
@@ -832,13 +867,27 @@ tpl privname(#nr,#pl) {
  }
 
 // name of scheme functor (#k='f') or predicate (#k='p')
-tpl sch_fpname(#k,#nr,#pl) {
+tpl sch_fpname(#k,#nr,#schnr,#aid) {
+    if [$k and $nr and $aid and $schnr] {
+    `translate(concat($k,$nr,'_s',$schnr,'_',$aid),
+		$ucletters,$lcletters)`; }
+    else { `translate($k,$ucletters,$lcletters)`; `@nr`;  $fail; }
+}
+
+// name of scheme functor (#k='f') or predicate (#k='p')
+tpl abs_fp(#k,#el) { for-each [$el] { 
+    sch_fpname(#k=$k,#nr=`@nr`,#schnr=`@schemenr`,#aid=`@aid`); }}
+
+// definition of private functor (#k='pf') or predicate (#k='pp'); 
+// either a term with LocusVars or a formula with LocusVars
+tpl priv_def(#k,#nr,#pl) {
       $k1 = `concat($nr,":",$pl)`;
-      if [key($k,$k1)] { $k; `key($k,$k1)/@nr`; addp(#pl=$pl); }
+      if [key($k,$k1)] { 
+	 for-each [key($k,$k1)] { apply[*[position() = 2]](#pl=`@plevel`); }}
       else { if [string-length($pl)>0] { 
 	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
 	 $pl1= mjoin(#el=$ss,#s="_");
-	 sch_fpname(#k=$k,#nr=$nr,#pl=$pl1); } else { $fail;}}
+	 priv_def(#k=$k,#nr=$nr,#pl=$pl1); } else { $fail;}}
  }
 
 
