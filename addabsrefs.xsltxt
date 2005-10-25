@@ -118,7 +118,8 @@ tpl [From](#s){ <From { copy-of `@*`;
     $l = `@line`; $c = `@col`;
     $pos = `concat($l,':',$c)`;
     for-each [document($fex,/)] { 
-      for-each [key('SI',$pos)] { 
+     for-each [key('SI',$pos)] { 
+      <SchemeInstantiation  { copy-of `@*`;
         for-each [FuncInstance | PredInstance] {  $nm = `name()`;
 	  <$nm { 
 	  copy-of `@*`; 
@@ -128,10 +129,10 @@ tpl [From](#s){ <From { copy-of `@*`;
 	  if [$k] { 
 	  choose { 
 	     when [($k="K") or ($k="R") or ($k="V")] { abs(#k=$k, #nr=`@nr`); }
-	     when [($k="F") or ($k= "P")] { getschattrs(#anr="0",#nr=$schnr); }
+	     when [($k="F") or ($k= "P")] { abs_fp(#el=$el); }
 	     otherwise {  }
 	  }}
-          apply(#s=$s,#e=$el); }}}}
+          apply(#s=$s,#e=$el); }}}}}
     apply(#s=$s); }}
 
 tpl [Ref](#s) { if [not(@articlenr)] { copy { apply [@*](#s=$s); apply(#s=$s); } }
