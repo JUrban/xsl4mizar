@@ -8,7 +8,6 @@
   <!-- Then e.g.: xalan -XSL miz.xsl <ordinal2.pre >ordinal2.pre1 -->
   <!-- TODO: number B vars in fraenkel -->
   <!-- handle F and H parenthesis as K parenthesis -->
-  <!-- numbers for Deffunc, Defpred -->
   <!-- article numbering in Ref? -->
   <!-- absolute definiens numbers for thesisExpansions? -->
   <!-- do not display BlockThesis for Proof? -->
@@ -963,7 +962,9 @@
     <xsl:element name="b">
       <xsl:text>deffunc</xsl:text>
     </xsl:element>
-    <xsl:text> H(</xsl:text>
+    <xsl:text> H</xsl:text>
+    <xsl:value-of select="@nr"/>
+    <xsl:text>(</xsl:text>
     <xsl:call-template name="list">
       <xsl:with-param name="separ">
         <xsl:text>,</xsl:text>
@@ -985,7 +986,9 @@
     <xsl:element name="b">
       <xsl:text>defpred</xsl:text>
     </xsl:element>
-    <xsl:text> S[</xsl:text>
+    <xsl:text> S</xsl:text>
+    <xsl:value-of select="@nr"/>
+    <xsl:text>[</xsl:text>
     <xsl:call-template name="list">
       <xsl:with-param name="separ">
         <xsl:text>,</xsl:text>

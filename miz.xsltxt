@@ -10,7 +10,6 @@ stylesheet 1.0;
 
 // TODO: number B vars in fraenkel
 //       handle F and H parenthesis as K parenthesis
-//       numbers for Deffunc, Defpred
 //       article numbering in Ref?
 //       absolute definiens numbers for thesisExpansions?
 //       do not display BlockThesis for Proof?
@@ -303,11 +302,11 @@ tpl [Reconsider] { $j=`@nr`;
     apply[*[last()]]; } 
 
 tpl [Set] { <b { "set ";} pconst(#nr=`@nr`); " = "; apply[*[1]]; ";"; <br; }
-tpl [DefFunc] { <b { "deffunc"; } " H(";  
+tpl [DefFunc] { <b { "deffunc"; } " H"; `@nr`; "(";  
                 list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
                 apply[*[3]]; " = ";
 	        apply[*[2]]; ";"; <br; }
-tpl [DefPred] { <b { "defpred";} " S["; 
+tpl [DefPred] { <b { "defpred";} " S"; `@nr`; "["; 
                 list(#separ=",", #elems=`ArgTypes/Typ`); "] means ";
 	        apply[*[2]]; ";"; <br; }
 
