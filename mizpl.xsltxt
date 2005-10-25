@@ -235,6 +235,20 @@ tpl [IterEquality] { $pname = plname(#n=`@propnr`, #pl=`@plevel`);
     `translate(@plevel,"_",",")`; "],proposition,position("; `@line`; ","; 
     `@col`; "),["; if [@nr] { `@nr`;} else { "0";} "]),"; 
      proofinfer(#el=`.`,#pl=`@plevel`,#prnr=`@propnr`);
+     "]).\n"; 
+     apply[IterStep]; }
+
+tpl [IterStep] { $pname = plname(#n=`@propnr`, #pl=`@plevel`);
+    "fof(";  $pname; ","; "lemma-derived,"; "( "; 
+    if [name(preceding-sibling::*[1])="IterStep"] {
+       apply[preceding-sibling::*[1]/*[1]](#pl=`@plevel`); }
+    else { apply[preceding-sibling::*[1]](#pl=`@plevel`); } 
+    $eq_s; apply[*[1]](#pl=`@plevel`); " )";
+    ",file("; $anamelc; 
+    ","; $pname; "),[mptp_info("; `@propnr`; ",["; 
+    `translate(@plevel,"_",",")`; "],proposition,position("; `*[2]/@line`; ",";
+    `*[2]/@col`; "),["; if [@nr] { `@nr`;} else { "0";} "])"; 
+     try_inference(#el=`*[2]`,#pl=`@plevel`,#prnr=`@propnr`);
      "]).\n"; }
 
 tpl try_inference(#el,#pl,#prnr) { for-each [$el] {
@@ -274,7 +288,7 @@ tpl [FuncInstance](#pl) { $k = `@kind`;
     if [$k] { choose { 
        when [$k="K"] { absc(#el=`.`); }
        when [$k="F"] { abs_fp(#k="f",#el=`.`); }
-       when [$k="H"] { priv_def(#k="pf",#nr=`@nr`,#pl=$pl); }
+       when [$k="H"] { "("; priv_def(#k="pf",#nr=`@nr`,#pl=$pl); ")";}
        otherwise { $fail; }
     }}
     // instantiated to term
@@ -286,7 +300,7 @@ tpl [PredInstance](#pl) { $k = `@kind`;
     choose { 
 	     when [$k="R"] { absc(#el=`.`); }
 	     when [$k="P"] { abs_fp(#k="p",#el=`.`); }
-	     when [$k="S"] { priv_def(#k="pp",#nr=`@nr`,#pl=$pl); }
+	     when [$k="S"] { "("; priv_def(#k="pp",#nr=`@nr`,#pl=$pl); ")";}
 	     otherwise { $fail; }
     }}
 
