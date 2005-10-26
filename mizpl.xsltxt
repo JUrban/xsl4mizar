@@ -180,6 +180,22 @@ tpl plname(#n,#pl) {
     if [string-length($pl)>0] { propname(#n=$n, #pl=$pl); }
     else { lemmaname(#n=$n); } }
 
+// SchemePremises implies SchemeThesis
+// the proof might rather be 'implication intro'
+tpl [SchemeBlock] { 
+    $sname = `concat('s',@schemenr,'_',$anamelc)`;
+    "fof("; $sname; ",theorem,"; "(";
+    if [SchemePremises/Proposition] { "( "; 
+       ilist( #separ=$and_s, #elems=`SchemePremises/Proposition/*`,
+	      #pl=`@newlevel`); " ) "; $imp_s; }
+    apply[Proposition/*](#pl=`@newlevel`); ")";
+    ",file("; $anamelc; ","; $sname; "),[mptp_info("; 
+    `@schemenr`; ",[],"; "scheme,position("; `@line`; ","; 
+    `@col`; "),["; `@schemenr`; "])"; 
+    // only Proof and SkippedProof
+    try_inference( #el=`*[position() = (last() - 1)]`,#pl=`@newlevel`); 
+    "]).\n"; }
+
 tpl [JustifiedTheorem/Proposition] { "fof("; absr(#el=`..`); ",theorem,";
     apply(#pl=`@plevel`);
     ",file("; $anamelc; ","; absr(#el=`..`); "),[mptp_info("; 
@@ -783,17 +799,6 @@ tpl ilist(#separ,#elems,#i,#pl) {
   apply[.](#i=$i,#pl=$pl); if [not(position()=last())] { $separ; } }
 }
 
-// newlined list
-tpl nlist(#separ,#elems) { 
- for-each [$elems] {
-  apply[.]; if [not(position()=last())] { <br; $separ; } }
-}
-
-tpl dlist(#separ,#elems) { 
- for-each [$elems] {
-  <div { apply[.]; if [not(position()=last())] { $separ; } } }
-}
-
 // argument list
 tpl arglist(#separ,#elems,#s) { 
  for-each [$elems] {
@@ -909,7 +914,7 @@ tpl priv_def(#k,#nr,#pl) {
 
 tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
-	     //Reconsider|//SchemeFuncDecl]; }
+	     //Reconsider|//SchemeFuncDecl|//SchemeBlock]; }
 	  else { apply; } }
 
 
