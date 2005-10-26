@@ -283,15 +283,19 @@ tpl skippedinfer(#el,#pl,#prnr) { "inference(mizar_skipped_proof,[],[])"; }
 
 // assumes By
 tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
-    "inference(mizar_by,[],["; byrefs(#el=`.`,#pl=$pl,#prnr=$prnr); "])"; }}
+    "inference(mizar_by,[],["; refs(#el=`.`,#pl=$pl,#prnr=$prnr); "])"; }}
 
-tpl byrefs(#el,#pl,#prnr) { for-each [$el] {
+// handles Refs for From, (possibly linked) By and ThesisExpansions
+tpl refs(#el,#pl,#prnr) { for-each [$el] {
     if [@linked] { 
        if [name(..)="IterStep"] {
 	  plname(#n=`../../@propnr - 1`,#pl=`../../@plevel`); } 
        else { if [$prnr>1] {
 	  plname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; } }
       if [Ref] { ","; } }
+    else { if [name()="From"] { 
+	 sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); 
+	 if [Ref] { ","; } } }
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
 }}
@@ -336,42 +340,31 @@ tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
     sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
     absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ",";
     apply[SchemeInstantiation](#pl=$pl); ")],[";
-    sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); if [Ref] { ","; }
-    for-each [Ref] { refname(#el=`.`,#pl=$pl); 
-	if [not(position()=last())] { ","; } }
-    "])";
+    refs(#el=`.`,#pl=$pl,#prnr=$prnr); "])";
 }}
 
 
-// ###TODO: finish this!! 
+// ###TODO: finish the description!! 
 // assumes Proof, Now or IterEquality,
-//  introduces a unique name for this scheme instance
 // ##GRM: Proof_Inference : 
 //          "inference(mizar_proof,[proof(" 
 //          Scheme_Instance_Name "," Scheme_Name "," Proposition_Name
 //          "," Aid ")],[" Scheme_Name [ "," References ] "])" .   
 tpl proofinfer(#el,#pl,#prnr) { for-each [$el] {
     "inference(mizar_proof,[],["; 
-//    sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
-//    absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ")],[";
-//    absr(#el=`.`); if [Ref] { ","; }
     for-each [.//By[((name(preceding-sibling::*[1])="Proposition") 
-	     or (name(..)="IterStep"))
-	     and ((@linked="true") or (count(Ref)>0))]] { 
-//    $el1 = { `preceding-sibling::*[1]`; }
-      if [name(..)="IterStep"] {  
-	     byrefs( #el=`.`,#pl=`../@plevel`,#prnr=`../@propnr`); }
-      else {
-	   byrefs( #el=`.`,#pl=`preceding-sibling::*[1]/@plevel`,
-		   #prnr=`preceding-sibling::*[1]/@propnr`); }
-	if [not(position()=last())] { ","; } }
-      if [.//ThesisExpansions/Ref] { 
-        if [.//By[((name(preceding-sibling::*[1])="Proposition") 
-	  or (name(..)="IterStep")) and ((@linked="true") or (count(Ref)>0))]]
-          { ","; }
-         for-each [.//ThesisExpansions/Ref] { 
-             absr(#el=`.`); if [not(position()=last())] { ","; } } }
-		  
+	              or (name(..)="IterStep"))
+	            and ((@linked="true") or (count(Ref)>0))] 
+	     | .//From[((name(preceding-sibling::*[1])="Proposition") 
+	                 or (name(..)="IterStep"))]
+             | .//ThesisExpansions[count(Ref)>0]] { 
+      if [name()="ThesisExpansions"] { refs( #el=`.`); }
+      else { if [name(..)="IterStep"] {  
+	     refs( #el=`.`,#pl=`../@plevel`,#prnr=`../@propnr`); }
+        else {
+	      refs( #el=`.`,#pl=`preceding-sibling::*[1]/@plevel`,
+		    #prnr=`preceding-sibling::*[1]/@propnr`); }}
+      if [not(position()=last())] { ","; } }
     "])";
 }}
 
