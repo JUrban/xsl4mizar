@@ -38,7 +38,7 @@ output method=html;
 // "s" - self, everything is linked to these xml files
 // "m" - mizaring, current article's constructs are linked to self,
 //       the rest is linked to mmlquery
-#linking = { "q"; }
+#linking = { "s"; }
 
 // extension for linking - either xml or html
 #ext = { "html"; }
@@ -482,7 +482,8 @@ tpl [Definiens/*] { ""; }
 tpl [JustifiedTheorem] { <b { "theorem "; } 
     for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } 
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
-    pcomment(#str=`concat($aname,":",$nr1)`);
+    <a { @NAME=`concat("T",$nr1)`; 
+	 pcomment(#str=`concat($aname,":",$nr1)`); }
     if [Proof] { <div { @class="add"; apply[*[1]/*[1]]; } apply[*[2]]; }
     else { <div { @class="add"; 
         if [Proposition/Verum] { <b { "canceled; "; } }
@@ -495,7 +496,8 @@ tpl [DefTheorem] {
     <b { "deftheorem "; } 
     for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } 
     $nr1 = `1+count(preceding-sibling::DefTheorem)`;
-    pcomment(#str=`concat($aname,":def ",$nr1)`);     
+    <a { @NAME=`concat("D",$nr1)`; 
+	 pcomment(#str=`concat($aname,":def ",$nr1)`); }     
     <div { @class="add"; 
          if [Proposition/Verum] { <b { "canceled; "; } }
 	 else { apply[*[1]/*[1]];  ";"; }  } }
@@ -529,7 +531,8 @@ tpl [SchemePredDecl] {
 //   element elSchemePremises { elProposition* },
 //   elProposition, Justification, elEndPosition
 tpl [SchemeBlock] {
-    <div { <b { "scheme"; } " s"; `@schemenr`; "{ ";
+    <div { <a { @NAME=`concat("S",@schemenr)`; <b { "scheme"; }}
+     " s"; `@schemenr`; "{ ";
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`); 
     " } :"; <br;
     <div { @class="add"; apply[Proposition]; } <b { "provided"; }
@@ -864,7 +867,7 @@ tpl mkref(#aid,#nr,#k,#c) {
        if [($linking = 'q') or (($linking = 'm') and not($c))] { 
           @href=`concat($mmlq,$aid,":",$mk,".",$nr)`; }
        else { 
-         @href=`concat($alc,".xml#",$k,$nr)`; 
+	 @href=`concat($alc, ".", $ext, "#",$k,$nr)`;  
          if [$c] { @target="_self"; } }
        if [$titles="1"] { @title=`concat($aid,":",$mk,".",$nr)`; }
        $aid; ":"; $mk; " "; $nr;  } }
@@ -963,7 +966,8 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 .default:hover { background-color: white; color: black; }
 ";
 	                } 
-        <head {  <base { @target="mmlquery"; } 
+        <head {  <base { 
+if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} } 
 // <script { @type="text/javascript";
 // "
 // <!-- 
