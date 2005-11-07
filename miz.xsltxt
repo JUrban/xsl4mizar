@@ -313,19 +313,17 @@ tpl [Adjective] {
      abs(#k="V", #nr=`@nr`, #sym=abs1(#k="V", #nr=`@nr`, #fnr=$fnr)); }
 //	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
 
-tpl [Proposition] { if [@nr>0] { plab(#nr=`@nr`); ": ";}  apply; " ";}
+tpl [Proposition] { 
+    if [following-sibling::*[1][(name()="By") and (@linked="true")]] { 
+      if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
+              or (name(..) = "Conclusion"))] { <b { "then "; } }}
+    if [@nr>0] { plab(#nr=`@nr`); ": ";}  apply; " ";}
 
 // Justifications
-tpl [By	] { if [(@linked="true") or (count(*)>0)] { <b { "by "; } } 
-      <i { if [@linked="true"] { "previous"; } 
-           if [count(*)>0] { if [@linked="true"] { ", "; }
-                             list(#separ=", ", #elems=`*`); }
-           ";"; <br; } }
-tpl [IterStep/By] { if [(@linked="true") or (count(*)>0)] { <b { "by "; } }  
-      <i { if [@linked="true"] { "previous"; } 
-           if [count(*)>0] { if [@linked="true"] { ", "; }
-                             list(#separ=", ", #elems=`*`); } } }
-
+tpl [By	] { if [(count(*)>0)] { <b { "by "; } 
+      <i { list(#separ=", ", #elems=`*`); } } ";"; <br; }
+tpl [IterStep/By] { if [(count(*)>0)] { <b { "by "; } 
+      <i { list(#separ=", ", #elems=`*`); } }}
 tpl [From] { <b { "from "; }
         <i { getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
              list(#separ=", ", #elems=`*`); ")"; ";"; <br; } }
@@ -341,7 +339,8 @@ tpl [SkippedProof] { <b { "@proof .. end;"; } <br; }
 tpl [IterStep/SkippedProof] { <b { "@proof .. end;"; } }
 
 //   Term, elIterStep+
-tpl [IterEquality] {
+tpl [IterEquality] { if [IterStep[1]/By[@linked="true"]] {
+    if [not(name(..)="Conclusion")] { <b { "then ";}}}
    if [@nr>0] {  plab(#nr=`@nr`); ": ";}
    apply[*[1]]; " = ";
    nlist(#separ=".= ", #elems=`IterStep`); ";"; <br; }
@@ -370,7 +369,10 @@ tpl [Given] { $j=`@nr - 1`; <b {"given ";}
 tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(#el=`.`); <br; }
 tpl [TakeAsVar] { <b { "take "; } pconst(#nr=`@nr`); " = ";   apply[*[2]]; 
 		  ";"; try_th_exps(#el=`.`); <br; }
-tpl [Conclusion] { <b { "thus "; } apply; }
+tpl [Conclusion] { <b { if [(By[@linked="true"]) or 
+		   (IterEquality/IterStep[1]/By[@linked="true"])] 
+		   { "hence "; }
+			else { "thus "; }} apply; }
 tpl [Case] { <b { "case "; } if [count(*)>1] { "that ";}
              nlist(#separ="and ", #elems=`*`); ";"; <br; }
 tpl [Suppose] { <b { "suppose "; } if [count(*)>1] { "that ";} 
@@ -378,7 +380,8 @@ tpl [Suppose] { <b { "suppose "; } if [count(*)>1] { "that ";}
 tpl [PerCases] { <b { "per cases "; } apply; }
 
 // Auxiliary items
-tpl [Consider] { $j=`@nr - 1`; <b { "consider ";}
+tpl [Consider] { $j=`@nr - 1`; <b { if [By[@linked="true"]] { "then "; }
+		 "consider ";}
                  jtlist(#j=$j,#sep2=" being ", #elems=`Typ`);
 	         if [count(Proposition) > 1] { 
                    " such that "; <br; 
@@ -386,8 +389,8 @@ tpl [Consider] { $j=`@nr - 1`; <b { "consider ";}
                         #elems=`Proposition[position() > 1]`); } 
                  apply[*[2]]; }
 
-tpl [Reconsider] { $j=`@nr`;
-    <b { "reconsider "; } pconst(#nr=$j); " = "; 
+tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; } 
+    "reconsider "; } pconst(#nr=$j); " = "; 
     jlist(#j=$j, #sep2=" = ", #elems=`*[(position() > 1) 
                         and (position() < (last() - 1))]`);
     " as "; apply[*[1]]; " "; 
@@ -551,7 +554,12 @@ tpl [SchemeBlock] {
 //   | ( elConstructor, elConstructor, elConstructor+,
 //       CorrectnessCondition*, elCorrectness? ))
 tpl [Definition] {     
-    if [@expandable="true"] { <b { "expandable mode;"; } <br; }
+    if [@expandable="true"] { 
+       $cnt = `1 + count(preceding-sibling::Definition[@expandable="true"])`;
+       // get the $cnt-th pattern following this DefinitionBlock
+       for-each [../following-sibling::Pattern[Expansion]] {
+         if [position()=$cnt] {
+	 <b { "expandable mode: is "; } apply[Expansion/Typ]; ";"; <br; }}}
     else { apply[Constructor](#nat="1"); }
     apply[*[not(name()='Constructor')]]; }
 
