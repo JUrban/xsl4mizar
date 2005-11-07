@@ -249,7 +249,7 @@ tpl [Typ] {
 				   #elems=`*[position()>$cluster_nr]`); } }
       else {
       abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr));
-      $vis= cddr(#l=$pi); $el =`.`; // ":"; `@pid`; ":"; $pi; ":";
+      $vis= cddr(#l=$pi); $el =`.`;  //DEBUG ":"; `@pid`; ":"; $pi; ":";
 //      apply[$el/*];
 //      if [not(@pid)] {
       if [not($vis="")] { $pid=`@pid`; " of ";
@@ -263,11 +263,14 @@ tpl [Typ] {
 }}}}}}}
      else { `@kind`; }}
 
-
+// gets two Typ, and list of Visible/Int;
+// tries to find and print the terms in #fix corresponding
+// to the visible loci; #patt is structurally similar to
+// #fix, up to the loci
 tpl descent_many_vis(#patt,#fix,#vis) { if [$vis] {
     $v1= `$vis[position()=1]/@x`;
     $v2= `$vis[position()>1]`;
-//    "descen:"; $v1; ":"; apply[$patt]; ":"
+//DEBUG    "descen:"; $v1; ":"; apply[$patt]; ":"; 
     descent_many(#patts=`$patt/*[not(name()="Cluster")]`,
 		 #fixs=`$fix/*[not(name()="Cluster")]`,#lnr=$v1,
 		 #nr=`count($patt/*[not(name()="Cluster")])`); 
@@ -278,16 +281,18 @@ tpl descent_many_vis(#patt,#fix,#vis) { if [$vis] {
 tpl descent_many(#patts,#fixs,#lnr,#nr) { if [$nr > 0] {
     $patt=`$patts[position()=$nr]`;
     $fix =`$fixs[position()=$nr]`;
-// "desone:"; `name($patt)`; ":"; `name($fix)`; ":";
-    if [name($patt)="LocusVar"] { 
-       if [$patt/@nr=$lnr] { for-each [$top] { apply[$fix](#p="0"); } } }
+//DEBUG "desone:"; $nr; ":"; `name($patt)`; ":"; `name($fix)`; ":";
+    if [(name($patt)="LocusVar") and ($patt/@nr=$lnr)] { 
+//DEBUG    $lnr; ":"; `$patt/@nr`; ":";  "fff";
+	  for-each [$top] { apply[$fix](#p="0"); } } 
 // the duplication here is needed to generated the html properly;
 // it does not cause any visible slowdown in practice
     else { $res= { if [name($patt) = name($fix)] { 
 		      descent_many(#patts=`$patt/*`,#fixs=`$fix/*`,
 				   #lnr=$lnr,#nr=`count($patt/*)`);  } 
                    else {"";}} 
-      if [$res and not($res="")] { 
+      if [$res and not($res="")] {
+//DEBUG [and contains($res,"fff")]
 	  descent_many(#patts=`$patt/*`,#fixs=`$fix/*`,
 		      #lnr=$lnr,#nr=`count($patt/*)`);  }
       else 
@@ -531,8 +536,9 @@ tpl [SchemePredDecl] {
 //   element elSchemePremises { elProposition* },
 //   elProposition, Justification, elEndPosition
 tpl [SchemeBlock] {
-    <div { <a { @NAME=`concat("S",@schemenr)`; <b { "scheme"; }}
-     " s"; `@schemenr`; "{ ";
+    <div { <a { @NAME=`concat("S",@schemenr)`; <b { "scheme  "; }
+    pcomment(#str=`concat($aname,":sch ",@schemenr)`); }
+     "s"; `@schemenr`; "{ ";
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`); 
     " } :"; <br;
     <div { @class="add"; apply[Proposition]; } <b { "provided"; }
@@ -870,7 +876,7 @@ tpl mkref(#aid,#nr,#k,#c) {
 	 @href=`concat($alc, ".", $ext, "#",$k,$nr)`;  
          if [$c] { @target="_self"; } }
        if [$titles="1"] { @title=`concat($aid,":",$mk,".",$nr)`; }
-       $aid; ":"; $mk; " "; $nr;  } }
+       $aid; ":"; if [not($k="T")] { $mk; " ";} $nr;  } }
 
 tpl getschref(#anr,#nr) {
     if [$anr>0] { for-each [document($schms,/)] {
@@ -954,6 +960,7 @@ div { padding: 0 0 0 0; margin: 0 0 0 0; }
 div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
 p { margin: 0 0 0 0; } 
 a {text-decoration:none} a:hover { color: red; } 
+a.ref { font-size:x-small; }
 a.ref:link { color:green; } 
 a.ref:hover { color: red; } 
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
