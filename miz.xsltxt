@@ -707,12 +707,15 @@ tpl abs(#k,#nr,#sym) {
 // if nothing found, just concat #k and #nr; #r says to look for
 // right bracket instead of left or fail if the format is not bracket
 tpl abs1(#k,#nr,#r,#fnr,#pid) {
+//DEBUG    "abs1:"; $k; ":"; $fnr; ":";
    $fnr1= { if [$fnr] { $fnr;} else { formt_nr(#k=$k,#nr=$nr,#pid=$pid);}}
    for-each [document($formats,/)] {
      if [not(key('F',$fnr1))] { `concat($k,$nr)`; }
      else {
        for-each [key('F',$fnr1)] {
-          $snr=`@symbolnr`; $sk=`@kind`; $dkey=`concat('D_',@kind)`;
+          $snr=`@symbolnr`; $sk1=`@kind`; 
+	  $sk = { if [$sk1="L"] { "G";} else { $sk1; } }
+	  $dkey=`concat('D_',$sk)`;
           $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } } 
         if [not($r='1') or ($sk='K')] {
          for-each [document($vocs,/)] {
