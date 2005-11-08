@@ -243,13 +243,15 @@ tpl [Typ] {
    if [count(*)>0] { apply[*[1]]; }
    if [(@kind="M") or (@kind="G")] { 
       $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
+//DEBUG ":"; `@pid`; ":"; $pi; ":";
       $fnr = car(#l=$pi);
       $expand = cadr(#l=$pi);
       $k1= { if [@kind="M"] { "M"; } else { "L";} }
       if [($expand="0") or not(@pid)] {
-	 abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr)); 
-         if [count(*)>2] { " of "; list(#separ=",", 
-				   #elems=`*[position()>$cluster_nr]`); } }
+        pp(#k=$k1,#nr=`@nr`,#args=`*[not(name()="Cluster")]`,#pid=`@pid`);}
+//	 abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr)); 
+//         if [count(*)>2] { " of "; list(#separ=",", 
+//				   #elems=`*[position()>$cluster_nr]`); } }
       else {
 //      abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr));
       $sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr);
