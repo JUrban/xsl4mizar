@@ -150,6 +150,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // know
 #top = `/`;
 
+// relative nr of the first expandable mode
+#first_exp = { `/Pattern[(@constrkind='M') and (@constrnr=0)][1]/@relnr`; }
+
 // Formulas
 
 // #i is nr of the bound variable, 1 by default 
@@ -248,17 +251,35 @@ tpl [Typ] {
          if [count(*)>2] { " of "; list(#separ=",", 
 				   #elems=`*[position()>$cluster_nr]`); } }
       else {
-      abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr));
+//      abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr));
+      $sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr);
       $vis= cddr(#l=$pi); $el =`.`;  //DEBUG ":"; `@pid`; ":"; $pi; ":";
+      $pid=`@pid`;
 //      apply[$el/*];
-//      if [not(@pid)] {
-      if [not($vis="")] { $pid=`@pid`; " of ";
+//      if [not(@pid)] 
        if [key('EXP',$pid)] { 
         for-each [key('EXP',$pid)] {
-	  descent_many_vis(#patt=`Expansion/Typ`,#fix=$el,#vis=`Visible/Int`); }}
+
+	$alc=lc(#s=`@aid`);
+      <a { @href=`concat($alc, ".", $ext, "#","NM",@nr)`; 
+       if [$titles="1"] { @title=`concat(@aid,":","NM",".",@nr)`; }
+       if [$sym] { $sym; }
+       else { if [$relnames>0] { `@kind`; `@relnr`; }
+         else { `@kind`; `@nr`; "_"; `@aid`;  } } }
+
+      if [not($vis="")] { " of ";
+	  descent_many_vis(#patt=`Expansion/Typ`,#fix=$el,#vis=`Visible/Int`); }}}
      else { for-each [document($patts,/)] {
        if [key('EXP',$pid)] { 
         for-each [key('EXP',$pid)] {
+	$alc=lc(#s=`@aid`);
+      <a { @href=`concat($alc, ".", $ext, "#","NM",@nr)`; 
+       if [$titles="1"] { @title=`concat(@aid,":","NM",".",@nr)`; }
+       if [$sym] { $sym; }
+       else { if [$relnames>0] { `@kind`; `@relnr`; }
+         else { `@kind`; `@nr`; "_"; `@aid`;  } } }
+
+      if [not($vis="")] { " of ";
 	     descent_many_vis(#patt=`Expansion/Typ`,#fix=$el,#vis=`Visible/Int`); 
 }}}}}}}
      else { `@kind`; }}
@@ -557,9 +578,10 @@ tpl [Definition] {
     if [@expandable="true"] { 
        $cnt = `1 + count(preceding-sibling::Definition[@expandable="true"])`;
        // get the $cnt-th pattern following this DefinitionBlock
-       for-each [../following-sibling::Pattern[Expansion]] {
-         if [position()=$cnt] {
-	 <b { "expandable mode: is "; } apply[Expansion/Typ]; ";"; <br; }}}
+       for-each [../following-sibling::Pattern[Expansion][$cnt]] {
+        <a { @NAME=`concat("NM",@nr)`;
+	 <b { "expandable mode ";}  abs1(#k="M",#fnr=`@formatnr`);
+	 " is "; } apply[Expansion/Typ]; ";"; <br; }}
     else { apply[Constructor](#nat="1"); }
     apply[*[not(name()='Constructor')]]; }
 
