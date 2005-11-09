@@ -162,9 +162,10 @@ tpl [For](#i,#k) {
   $j = { if [$i] { $i;} else { "1"; } }
   $l = { if [$k] { $k;} else { $j; } }
   $nm = { `name(*[2])`; }
-  if [($nm = "For") and (*[1]/@nr = *[2]/*[1]/@nr) 
-      and (string(*[1]) = string(*[2]/*[1]))] { 
-     apply[*[2]](#i=`$j+1`,#k=$l); }
+  $eq1 = { if [($nm = "For") and (*[1]/@nr = *[2]/*[1]/@nr)]
+	      { are_equal(#el1=`*[1]`,#el2=`*[2]/*[1]`); }
+           else { "0"; } }
+  if [$eq1="1"]  {  apply[*[2]](#i=`$j+1`,#k=$l); }
   else {
   "for "; ft_list(#f=$l,#t=$j,#sep=", ");
   " being"; apply[*[1]]; if [not(($nm = "For"))] {" holds ";} 
@@ -176,11 +177,92 @@ tpl [For](#i,#k) {
 
 tpl [Not](#i) { 
     if [Pred[(@kind='V') or (@kind='R')]] {  apply[*[1]](#i=$i,#not="1"); }
-    else { "not "; apply[*[1]](#i=$i); } }
+    else { 
+	 $i1= is_impl(#el=`.`);
+	 if [$i1="1"] { "( "; apply[*[1]/*[1]](#i=$i); " implies "; 
+			apply[*[1]/*[2]/*[1]](#i=$i); " )"; }
+         else {
+	      $i2= is_or(#el=`.`);
+	      if [$i2="1"] { "( "; apply[*[1]/*[1]/*[1]](#i=$i); " or "; 
+			apply[*[1]/*[2]/*[1]](#i=$i); " )"; }
+           else { 
+             $i3= is_impl1(#el=`.`);
+	     if [$i3="1"] { "( "; "( "; 
+	     ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i);
+	    " )"; " implies "; 
+	    "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i); " )"; }
+              else { "not "; apply[*[1]](#i=$i); } } } } }
 // tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
 //                else { "not "; apply[*[1]]; } }
 
-tpl [And](#i) { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }
+
+#pid_Ex 		= { "-1"; } // usually NegFrmPtr
+#pid_Ex_Univ 		= { "-2"; } // usually UnivFrmPtr
+#pid_Ex_InnerNot 	= { "-3"; } // usually NegFrmPtr
+#pid_Impl 		= { "-4"; } // usually NegFrmPtr
+#pid_Impl_And 		= { "-5"; } // usually ConjFrmPtr       
+#pid_Impl_RightNot 	= { "-6"; } // usually NegFrmPtr
+#pid_Iff 		= { "-7"; } // usually ConjFrmPtr
+#pid_Or 		= { "-8"; } // usually NegFrmPtr
+#pid_Or_And 		= { "-9"; } // usually ConjFrmPtr
+#pid_Or_LeftNot 	= { "-10"; } // usually NegFrmPtr
+#pid_Or_RightNot 	= { "-11"; } // usually NegFrmPtr
+
+tpl is_or(#el) { for-each [$el] { if [(@pid=$pid_Or) 
+        and (*[1][@pid=$pid_Or_And]) and (count(*[1]/*)=2)
+	and (*[1]/*[1][@pid=$pid_Or_LeftNot])
+	and (*[1]/*[2][@pid=$pid_Or_RightNot])]
+ { "1"; } else { "0"; }}}
+
+tpl is_impl(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)=2)
+	and (*[1]/*[2][@pid=$pid_Impl_RightNot])]
+ { "1"; } else { "0"; }}}
+
+tpl is_impl1(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>2)
+	and (*[1]/*[@pid=$pid_Impl_RightNot])]
+ { "1"; } else { "0"; }}}
+
+tpl is_equiv(#el) { for-each [$el] {
+       $e1 = { if [(@pid=$pid_Iff) and (count(*)=2)] {
+		  $i1 = { is_impl(#el=`$el/*[1]`); } 
+		  if [$i1="1"] { is_impl(#el=`*[2]`); }
+		  else { "0"; }}
+	       else { "0"; } }
+       if [$e1="1"] { 
+	  $res1 = { are_equal( #el1=`*[1]/*[1]/*[1]`, 
+			       #el2=`*[2]/*[1]/*[2]/*[1]`); }
+	  $res2 = { are_equal( #el1=`*[2]/*[1]/*[1]`, 
+			       #el2=`*[1]/*[1]/*[2]/*[1]`); }
+	  if [($res1="1") and ($res2="1")] { "1"; }
+          else { "0"; }}
+       else  { $e1; }}}
+
+//  recursive equality on subnodes and attributes
+tpl are_equal(#el1,#el2) { 
+    if[ not(name($el1)=name($el2)) or not(count($el1/*)=count($el2/*))
+	or not(count($el1/@*)=count($el2/@*))] { "0"; }
+    else { 
+	 $s1 = { for-each [$el1/@*] { `string()`;} }
+	 $s2 = { for-each [$el2/@*] { `string()`;} }
+	 if [not($s1=$s2)] { "0"; }
+    else 
+     { are_equal_many(#els1=`$el1/*`,#els2=`$el2/*`,#nr=`count($el1/*)`); }}}
+
+tpl are_equal_many(#els1,#els2,#nr) { if [$nr > 0] {
+    $el1=`$els1[position()=$nr]`;
+    $el2=`$els2[position()=$nr]`; 
+    $res1 = { are_equal(#el1=$el1, #el2=$el2); }
+    if [$res1="1"] { are_equal_many(#els1=$els1, #els2=$els2, #nr=`$nr - 1`);}
+    else { "0"; }} else { "1"; }}
+
+tpl [And](#i) { $e1= is_equiv(#el=`.`); 
+    if [$e1="1"] { 
+       apply[*[1]/*[1]/*[1]](#i=$i); " iff ";
+       apply[*[1]/*[1]/*[2]/*[1]](#i=$i); }
+    else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }}
+
 tpl [Pred](#i,#not) { 
     choose {
       when [@kind='P'] { "P"; `@nr`; "["; list(#separ=",", #elems=`*`); "]";}
