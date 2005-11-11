@@ -258,9 +258,9 @@ tpl are_equal_many(#els1,#els2,#nr) { if [$nr > 0] {
     else { "0"; }} else { "1"; }}
 
 tpl [And](#i) { $e1= is_equiv(#el=`.`); 
-    if [$e1="1"] { 
+    if [$e1="1"] { "( ";
        apply[*[1]/*[1]/*[1]](#i=$i); " iff ";
-       apply[*[1]/*[1]/*[2]/*[1]](#i=$i); }
+       apply[*[1]/*[1]/*[2]/*[1]](#i=$i); " )"; } 
     else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }}
 
 tpl [Pred](#i,#not) { 
