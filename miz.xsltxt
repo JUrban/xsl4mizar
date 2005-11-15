@@ -485,30 +485,34 @@ tpl [IterStep] { apply;  }
 // #fst tells to process in a sequence of Let's
 // #beg is the beginning of const. sequence numbers 
 tpl [Let](#fst,#beg) { 
+  $has_thesis = { if [following-sibling::*[1][name()="Thesis"]] { "1"; }
+		  else { "0"; }  }
+  $it_step = { if [$has_thesis="1"] { "2"; } else { "1"; }}
   if // if not first in a sequence, it is already handled
-    [not($fst="1") and (preceding-sibling::*[1][name()="Thesis"]) 
-     and (preceding-sibling::*[2][name()="Let"])] {}
+    [not($fst="1") and (preceding-sibling::*[position()=$it_step][name()="Let"])] {}
   else {
   $next = { if [(count(Typ)=1) and 
-     (following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)]) 
-     and (following-sibling::*[2][name()="Let"][count(Typ)=1]) and 
-     (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])]
-	{ are_equal(#el1=`Typ`,#el2=`following-sibling::*[2]/Typ`); }
+     (following-sibling::*[position()=$it_step][name()="Let"][count(Typ)=1]) and
+     (($has_thesis="0") or 
+     ((following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)]) 
+     and
+     (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])))]
+	{  are_equal(#el1=`./Typ`,
+                  #el2=`following-sibling::*[position()=$it_step]/Typ`); }
 	else { "0"; }}
   if [$next="1"] {
     $beg1 = { if [$beg] { $beg; } else { `@nr`;} }
-    apply[following-sibling::*[2]](#fst="1",#beg=$beg1); }
+    apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=$beg1); }
    else {
     if [$beg] // end of sequence
     { <b { "let "; } ft_clist(#f=$beg,#t=`@nr`,#sep=", "); " be ";
-      apply[Typ]; ";"; <br; apply[following-sibling::*[2]](#fst="1"); }
+      apply[Typ]; ";"; <br; apply[following-sibling::*[position()=$it_step]](#fst="1"); }
     else {
        $j=`@nr - 1`; <b { "let "; } 
 	    jtlist(#j=$j, #sep2=" be ", #elems=`Typ`); 
             ";"; try_th_exps(#el=`.`); <br; 
-       if [(following-sibling::*[1][name()="Thesis"])
-	  and (following-sibling::*[2][name()="Let"])] { 
-	  apply[following-sibling::*[2]](#fst="1"); }
+       if [following-sibling::*[position()=$it_step][name()="Let"]] { 
+	  apply[following-sibling::*[position()=$it_step]](#fst="1"); }
 }} }}
 
 tpl [Assume] { <b { "assume "; }  if [count(*)>1] { "that "; }
