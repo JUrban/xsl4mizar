@@ -482,9 +482,34 @@ tpl [IterStep] { apply;  }
 //            jlist(#j=$j, #sep2=" be ", #elems=`*`); 
 //	    ";"; try_th_exps(#el=`.`); <br; }
 
-tpl [Let] { $j=`@nr - 1`; <b { "let "; } 
+// #fst tells to process in a sequence of Let's
+// #beg is the beginning of const. sequence numbers 
+tpl [Let](#fst,#beg) { 
+  if // if not first in a sequence, it is already handled
+    [not($fst="1") and (preceding-sibling::*[1][name()="Thesis"]) 
+     and (preceding-sibling::*[2][name()="Let"])] {}
+  else {
+  $next = { if [(count(Typ)=1) and 
+     (following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)]) 
+     and (following-sibling::*[2][name()="Let"][count(Typ)=1]) and 
+     (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])]
+	{ are_equal(#el1=`Typ`,#el2=`following-sibling::*[2]/Typ`); }
+	else { "0"; }}
+  if [$next="1"] {
+    $beg1 = { if [$beg] { $beg; } else { `@nr`;} }
+    apply[following-sibling::*[2]](#fst="1",#beg=$beg1); }
+   else {
+    if [$beg] // end of sequence
+    { <b { "let "; } ft_clist(#f=$beg,#t=`@nr`,#sep=", "); " be ";
+      apply[Typ]; ";"; <br; apply[following-sibling::*[2]](#fst="1"); }
+    else {
+       $j=`@nr - 1`; <b { "let "; } 
 	    jtlist(#j=$j, #sep2=" be ", #elems=`Typ`); 
-            ";"; try_th_exps(#el=`.`); <br; }
+            ";"; try_th_exps(#el=`.`); <br; 
+       if [(following-sibling::*[1][name()="Thesis"])
+	  and (following-sibling::*[2][name()="Let"])] { 
+	  apply[following-sibling::*[2]](#fst="1"); }
+}} }}
 
 tpl [Assume] { <b { "assume "; }  if [count(*)>1] { "that "; }
 	       nlist(#separ="and ", #elems=`*`);
@@ -508,8 +533,9 @@ tpl [Conclusion] { if [(By[@linked="true"]) or
 		else { <b { "thus "; } 
 		     if [Proof] { apply[Proposition]; try_th_exps(#el=`.`);
 				  apply[Proof]; }
-		     else { apply[Proposition|IterEquality];  
-			    apply[By|From|ErrorInf|SkippedProof](#nbr="1");
+		     else { apply[Proposition]; 
+			    apply[ IterEquality|By|From|ErrorInf
+				   |SkippedProof](#nbr="1");
 			    try_th_exps(#el=`.`); <br; } } }}
 tpl [Case] { <b { "case "; } if [count(*)>1] { "that ";}
              nlist(#separ="and ", #elems=`*`); ";"; <br; }
@@ -770,8 +796,11 @@ tpl arglist(#separ,#elems) {
 tpl jtlist(#j,#sep2,#elems) { 
     for-each [$elems] { pconst(#nr=`$j+position()`);
         if [position()=last()] { $sep2; apply[.]; }
-	   else { if [not(string() = string(following-sibling::*[1]))] {
-		  $sep2; apply[.]; } ", "; }} } 
+	   else { 
+		$eq1 = { are_equal(#el1=`.`,#el2=`following-sibling::*[1]`); }
+		if [$eq1="0"] { $sep2; apply[.]; } ", "; }} }
+//if [not(string() = string(following-sibling::*[1]))]
+
 
 // add numbers starting at #j+1 between #sep1 and #sep2 - now with constants
 tpl jlist(#j,#sep2,#elems) { 
@@ -791,6 +820,13 @@ tpl ft_list(#f,#t,#sep) {
   if [$f = $t] {  pvar(#nr=$f); }
   else { if [$f < $t] { pvar(#nr=$f); $sep; 
             ft_list(#f=`$f+1`,#t=$t,#sep=$sep); } }}
+
+// from-to list of consts starting numbering at $f ending at $t
+tpl ft_clist(#f,#t,#sep) {
+  if [$f = $t] {  pconst(#nr=$f); }
+  else { if [$f < $t] { pconst(#nr=$f); $sep; 
+            ft_clist(#f=`$f+1`,#t=$t,#sep=$sep); } }}
+
 
 // add the constructor href, $c tells if it is from current article
 // #sym is optional Mizar symbol
