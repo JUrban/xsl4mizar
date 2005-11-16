@@ -139,6 +139,14 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 #locicolor = { "Maroon"; }
 
+#schpcolor = { "Maroon"; }
+
+#schfcolor = { "Maroon"; }
+
+#ppcolor = { "Maroon"; }
+
+#pfcolor = { "Maroon"; }
+
 #labcolor = { "Green"; }
 
 #commentcolor = { "Red"; }
@@ -209,10 +217,10 @@ tpl [Not](#i) {
 			apply[*[1]/*[2]/*[1]](#i=$i); " )"; }
            else { 
              $i3= is_impl1(#el=`.`);
-	     if [$i3="1"] { "( "; "( "; 
+	     if [$i3="1"] { "( ( "; 
 	     ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i);
 	    " )"; " implies "; 
-	    "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i); " )"; }
+	    "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i); " ) )"; }
               else { "not "; apply[*[1]](#i=$i); } } } } } }
 // tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
 //                else { "not "; apply[*[1]]; } }
@@ -245,6 +253,12 @@ tpl is_impl1(#el) { for-each [$el] { if [(@pid=$pid_Impl)
         and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>2)
 	and (*[1]/*[@pid=$pid_Impl_RightNot])]
  { "1"; } else { "0"; }}}
+
+tpl is_impl2(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>=2)
+	and (*[1]/*[@pid=$pid_Impl_RightNot])]
+ { "1"; } else { "0"; }}}
+
 
 tpl is_equiv(#el) { for-each [$el] {
        $e1 = { if [(@pid=$pid_Iff) and (count(*)=2)] {
@@ -282,12 +296,22 @@ tpl are_equal_many(#els1,#els2,#nr) { if [$nr > 0] {
 tpl [And](#i) { $e1= is_equiv(#el=`.`); 
     if [$e1="1"] { "( ";
        apply[*[1]/*[1]/*[1]](#i=$i); " iff ";
-       apply[*[1]/*[1]/*[2]/*[1]](#i=$i); " )"; } 
-    else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }}
+       apply[*[1]/*[1]/*[2]/*[1]](#i=$i); " )"; }
+    else { // a bit risky
+    if [(@pid=$pid_Iff) and (count(*)=2)] {
+       $i1= is_impl(#el=`*[1]`);
+       if [$i1="1"] { "( "; apply[*[1]/*[1]/*[1]](#i=$i); " iff "; 
+			apply[*[1]/*[1]/*[2]/*[1]](#i=$i); " )"; }
+       else { $i2= is_impl(#el=`*[2]`);
+       if [$i2="1"] { "( "; apply[*[2]/*[1]/*[2]/*[1]](#i=$i); " iff "; 
+		      apply[*[2]/*[1]/*[1]](#i=$i); " )"; }
+       else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }}}
+    else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }}}
 
 tpl [Pred](#i,#not) { 
     choose {
-      when [@kind='P'] { "P"; `@nr`; "["; list(#separ=",", #elems=`*`); "]";}
+      when [@kind='P'] { pschpvar(#nr=`@nr`); 
+	   "["; list(#separ=",", #elems=`*`); "]";}
       when [(@kind='V') or (@kind='R')]  { 
 	   $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
 	   $fnr = car(#l=$pi);
@@ -301,7 +325,7 @@ tpl [Pred](#i,#not) {
        else { pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#pid=`@pid`); }} }}
 //,#sym1=abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`))); }}
 //  "[ "; list(#separ=",", #elems=`*`); "]"; }
-tpl [PrivPred](#i) { "S"; `@nr`; "["; 
+tpl [PrivPred](#i) { pppred(#nr=`@nr`); "["; 
     list(#separ=",", #elems=`*[position() < last()]`); "]"; }
 tpl [Is](#i) { apply[*[1]]; " is "; apply[*[2]]; } 
 tpl [Verum](#i) { "verum"; }
@@ -317,7 +341,8 @@ tpl [InfConst](#p) { "D"; `@nr`; }
 tpl [Num](#p) {  `@nr`; }
 tpl [Func](#p) { 
     choose {
-      when [@kind='F'] { "F"; `@nr`; "("; list(#separ=",", #elems=`*`); ")";}
+      when [@kind='F'] { pschfvar(#nr=`@nr`); 
+	   "("; list(#separ=",", #elems=`*`); ")";}
       when [@kind='U'] { "the ";
         abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`));
         " of "; apply[*[position() = last()]](#p=$p); }
@@ -326,7 +351,7 @@ tpl [Func](#p) {
                  if [name(..)='Func'] { "1"; } else { "0";} }  }
         pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#parenth=$par); }}} 
 
-tpl [PrivFunc](#p) { "H"; `@nr`; "("; 
+tpl [PrivFunc](#p) { ppfunc(#nr=`@nr`); "("; 
     list(#separ=",", #elems=`*[position()>1]`); ")"; }
 tpl [ErrorTrm](#p) { "errortrm"; }
 tpl [Fraenkel](#p) { 
@@ -503,10 +528,11 @@ tpl [Let](#fst,#beg) {
   if [$next="1"] {
     $beg1 = { if [$beg] { $beg; } else { `@nr`;} }
     apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=$beg1); }
-   else {
+   else { 
     if [$beg] // end of sequence
     { <b { "let "; } ft_clist(#f=$beg,#t=`@nr`,#sep=", "); " be ";
-      apply[Typ]; ";"; <br; apply[following-sibling::*[position()=$it_step]](#fst="1"); }
+      apply[Typ]; ";"; <br; 
+      apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1"); }
     else {
        $j=`@nr - 1`; <b { "let "; } 
 	    jtlist(#j=$j, #sep2=" be ", #elems=`Typ`); 
@@ -565,11 +591,11 @@ tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; }
     apply[*[last()]]; } 
 
 tpl [Set] { <b { "set ";} pconst(#nr=`@nr`); " = "; apply[*[1]]; ";"; <br; }
-tpl [DefFunc] { <b { "deffunc"; } " H"; `@nr`; "(";  
+tpl [DefFunc] { <b { "deffunc "; } ppfunc(#nr=`@nr`); "(";  
                 list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
                 apply[*[3]]; " = ";
 	        apply[*[2]]; ";"; <br; }
-tpl [DefPred] { <b { "defpred";} " S"; `@nr`; "["; 
+tpl [DefPred] { <b { "defpred ";} pppred(#nr=`@nr`); "["; 
                 list(#separ=",", #elems=`ArgTypes/Typ`); "] means ";
 	        apply[*[2]]; ";"; <br; }
 
@@ -696,12 +722,12 @@ tpl [Correctness] { <b { "correctness: "; } <br; apply; }
 tpl [Canceled] { <b { "canceled;"; } <br; }
 
 tpl [SchemeFuncDecl] { 
-    "F"; `@nr`; "(";
+     pschfvar(#nr=`@nr`); "(";
      list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
      apply[*[2]]; }
 
 tpl [SchemePredDecl] { 
-    "P"; `@nr`; "[";
+     pschpvar(#nr=`@nr`); "[";
      list(#separ=",", #elems=`ArgTypes/Typ`); "]"; }
 
 //   ( elSchemeFuncDecl | elSchemePredDecl )*,
@@ -1046,6 +1072,18 @@ tpl pconst(#nr) {  if [$colored="1"] { <font { @color=$constcolor;
 
 tpl ploci(#nr) {  if [$colored="1"] { <font { @color=$locicolor; 
     "a"; <sub { $nr;} } } else { "a"; <sub { $nr;} } }
+
+tpl pschpvar(#nr) {  if [$colored="1"] { <font { @color=$schpcolor; 
+    "P"; <sub { $nr;} } } else { "P"; <sub { $nr;} } }
+
+tpl pschfvar(#nr) {  if [$colored="1"] { <font { @color=$schfcolor; 
+    "F"; <sub { $nr;} } } else { "F"; <sub { $nr;} } }
+
+tpl pppred(#nr) {  if [$colored="1"] { <font { @color=$ppcolor; 
+    "S"; <sub { $nr;} } } else { "S"; <sub { $nr;} } }
+
+tpl ppfunc(#nr) {  if [$colored="1"] { <font { @color=$pfcolor; 
+    "H"; <sub { $nr;} } } else { "H"; <sub { $nr;} } }
 
 tpl plab(#nr) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
     "E"; `@nr`;} }  else { "E"; `@nr`;} } }
