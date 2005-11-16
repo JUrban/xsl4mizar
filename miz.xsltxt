@@ -756,7 +756,27 @@ tpl [Definition] {
         <a { @NAME=`concat("NM",@nr)`;
 	 <b { "expandable mode ";}  abs1(#k="M",#fnr=`@formatnr`);
 	 " is "; } apply[Expansion/Typ]; ";"; <br; }}
-    else { apply[Constructor](#nat="1"); }
+    else { $nl = { if [@nr] { "0"; } else { "1"; }}
+	   apply[Constructor](#indef="1",#nl=$nl); 
+// @nr is present iff Definiens is present; it can be 0 if
+// the deiniens is not labeled, otherwise it is the proposition number
+// of its deftheorem
+    if [@nr] { $nr1 = `@nr`;
+       $cnt1 = `1 + count(preceding-sibling::Definition[@nr])`;
+       for-each [../following-sibling::Definiens[position()=$cnt1]] {
+         <b { if [DefMeaning/@kind='e'] { " equals "; } else { " means "; } }
+	 if [$nr1>0]  { ":"; plab(#nr=$nr1); ": ";} 
+	 ":: "; `@aid`; ":def "; `@defnr`; <br; "  ";
+	 for-each [DefMeaning/PartialDef] { 
+		  apply[*[1]]; <b { " if "; } apply[*[2]]; <br; }
+	 if [(DefMeaning/PartialDef) 
+	    and (DefMeaning/*[(position() = last()) 
+		and not(name()="PartialDef")])] { <b { " otherwise "; }}
+	 apply[DefMeaning/*[(position() = last()) 
+	                     and not(name()="PartialDef")]]; ";"; <br;
+}
+} 
+}
     apply[*[not(name()='Constructor')]]; }
 
 //   ( elLet | elAssume | elGiven | AuxiliaryItem |
@@ -1086,7 +1106,7 @@ tpl ppfunc(#nr) {  if [$colored="1"] { <font { @color=$pfcolor;
     "H"; <sub { $nr;} } } else { "H"; <sub { $nr;} } }
 
 tpl plab(#nr) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
-    "E"; `@nr`;} }  else { "E"; `@nr`;} } }
+    "E"; $nr;} }  else { "E"; $nr;} } }
 
 tpl pcomment0(#str) { <i { if [$colored="1"] {
 <font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}
@@ -1157,9 +1177,9 @@ tpl [ArgTypes] { if [*] { <b { "let "; } ploci(#nr="1");
              " be "; 
             alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`*`); ";"; <br; }}
 
-// #nat tells not to use Argtypes
-tpl [Constructor](#nat) { 
-    if [not($nat="1")] { apply[ArgTypes]; }
+// #indef tells not to use Argtypes (we are inside Definition)
+tpl [Constructor](#indef,#nl) { 
+    if [not($indef="1")] { apply[ArgTypes]; }
     if [@redefnr>0] { <b { "redefine "; } }
     <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
     if [@redefnr>0] { 
@@ -1175,7 +1195,9 @@ tpl [Constructor](#nat) {
     if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
         or (@kind= 'U') or (@kind= 'L')] { <b {" -> ";}
 	   list(#separ=",",#elems=`Typ`); } 
-    ";"; <br;     if [not($nat="1")]  { <br; }}
+      if [not($indef="1")]  {  ";"; <br;  <br; }
+      else { if [$nl="1"] { ";"; <br;} }
+}
 
 // ignore Patterns now
 tpl [Pattern] {}
