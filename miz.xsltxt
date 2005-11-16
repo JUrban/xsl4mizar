@@ -693,17 +693,17 @@ tpl [JustifiedTheorem] { <b { "theorem "; }
 	else { apply[*[1]/*[1]]; " "; apply[*[2]]; } } } }
 
 tpl [DefTheorem] { 
-    if [@constrkind] { pcomment0(#str="defines "); 
-		abs(#k=`@constrkind`, #nr=`@constrnr`, 
-                    #sym=abs1(#k=`@constrkind`, #nr=`@constrnr`)); <br;}
-    <b { "deftheorem "; } 
-    for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } 
     $nr1 = `1+count(preceding-sibling::DefTheorem)`;
-    <a { @NAME=`concat("D",$nr1)`; 
-	 pcomment(#str=`concat($aname,":def ",$nr1)`); }     
-    <div { @class="add"; 
+    ":: "; <b { "deftheorem "; }
+    for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); } " ";
+//    <a { @NAME=`concat("D",$nr1)`; 
+    if [@constrkind] { "  defines "; 
+		abs(#k=`@constrkind`, #nr=`@constrnr`, 
+                    #sym=abs1(#k=`@constrkind`, #nr=`@constrnr`)); } " ";
+    <a { @onclick="hs(this)"; `concat($aname,":def ",$nr1)`; " : "; <br; }
+    <span { @class="hide"; <div { @class="add"; 
          if [Proposition/Verum] { <b { "canceled; "; } }
-	 else { apply[*[1]/*[1]];  ";"; }  } }
+	 else { apply[*[1]/*[1]];  ";"; }  } }}
 
 
 //   Property, elProposition, Justification
@@ -713,8 +713,10 @@ tpl [JustifiedProperty] {
 
 //  Formula | ( elProposition, Justification )
 tpl [UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness] 
-    { <b { `translate(name(), $ucletters, $lcletters)`; }
-           <br; apply; }
+    { <a { @onclick="hs(this)";
+	 <b { `translate(name(), $ucletters, $lcletters)`; " "; } }
+//           <br; 
+<span { @class="hide"; apply[*[1]]; }  apply[*[position()>1]]; }
 
 // CorrectnessCondition*, elProposition, Justification
 tpl [Correctness] { <b { "correctness: "; } <br; apply; }
@@ -766,7 +768,9 @@ tpl [Definition] {
        for-each [../following-sibling::Definiens[position()=$cnt1]] {
          <b { if [DefMeaning/@kind='e'] { " equals "; } else { " means "; } }
 	 if [$nr1>0]  { ":"; plab(#nr=$nr1); ": ";} 
-	 ":: "; `@aid`; ":def "; `@defnr`; <br; "  ";
+	 <a { @NAME=`concat("D",@defnr)`; 
+	 pcomment(#str=`concat($aname,":def ",@defnr)`); }
+//	 ":: "; `@aid`; ":def "; `@defnr`; <br; "  ";
 	 for-each [DefMeaning/PartialDef] { 
 		  apply[*[1]]; <b { " if "; } apply[*[2]]; <br; }
 	 if [(DefMeaning/PartialDef) 
@@ -1214,6 +1218,7 @@ a {text-decoration:none} a:hover { color: red; }
 a.ref { font-size:x-small; }
 a.ref:link { color:green; } 
 a.ref:hover { color: red; } 
+span.hide { display: none; }
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
 span.p2:hover { color : inherit; background-color : #FFCACA; }
 span.p3:hover { color : inherit; background-color : #FFFFBA; }
@@ -1224,10 +1229,23 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 .default:hover { background-color: white; color: black; }
 ";
 	                } 
-        <head {  <base { 
+        <head {  
+<script { @type="text/javascript";
+"
+<!-- 
+function hs(obj)
+{
+// document.getElementById('myimage').nextSibling.style.display = 'block';
+if (obj.nextSibling.style.display == 'block')
+ { obj.nextSibling.style.display = 'none'; }
+else { if (obj.nextSibling.style.display == 'none')
+ { obj.nextSibling.style.display = 'block'; }
+ else { obj.nextSibling.style.display = 'block';  }}
+}
+// End -->
+"; }
+<base { 
 if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} } 
-// <script { @type="text/javascript";
-// "
 // <!-- 
 // var browse_url = \"http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry=\"
 // function l1(c) { location = browse_url + c }
