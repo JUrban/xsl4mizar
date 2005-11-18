@@ -674,7 +674,8 @@ tpl [Proof] {
 // #nkw tells not to print the keword (used if hereby was printed above)
 tpl [Now](#nkw) {
     if [not($nkw="1")] { 
-       <div { <a { add_hs2_attrs(); <b {  "now "; } }
+       <div { if [@nr>0] { plab(#nr=`@nr`); ": ";}
+	    <a { add_hs2_attrs(); <b {  "now "; } }
 	    <div { @class="add"; apply[BlockThesis];
 	    apply[*[not(name()='BlockThesis')]]; } 
 	    <b { "end;"; } } }
