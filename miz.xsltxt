@@ -1015,19 +1015,20 @@ else { "failedpid:"; $k1;":";$nr;":"; $pid;":";}
 // format telling arities, the linked symbol and optionally right bracket
 // parenth hints to put the whole expression in parentheses, but this
 // is overrriden if the expression uses functor brackets
-tpl pp(#k,#nr,#args,#parenth,#pid) {
+// #loci tells to print loci instead of arguments
+tpl pp(#k,#nr,#args,#parenth,#pid,#loci) {
      $pkey=`concat('P_',$k)`;
      // pattern number given
      if [$pid>0] {
      if [key($pkey,$nr)[$pid=@relnr]] { 
         for-each [key($pkey,$nr)[$pid=@relnr]] {
        pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`, 
-           #fnr=`@formatnr`, #parenth=$parenth); } }
+           #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci); } }
      else { for-each [document($patts,/)] {
               if [key($pkey,$nr)[$pid=@relnr]] {
                 for-each [key($pkey,$nr)[$pid=@relnr]] {
      pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`,
-         #fnr=`@formatnr`, #parenth=$parenth); } }
+         #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci); } }
 // failure, print in absolute notation
      else { abs(#k=$k, #nr=$nr); "("; 
        list(#separ=",",#elems=$args); ")"; }
@@ -1037,12 +1038,12 @@ tpl pp(#k,#nr,#args,#parenth,#pid) {
      if [key($pkey,$nr)] { 
         for-each [key($pkey,$nr)[position()=1]] {
        pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`, 
-           #fnr=`@formatnr`, #parenth=$parenth); } }
+           #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci); } }
      else { for-each [document($patts,/)] {
               if [key($pkey,$nr)] {
                 for-each [key($pkey,$nr)[position()=1]] { 
      pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`,
-         #fnr=`@formatnr`, #parenth=$parenth); } }
+         #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci); } }
 // failure, print in absolute notation
      else { abs(#k=$k, #nr=$nr); "("; 
        list(#separ=",",#elems=$args); ")"; }
@@ -1050,7 +1051,7 @@ tpl pp(#k,#nr,#args,#parenth,#pid) {
 }
  
 
-tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth) {
+tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci) {
     $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
             else { for-each [document($formats,/)] {
                      for-each [key('F',$fnr)] { 
@@ -1073,7 +1074,8 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth) {
       for-each [$vis] { 
        if [position() <= $la] {
 	$x=`@x`;
-	apply[$args[position() = $x]](#p=$np); 
+	if [$loci="1"] { ploci(#nr=$x); }
+	else { apply[$args[position() = $x]](#p=$np); }
 	if [position() < $la] { ",";} } }
       if [$rsym=''] {
        if [not($parenth>0) or ($la>0)] { " "; } 
@@ -1082,7 +1084,8 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth) {
        if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
        if [position() > $la] {
 	$x=`@x`;
-        apply[$args[position()  = $x]](#p=$np); 
+	if [$loci="1"] { ploci(#nr=$x); }
+        else { apply[$args[position()  = $x]](#p=$np); }
         if [position() < last()] { ",";} } }
        }
       if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym); } }
@@ -1091,7 +1094,8 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth) {
       for-each [$vis] { 
        if [position() <= $la] {
 	$x=`@x`;
-	apply[$args[position() = $x]](#p=$np); 
+	if [$loci="1"] { ploci(#nr=$x); }
+	else { apply[$args[position() = $x]](#p=$np); }
 	if [position() < $la] { ",";} } }
       if [$rsym=''] {
        if [not($parenth>0) or ($la>0)] { " "; } 
@@ -1100,7 +1104,8 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth) {
        if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
        if [position() > $la] {
 	$x=`@x`;
-        apply[$args[position()  = $x]](#p=$np); 
+	if [$loci="1"] { ploci(#nr=$x); }
+        else { apply[$args[position()  = $x]](#p=$np); }
         if [position() < last()] { ",";} } } 
      }
  }
@@ -1210,13 +1215,19 @@ tpl [Constructor](#indef,#nl) {
     if [@redefnr>0] { 
          abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
          " as "; }
-    abs(#k=`@kind`,#nr=`@relnr`,#sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
-    if [@kind="G"] { "(# "; 
+    if [@kind="G"] { 
+       abs(#k=`@kind`,#nr=`@relnr`,#sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
+       "(# "; 
        for-each [Fields/Field] { 
 		   abs(#k="U",#nr=`@nr`,#sym=abs1(#k="U", #nr=`@nr`)); 
 		   if [not(position()=last())] { ", "; } }
        " #)"; }
-    else { "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; }
+    else { if [@kind='V'] {
+	   ploci(#nr=`count(ArgTypes/Typ)`); " is ";  
+	  abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); }
+    else { pp(#k=`@kind`,#nr=`@relnr`,#args=`ArgTypes/Typ`, #loci="1"); }
+// "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
+}
     if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
         or (@kind= 'U') or (@kind= 'L')] { <b {" -> ";}
 	   list(#separ=",",#elems=`Typ`); } 
