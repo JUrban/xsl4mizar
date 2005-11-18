@@ -558,8 +558,9 @@ tpl [Conclusion] { if [(By[@linked="true"]) or
 		   (IterEquality/IterStep[1]/By[@linked="true"])] 
 		   { <b { "hence "; } apply[*[not(name()="By")]]; 
 		     apply[By](#nbr="1"); try_th_exps(#el=`.`); <br; }
-		else { if [Now] {  <b { "hereby "; } try_th_exps(#el=`.`);
-		       apply(#nkw="1"); } 
+		else { if [Now] {  
+		     <div { <b {  "hereby "; } try_th_exps(#el=`.`);
+		     apply(#nkw="1"); } <b { "end;"; } }
 		else { <b { "thus "; } 
 		     if [Proof] { apply[Proposition]; try_th_exps(#el=`.`);
 				  apply[Proof]; }
@@ -665,17 +666,28 @@ tpl [PerCasesReasoning] {
 
 //   elBlockThesis, Reasoning 
 tpl [Proof] {
-    <div { <b { "proof "; } 
+    <div { <a { add_hs2_attrs(); <b { "proof "; } }
     <div { @class="add"; apply; }
     <b { "end;"; } } }
 
 //   Reasoning, elBlockThesis 
 // #nkw tells not to print the keword (used if hereby was printed above)
 tpl [Now](#nkw) {
-    <div { <b { if [not($nkw="1")] { "now ";} }
+    if [not($nkw="1")] { 
+       <div { <a { add_hs2_attrs(); <b {  "now "; } }
+	    <div { @class="add"; apply[BlockThesis];
+	    apply[*[not(name()='BlockThesis')]]; } 
+	    <b { "end;"; } } }
+    else { 
     <div { @class="add"; apply[BlockThesis];
-           apply[*[not(name()='BlockThesis')]]; } 
-    <b { "end;"; } } } 
+	    apply[*[not(name()='BlockThesis')]]; } }}
+
+
+// tpl [Now](#nkw) {
+//     <div { <b { if [not($nkw="1")] { "now ";} }
+//     <div { @class="add"; apply[BlockThesis];
+//            apply[*[not(name()='BlockThesis')]]; } 
+//     <b { "end;"; } } } 
 
 
 // ignore them
@@ -700,26 +712,35 @@ tpl [DefTheorem] {
     if [@constrkind] { "  defines "; 
 		abs(#k=`@constrkind`, #nr=`@constrnr`, 
                     #sym=abs1(#k=`@constrkind`, #nr=`@constrnr`)); } " ";
-    <a { @onclick="hs(this)"; `concat($aname,":def ",$nr1)`; " : "; <br; }
+    <a { @onclick="hs(this)"; @href="javascript:()";
+	 `concat($aname,":def ",$nr1)`; " : "; <br; }
     <span { @class="hide"; <div { @class="add"; 
          if [Proposition/Verum] { <b { "canceled; "; } }
 	 else { apply[*[1]/*[1]];  ";"; }  } }}
 
+tpl add_hs_attrs { @class="txt"; @onclick="hs(this)"; @href="javascript:()"; }
+tpl add_hs2_attrs { @class="txt"; @onclick="hs2(this)"; @href="javascript:()"; }
 
 //   Property, elProposition, Justification
 tpl [JustifiedProperty] {
-    <b { `translate(name(*[1]), $ucletters, $lcletters)`; }  <br; 
-    apply[*[position()>1]]; }
+  <a { add_hs_attrs();
+     <b { `translate(name(*[1]), $ucletters, $lcletters)`;   " "; }}
+  <span { @class="hide"; <br; apply[*[2]]; }  apply[*[position()>2]]; }
 
 //  Formula | ( elProposition, Justification )
 tpl [UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness] 
-    { <a { @onclick="hs(this)";
+    { <a { add_hs_attrs();
 	 <b { `translate(name(), $ucletters, $lcletters)`; " "; } }
 //           <br; 
-<span { @class="hide"; apply[*[1]]; }  apply[*[position()>1]]; }
+   <span { @class="hide"; <br; apply[*[1]]; }  
+   if [count(*)>1] { apply[*[position()>1]];  } else { ";"; <br; } }
 
 // CorrectnessCondition*, elProposition, Justification
-tpl [Correctness] { <b { "correctness: "; } <br; apply; }
+tpl [Correctness] { 
+<a { add_hs_attrs(); <b { "correctness "; } }
+// apply to subconditions , skip their conjunction
+<span { @class="hide"; <br; apply[*[position()<(last()-1)]]; }
+apply[*[position()=last()]]; }
 
 tpl [Canceled] { <b { "canceled;"; } <br; }
 
@@ -756,8 +777,8 @@ tpl [Definition] {
        // get the $cnt-th pattern following this DefinitionBlock
        for-each [../following-sibling::Pattern[Expansion][$cnt]] {
         <a { @NAME=`concat("NM",@nr)`;
-	 <b { "expandable mode ";}  abs1(#k="M",#fnr=`@formatnr`);
-	 " is "; } apply[Expansion/Typ]; ";"; <br; }}
+	 <b { "mode ";}  abs1(#k="M",#fnr=`@formatnr`);
+	 <b { " is "; } } apply[Expansion/Typ]; ";"; <br; }}
     else { $nl = { if [@nr] { "0"; } else { "1"; }}
 	   apply[Constructor](#indef="1",#nl=$nl); 
 // @nr is present iff Definiens is present; it can be 0 if
@@ -1218,6 +1239,8 @@ a {text-decoration:none} a:hover { color: red; }
 a.ref { font-size:x-small; }
 a.ref:link { color:green; } 
 a.ref:hover { color: red; } 
+a.txt:link { color:black; } 
+a.txt:hover { color: red; } 
 span.hide { display: none; }
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
 span.p2:hover { color : inherit; background-color : #FFCACA; }
@@ -1236,11 +1259,22 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 function hs(obj)
 {
 // document.getElementById('myimage').nextSibling.style.display = 'block';
+if (obj.nextSibling.style.display == 'inline')
+ { obj.nextSibling.style.display = 'none'; }
+else { if (obj.nextSibling.style.display == 'none')
+ { obj.nextSibling.style.display = 'inline'; }
+ else { obj.nextSibling.style.display = 'inline';  }}
+return false;
+}
+
+function hs2(obj)
+{
 if (obj.nextSibling.style.display == 'block')
  { obj.nextSibling.style.display = 'none'; }
 else { if (obj.nextSibling.style.display == 'none')
  { obj.nextSibling.style.display = 'block'; }
- else { obj.nextSibling.style.display = 'block';  }}
+ else { obj.nextSibling.style.display = 'none';  }}
+return false;
 }
 // End -->
 "; }
