@@ -312,7 +312,7 @@ tpl [FuncInstance](#pl) { $k = `@kind`;
        otherwise { $fail; }
     }}
     // instantiated to term
-    else { if [*[1]] { apply[*[1]](#pl=$pl); } else { $fail; } } }
+    else { if [*[1]] { "([] : "; apply[*[1]](#pl=$pl); ")"; } else { $fail; } } }
 
 tpl [PredInstance](#pl) { $k = `@kind`;
     sch_fpname(#k="p",#nr=`@instnr`,#schnr=`@instschemenr`, #aid=`@instaid`); 
@@ -892,10 +892,13 @@ tpl abs_fp(#k,#el) { for-each [$el] {
 
 // definition of private functor (#k='pf') or predicate (#k='pp'); 
 // either a term with LocusVars or a formula with LocusVars
+// the list of arguments is printed first, to know their order
 tpl priv_def(#k,#nr,#pl) {
       $k1 = `concat($nr,":",$pl)`;
       if [key($k,$k1)] { 
-	 for-each [key($k,$k1)] { apply[*[position() = 2]](#pl=`@plevel`); }}
+	 for-each [key($k,$k1)] { 
+		  "["; arglist(#separ=",",#elems=`ArgTypes/Typ`); "] : ";
+		  apply[*[position() = 2]](#pl=`@plevel`); }}
       else { if [string-length($pl)>0] { 
 	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
 	 $pl1= mjoin(#el=$ss,#s="_");
