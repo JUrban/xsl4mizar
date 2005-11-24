@@ -507,7 +507,11 @@ tpl redefinition(#el) {
       } else {
       if [(@kind = 'V') or (@kind = 'M')] {
 	 $l = { if [@kind = 'V'] { $l0; } else { `$l0 + 1`; } }
-	 if [@kind = 'M'] { "!["; ploci(#nr=`$l`); ": "; apply[Typ]; "]: "; }
+	 if [@kind = 'M'] { "!["; ploci(#nr=`$l`); ": "; 
+	 // This is too strong, the original type can hardly get
+	 // the redefinition's result type
+	 // apply[Typ]; 
+	 "$true"; "]: "; }
 	 "( "; $srt_s; "("; ploci(#nr=$l); ","; absc1(#el=`.`);
 	 if [$l>1] { 
             "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < $l]`);
