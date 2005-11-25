@@ -43,8 +43,11 @@ strip-space "*";
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
 // this is for lookup of selectors for Abstractness property
-key "L" [Constructor[@kind='L']] `@nr` ;
+key "G" [Constructor[@kind='G']] `@nr` ;
 
 // lookup for local constants
 key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
@@ -64,7 +67,7 @@ key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
 #aname= { `string(/*/@aid)`; }
 
 // name of current article (lower case)
-#anamelc= { `translate($aname, $ucletters, $lcletters)`; }
+#anamelc= { lc(#s=$aname); }
 
 // Formulas
 
@@ -208,7 +211,7 @@ tpl [Theorem] { "fof("; absr(#el=`.`); ",";
     $kword = { if [@kind="T"] { "theorem"; } else {
        if [@kind="D"] { "definition"; } else { $fail; } } }
     $kword; ",";
-    apply; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    apply; ",file("; lc(#s=`@aid`); ",";
     absr(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $kword; 
     ",position(0,0),[0])]).\n"; }
 
@@ -375,7 +378,7 @@ tpl sch_instname(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`);
 
 // uncomment apply[Proposition] if not used explicit descent
 tpl [Let|Given|TakeAsVar|Consider|Set] { $cnr = `@constnr`; $pl=`@plevel`; 
-    $rnm = `translate(name(),$ucletters,$lcletters)`;
+    $rnm = lc(#s=`name()`);
     for-each [Typ] {
       $nr = `$cnr + position() - 1`; $nm =  { "c"; $nr; addp(#pl=$pl); }
       $levl = { ",["; `translate($pl,"_",",")`; "],";}
@@ -427,7 +430,7 @@ tpl [SchemeFuncDecl] { $pl=`@plevel`;
 
 // "M" | "L" | "V" | "R" | "K" | "U" | "G"
 tpl [Constructor] { 
-    $lkind = `translate(@kind,$ucletters,$lcletters)`;
+    $lkind = { lc(#s=`@kind`); } 
 // the type hierarchy formula for "M" | "L" | "K" | "U" | "G"
     if [(@kind='M') or (@kind='L') or (@kind='K') or 
         (@kind='U') or (@kind='G')] {
@@ -457,7 +460,7 @@ tpl [Constructor] {
 	",";
         apply[Typ]; ")";
       } }
-      ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+      ",file("; lc(#s=`@aid`); ",";
       absc1(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $lkind; 
       ",position(0,0),[ctype])]).\n"; }
     apply[Properties](#el=`.`);
@@ -467,7 +470,7 @@ tpl [Constructor] {
 }
 
 tpl existence(#el) { for-each [$el] {
-      $lkind = `translate(@kind,$ucletters,$lcletters)`;
+      $lkind = { lc(#s=`@kind`); } 
       "fof(existence_"; absc1(#el=`.`); ",lemma-derived,";
       apply[ArgTypes]; 
       $l = `1 + count(ArgTypes/Typ)`;
@@ -476,7 +479,7 @@ tpl existence(#el) { for-each [$el] {
       if [$l > 1] { "("; 
            arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
       ")";
-      ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+      ",file("; lc(#s=`@aid`); ",";
       absc1(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $lkind; 
       ",position(0,0),[existence])]).\n"; 
 }}
@@ -486,10 +489,10 @@ tpl existence(#el) { for-each [$el] {
 //           Redefined_Constr_Kind "," Redefined_Constr_Aid "," 
 //           Redefined_Constr_Name ")" .
 tpl redefinition(#el) { 
-    $lkind = `translate($el/@kind,$ucletters,$lcletters)`;
-    $redaid = `translate($el/@redefaid,$ucletters,$lcletters)`;
+    $lkind = { lc(#s=`$el/@kind`); }
+    $redaid = { lc(#s=`$el/@redefaid`); }
     $absn = absc1(#el=$el); $n = `$el/@nr`;
-    $f = `translate($el/@aid,$ucletters,$lcletters)`;
+    $f = { lc(#s=`$el/@aid`); }
     $s = `@superfluous`;
     for-each [$el] {
       "fof(redefinition_"; $absn; ",definition,";
@@ -532,9 +535,9 @@ tpl redefinition(#el) {
 // free property - this is rather definition than theorem
 // g(x1,x2) = g(x3,x4) implies (x1 = x2 and x3 = x4)
 tpl free_prop(#el) { 
-    $lkind = `translate($el/@kind,$ucletters,$lcletters)`;
+    $lkind = { lc(#s=`$el/@kind`); }
     $absn = absc1(#el=$el); $n = `$el/@nr`;
-    $f = `translate($el/@aid,$ucletters,$lcletters)`;
+    $f = { lc(#s=`$el/@aid`); }
     for-each [$el] {
       "fof(free_"; $absn; ",definition,";
       apply[ArgTypes]; 
@@ -559,11 +562,11 @@ tpl free_prop(#el) {
 
 tpl [Properties](#el) { 
     $a1 = `@propertyarg1`; $a2=`@propertyarg2`;
-    $lkind = `translate($el/@kind,$ucletters,$lcletters)`;
+    $lkind = { lc(#s=`$el/@kind`); }
     $absn = absc1(#el=$el); $n = `$el/@nr`;
-    $f = `translate($el/@aid,$ucletters,$lcletters)`;
+    $f = { lc(#s=`$el/@aid`); }
     for-each [*] {
-      $nm = `translate(name(),$ucletters,$lcletters)`;
+      $nm = { lc(#s=`name()`); }
       "fof(";  $nm; "_"; $absn; ",theorem,";
       apply[.](#el=$el,#arg1=$a1,#arg2=$a2);
       ",file("; $f; ","; $absn; "),[mptp_info("; $n; ",[],"; 
@@ -633,7 +636,8 @@ tpl [Projectivity](#el,#arg1,#arg2) { for-each [$el] {
     argsinsert(#nr="1",#nr1=$arg1,#arg=$trm,#lim=`count(ArgTypes/Typ)`);
     ")"; $eq_s; $trm; ")"; }}
 
-
+// This needs fixing for structures "over" - then the
+// functor has more args than just the fields!
 tpl [Abstractness](#el,#arg1,#arg2) { for-each [$el] {
     apply[ArgTypes];
     $l = `count(ArgTypes/Typ)`;
@@ -643,12 +647,16 @@ tpl [Abstractness](#el,#arg1,#arg2) { for-each [$el] {
      "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < last()]`); ")";
     }
     ")"; $imp_s; "("; ploci(#nr=$l); $eq_s;
-    if [key('L',$lasttyp/@absnr)] {  
-       for-each [key('L',$lasttyp/@absnr)] {  
-         "g"; `@nr`; "_"; `translate(@aid,$ucletters,$lcletters)`; 
-	 "("; 
+    if [key('G',$lasttyp/@absnr)] {  
+       for-each [key('G',$lasttyp/@absnr)] {  
+         absc1(#el=`.`); "("; 
+	 // print the "over" args first
+	 if [$l > 1] { ft_list(#f="1",#t=`$l - 1`,#sep=",",#l="1"); ","; }
 	 for-each [Fields/Field] {
-	     absc(#el=`.`); "("; $f=`1 + $l - @arity`;
+	     absc(#el=`.`); "("; 
+	     // the selector might have been defined earlier, without some
+	     // hidden args - $f is the difference in arities
+	     $f=`1 + $l - @arity`;
 	     ft_list(#f=$f,#t=$l,#sep=",",#l="1"); ")";
 	     if [not(position()=last())] { ","; }
 	 } ")"; }}
@@ -671,7 +679,7 @@ tpl [Abstractness](#el,#arg1,#arg2) { for-each [$el] {
 //     ")"; $imp_s; "("; ploci(#nr=$l); $eq_s;
 //     if [key('L',$lasttyp/@absnr)] {  
 //        for-each [key('L',$lasttyp/@absnr)] {  
-//          "g"; `@nr`; "_"; `translate(@aid,$ucletters,$lcletters)`; 
+//          "g"; `@nr`; "_"; lc(#s=`@aid`);
 // 	 "("; 
 
 //     absref(#elems=`key($k,$nr)`,#r=$r); }
@@ -703,7 +711,7 @@ tpl [CCluster] { if [ErrorCluster] { } else {
     if [$succ = 0] { "$true"; } else {
     if [$succ = 1] { apply[*[4]]; } 
     else { "( "; apply[*[4]]; " )"; } }
-    "))"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    "))"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="cc"); "),[mptp_info("; `@nr`; 
     ",[],ccluster,position(0,0),[])]).\n"; } }
 
@@ -715,7 +723,7 @@ tpl [FCluster] { if [ErrorCluster] { } else {
     if [$succ = 0] { "$true"; } else {
     if [$succ = 1] { apply[Cluster]; } 
     else { "( "; apply[Cluster]; " )"; } }
-    ")"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    ")"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="fc"); "),[mptp_info("; `@nr`; 
     ",[],fcluster,position(0,0),[])]).\n"; } }
 
@@ -729,7 +737,7 @@ tpl [RCluster] { if [ErrorCluster] { } else {
     if [$succ = 0] { "$true"; } else {
     if [$succ = 1] { apply[Cluster]; } 
     else { "( "; apply[Cluster]; " )"; } }
-    ")"; ",file("; `translate(@aid,$ucletters,$lcletters)`; ",";
+    ")"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="rc"); "),[mptp_info("; `@nr`; 
     ",[],rcluster,position(0,0),[])]).\n"; } }
 
@@ -747,39 +755,29 @@ tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
 
 // absolute constructor names (use $fail for debugging absnrs)
 tpl absc(#el) { for-each [$el] {
-    if [@absnr and @aid] {
-     `translate(concat(@kind,@absnr,'_',@aid),$ucletters,$lcletters)`; }
-    else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
-} } }
+    if [@absnr and @aid] { lc(#s=`concat(@kind,@absnr,'_',@aid)`); }
+    else { lc(#s=`@kind`); `@nr`;  $fail; } } }
 
 // absolute redefinition names (use $fail for debugging absnrs)
 tpl absredef(#el) { for-each [$el] {
     if [@redefaid and @absredefnr] {
-     `translate(concat(@kind,@absredefnr,'_',@redefaid),
-		$ucletters,$lcletters)`; }
-    else { `translate(@kind,$ucletters,$lcletters)`; `@redefnr`;  $fail; 
-} } }
+       lc(#s=`concat(@kind,@absredefnr,'_',@redefaid)`); }
+    else { lc(#s=`@kind`); `@redefnr`;  $fail; } } }
 
 tpl absc1(#el) { for-each [$el] {
-    if [@aid and @nr] {
-     `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
-    else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
-} } }
+    if [@aid and @nr] { lc(#s=`concat(@kind,@nr,'_',@aid)`); }
+    else { lc(#s=`@kind`); `@nr`;  $fail; } } }
 
 // absolute reference names (use $fail for debugging absnrs)
 // also used for From to get the scheme name
 tpl absr(#el) { for-each [$el] {
-    if [@nr and @aid and @kind] {
-     `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
-    else { `translate(@kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
-} } }
+    if [@nr and @aid and @kind] { lc(#s=`concat(@kind,@nr,'_',@aid)`); }
+    else { lc(#s=`@kind`); `@nr`;  $fail; } } }
 
 // absolute cluster and scheme names
 tpl absk(#el,#kind) { for-each [$el] {
-    if [@nr and @aid] {
-     `translate(concat($kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
-    else { `translate($kind,$ucletters,$lcletters)`; `@nr`;  $fail; 
-} } }
+    if [@nr and @aid] { lc(#s=`concat($kind,@nr,'_',@aid)`); }
+    else { lc(#s=$kind); `@nr`;  $fail;} } }
 
 
 
@@ -885,9 +883,8 @@ tpl privname(#nr,#pl) {
 // name of scheme functor (#k='f') or predicate (#k='p')
 tpl sch_fpname(#k,#nr,#schnr,#aid) {
     if [$k and $nr and $aid and $schnr] {
-    `translate(concat($k,$nr,'_s',$schnr,'_',$aid),
-		$ucletters,$lcletters)`; }
-    else { `translate($k,$ucletters,$lcletters)`; `@nr`;  $fail; }
+       lc(#s=`concat($k,$nr,'_s',$schnr,'_',$aid)`); }
+    else { lc(#s=$k); `@nr`;  $fail; }
 }
 
 // name of scheme functor (#k='f') or predicate (#k='p')
