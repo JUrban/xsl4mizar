@@ -350,11 +350,12 @@ tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
 // ###TODO: finish the description!! 
 // assumes Proof, Now or IterEquality,
 // ##GRM: Proof_Inference : 
-//          "inference(mizar_proof,[proof(" 
-//          Scheme_Instance_Name "," Scheme_Name "," Proposition_Name
-//          "," Aid ")],[" Scheme_Name [ "," References ] "])" .   
+//          "inference(mizar_proof,[proof_level(" Level ")], 
+//          [ References ] ")" .   
 tpl proofinfer(#el,#pl,#prnr) { for-each [$el] {
-    "inference(mizar_proof,[],["; 
+    "inference(mizar_proof,[proof_level(["; 
+    if [not(@newlevel)] { $fail; } else {`translate(@newlevel,"_",",")`; }
+     "])],["; 
     for-each [.//By[((name(preceding-sibling::*[1])="Proposition") 
 	              or (name(..)="IterStep"))
 	            and ((@linked="true") or (count(Ref)>0))] 
