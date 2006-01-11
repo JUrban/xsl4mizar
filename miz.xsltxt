@@ -771,7 +771,8 @@ tpl [SchemeBlock] {
 //   ( ( CorrectnessCondition*, elCorrectness?,
 //       elJustifiedProperty*, elConstructor? )
 //   | ( elConstructor, elConstructor, elConstructor+,
-//       CorrectnessCondition*, elCorrectness? ))
+//       elRegistration, CorrectnessCondition*, elCorrectness? ))
+// ##TODO: commented registartion and strict attr for defstruct
 tpl [Definition] {     
     if [@expandable="true"] { 
        $cnt = `1 + count(preceding-sibling::Definition[@expandable="true"])`;
@@ -803,7 +804,7 @@ tpl [Definition] {
 }
 } 
 }
-    apply[*[not(name()='Constructor')]]; }
+    apply[*[not((name()='Constructor') or (name()='Registration'))]]; }
 
 //   ( elLet | elAssume | elGiven | AuxiliaryItem |
 //     elCanceled | elDefinition )*, elEndPosition
