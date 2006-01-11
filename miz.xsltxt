@@ -169,15 +169,17 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // #ex tells that we should print it as existential statement,
 // i.e. also omitting the first descending Not (the caller 
 // should guarantee that there _is_ a Not after the block of For-s)
-tpl [For](#i,#k,#ex) { 
+// #pr tells to put the formula in paranthesis
+tpl [For](#i,#k,#ex,#pr) { 
   $j = { if [$i] { $i;} else { "1"; } }
   $l = { if [$k] { $k;} else { $j; } }
   $nm = { `name(*[2])`; }
   $eq1 = { if [($nm = "For") and (*[1]/@nr = *[2]/*[1]/@nr)]
 	      { are_equal(#el1=`*[1]`,#el2=`*[2]/*[1]`); }
            else { "0"; } }
-  if [$eq1="1"]  {  apply[*[2]](#i=`$j+1`,#k=$l,#ex=$ex); }
- else { 
+  if [$eq1="1"]  {  apply[*[2]](#i=`$j+1`,#k=$l,#ex=$ex,#pr=$pr); }
+ else {
+  if [$pr] { "( "; }
   if [$ex="1"] { "ex ";   ft_list(#f=$l,#t=$j,#sep=", ");
   " being"; apply[*[1]]; 
   if [$nm = "For"] { apply[*[2]](#i=`$j+1`,#ex=$ex); }
@@ -186,11 +188,13 @@ tpl [For](#i,#k,#ex) {
    apply[Not/*[1]](#i=`$j+1`); }
   }
   else { 
-  "for "; 
-  ft_list(#f=$l,#t=$j,#sep=", ");
-  " being"; apply[*[1]]; if [not(($nm = "For"))] {" holds ";} 
-  if [not(($nm = "Pred"))] { <br; }
-    apply[*[2]](#i=`$j+1`); } } }
+   "for "; 
+   ft_list(#f=$l,#t=$j,#sep=", ");
+   " being"; apply[*[1]]; if [not(($nm = "For"))] {" holds ";} 
+   if [not(($nm = "Pred"))] { <br; }
+    apply[*[2]](#i=`$j+1`); }
+  if [$pr] { " )"; }
+ } }
 
 // tpl [And/For] { <div {"for B being"; apply[*[1]]; 	
 //                " holds "; <div { @class="add";  apply[*[2]]; } } }
@@ -202,25 +206,25 @@ tpl check_for_not(#el) {
     else { if [name($el)="For"] { check_for_not(#el=`$el/*[2]`); }
     else { "0"; }}}
 
-tpl [Not](#i) { 
+tpl [Not](#i,#pr) { 
     $fnb = { if [For] { check_for_not(#el=`*[1]/*[2]`); } else { "0"; } }
     if [$fnb="1"]  { apply[*[1]](#i=$i,#ex="1"); }
     else { if [Pred[(@kind='V') or (@kind='R')]] {  
 	   apply[*[1]](#i=$i,#not="1"); }
     else { 
 	 $i1= is_impl(#el=`.`);
-	 if [$i1="1"] { "( "; apply[*[1]/*[1]](#i=$i); " implies "; 
+	 if [$i1="1"] { "( "; apply[*[1]/*[1]](#i=$i,#pr="1"); " implies "; 
 			apply[*[1]/*[2]/*[1]](#i=$i); " )"; }
          else {
 	      $i2= is_or(#el=`.`);
-	      if [$i2="1"] { "( "; apply[*[1]/*[1]/*[1]](#i=$i); " or "; 
+	      if [$i2="1"] { "( "; apply[*[1]/*[1]/*[1]](#i=$i,#pr="1"); " or "; 
 			apply[*[1]/*[2]/*[1]](#i=$i); " )"; }
            else { 
              $i3= is_impl1(#el=`.`);
 	     if [$i3="1"] { "( ( "; 
-	     ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i);
+	     ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i,#pr="1");
 	    " )"; " implies "; 
-	    "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i); " ) )"; }
+	    "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i,#pr="1"); " ) )"; }
               else { "not "; apply[*[1]](#i=$i); } } } } } }
 // tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
 //                else { "not "; apply[*[1]]; } }
@@ -293,22 +297,22 @@ tpl are_equal_many(#els1,#els2,#nr) { if [$nr > 0] {
     if [$res1="1"] { are_equal_many(#els1=$els1, #els2=$els2, #nr=`$nr - 1`);}
     else { "0"; }} else { "1"; }}
 
-tpl [And](#i) { $e1= is_equiv(#el=`.`); 
+tpl [And](#i,#pr) { $e1= is_equiv(#el=`.`); 
     if [$e1="1"] { "( ";
-       apply[*[1]/*[1]/*[1]](#i=$i); " iff ";
+       apply[*[1]/*[1]/*[1]](#i=$i,#pr="1"); " iff ";
        apply[*[1]/*[1]/*[2]/*[1]](#i=$i); " )"; }
     else { // a bit risky
     if [(@pid=$pid_Iff) and (count(*)=2)] {
        $i1= is_impl(#el=`*[1]`);
-       if [$i1="1"] { "( "; apply[*[1]/*[1]/*[1]](#i=$i); " iff "; 
+       if [$i1="1"] { "( "; apply[*[1]/*[1]/*[1]](#i=$i,#pr="1"); " iff "; 
 			apply[*[1]/*[1]/*[2]/*[1]](#i=$i); " )"; }
        else { $i2= is_impl(#el=`*[2]`);
-       if [$i2="1"] { "( "; apply[*[2]/*[1]/*[2]/*[1]](#i=$i); " iff "; 
+       if [$i2="1"] { "( "; apply[*[2]/*[1]/*[2]/*[1]](#i=$i,#pr="1"); " iff "; 
 		      apply[*[2]/*[1]/*[1]](#i=$i); " )"; }
-       else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }}}
-    else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i); " )"; }}}
+       else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i,#pr="1"); " )"; }}}
+    else { "( "; ilist(#separ=" & ", #elems=`*`, #i=$i,#pr="1"); " )"; }}}
 
-tpl [Pred](#i,#not) { 
+tpl [Pred](#i,#not,#pr) { 
     choose {
       when [@kind='P'] { pschpvar(#nr=`@nr`); 
 	   "["; list(#separ=",", #elems=`*`); "]";}
@@ -325,11 +329,11 @@ tpl [Pred](#i,#not) {
        else { pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#pid=`@pid`); }} }}
 //,#sym1=abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`))); }}
 //  "[ "; list(#separ=",", #elems=`*`); "]"; }
-tpl [PrivPred](#i) { pppred(#nr=`@nr`); "["; 
+tpl [PrivPred](#i,#pr) { pppred(#nr=`@nr`); "["; 
     list(#separ=",", #elems=`*[position() < last()]`); "]"; }
-tpl [Is](#i) { apply[*[1]]; " is "; apply[*[2]]; } 
-tpl [Verum](#i) { "verum"; }
-tpl [ErrorFrm](#i) { "errorfrm"; }
+tpl [Is](#i,#pr) { apply[*[1]]; " is "; apply[*[2]]; } 
+tpl [Verum](#i,#pr) { "verum"; }
+tpl [ErrorFrm](#i,#pr) { "errorfrm"; }
 
 // Terms
 // #p is the parenthesis count
@@ -541,14 +545,14 @@ tpl [Let](#fst,#beg) {
 	  apply[following-sibling::*[position()=$it_step]](#fst="1"); }
 }} }}
 
-tpl [Assume] { <b { "assume "; }  if [count(*)>1] { "that "; }
-	       nlist(#separ="and ", #elems=`*`);
+tpl [Assume] { <b { "assume "; }  if [count(*)>1] { <b { "that ";} <br; }
+	       andlist(#elems=`*`);
                ";"; try_th_exps(#el=`.`); <br; } 
 
 tpl [Given] { $j=`@nr - 1`; <b {"given ";} 
               jtlist(#j=$j, #sep2=" being ", #elems=`Typ`); 
-	      " such that ";
-              nlist(#separ="and ",#elems=`Proposition`); 
+	      <b {" such that ";}
+              andlist(#elems=`Proposition`); 
               ";"; try_th_exps(#el=`.`); <br; }
 
 tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(#el=`.`); <br; }
@@ -560,7 +564,7 @@ tpl [Conclusion] { if [(By[@linked="true"]) or
 		     apply[By](#nbr="1"); try_th_exps(#el=`.`); <br; }
 		else { if [Now] {  
 		     <div { <b {  "hereby "; } try_th_exps(#el=`.`);
-		     apply(#nkw="1"); } <b { "end;"; } }
+		     apply(#nkw="1");  <b { "end;"; } } }
 		else { <b { "thus "; } 
 		     if [Proof] { apply[Proposition]; try_th_exps(#el=`.`);
 				  apply[Proof]; }
@@ -568,10 +572,10 @@ tpl [Conclusion] { if [(By[@linked="true"]) or
 			    apply[ IterEquality|By|From|ErrorInf
 				   |SkippedProof](#nbr="1");
 			    try_th_exps(#el=`.`); <br; } } }}
-tpl [Case] { <b { "case "; } if [count(*)>1] { "that ";}
-             nlist(#separ="and ", #elems=`*`); ";"; <br; }
-tpl [Suppose] { <b { "suppose "; } if [count(*)>1] { "that ";} 
-             nlist(#separ="and ", #elems=`*`); ";"; <br; }
+tpl [Case] { <b { "case "; } if [count(*)>1] { <b { "that ";} }
+             andlist(#elems=`*`); ";"; <br; }
+tpl [Suppose] { <b { "suppose "; } if [count(*)>1] { <b { "that ";} } 
+             andlist(#elems=`*`); ";"; <br; }
 tpl [PerCases] { <b { "per cases "; } apply; }
 
 // Auxiliary items
@@ -579,9 +583,8 @@ tpl [Consider] { $j=`@nr - 1`; <b { if [By[@linked="true"]] { "then "; }
 		 "consider ";}
                  jtlist(#j=$j,#sep2=" being ", #elems=`Typ`);
 	         if [count(Proposition) > 1] { 
-                   " such that "; <br; 
-		   nlist(#separ="and ",
-                        #elems=`Proposition[position() > 1]`); } 
+                   <b {" such that ";} <br; 
+		   andlist(#elems=`Proposition[position() > 1]`); } 
                  apply[*[2]]; }
 
 tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; } 
@@ -608,7 +611,7 @@ tpl try_th_exps(#el) { for-each [$el] {
     apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; } }
 
 tpl [ThesisExpansions] { if [Pair] {
-    " "; pcomment0(#str="uses "); 
+    " "; pcomment0(#str="according to "); 
     list(#separ=",", #elems=`Pair[@x]`); } }
 
 tpl [ThesisExpansions/Pair] { 
@@ -847,10 +850,10 @@ tpl list(#separ,#elems) {
   apply[.]; if [not(position()=last())] { $separ; } }
 }
 
-// List utility with additional arg
-tpl ilist(#separ,#elems,#i) { 
+// List utility with additional arg - now only used for formula lists
+tpl ilist(#separ,#elems,#i,#pr) { 
  for-each [$elems] {
-  apply[.](#i=$i); if [not(position()=last())] { $separ; } }
+  apply[.](#i=$i,#pr=$pr); if [not(position()=last())] { $separ; } }
 }
 
 // newlined list
@@ -858,6 +861,13 @@ tpl nlist(#separ,#elems) {
  for-each [$elems] {
   apply[.]; if [not(position()=last())] { <br; $separ; } }
 }
+
+// newlined andlist
+tpl andlist(#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { <b { "and "; } <br; } }
+}
+
 
 tpl dlist(#separ,#elems) { 
  for-each [$elems] {
@@ -1061,7 +1071,7 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci) {
     // try if right bracket
     $rsym = { if [($k='K') and ($la='0')] {
                  abs1(#k=$k, #nr=$nr, #r="1"); } }
-    $np = { if [not($args)] { "0"; } else {
+    $np = { if [not($args) or ($k='G')] { "0"; } else {
                if [$parenth>0] { $parenth; } else { 
                   if [not($rsym='')] { "1"; } else { "0";} } } }
     $paren_color = `$np mod $pcolors_nr`;
@@ -1101,14 +1111,16 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci) {
 	if [position() < $la] { ",";} } }
       if [$rsym=''] {
        if [not($parenth>0) or ($la>0)] { " "; } 
-       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr)); " "; }
+       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr)); 
+       if [$k='G'] { "(#"; } " "; }
       for-each [$vis] { 
        if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
        if [position() > $la] {
 	$x=`@x`;
 	if [$loci="1"] { ploci(#nr=$x); }
         else { apply[$args[position()  = $x]](#p=$np); }
-        if [position() < last()] { ",";} } } 
+        if [position() < last()] { ",";} } }
+      if [$k='G'] { " #)"; } 
      }
  }
 
