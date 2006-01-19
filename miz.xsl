@@ -2629,6 +2629,9 @@
             </xsl:otherwise>
           </xsl:choose>
         </xsl:variable>
+        <!-- Constructor may be missing, if this is a redefinition -->
+        <!-- that does not change its types. In that case, the Constructor needs -->
+        <!-- to be retrieved from the Definiens - see below. -->
         <xsl:apply-templates select="Constructor">
           <xsl:with-param name="indef">
             <xsl:text>1</xsl:text>
@@ -2641,7 +2644,36 @@
         <xsl:if test="@nr">
           <xsl:variable name="nr1" select="@nr"/>
           <xsl:variable name="cnt1" select="1 + count(preceding-sibling::Definition[@nr])"/>
+          <xsl:variable name="cnstr" select="count(Constructor)"/>
           <xsl:for-each select="../following-sibling::Definiens[position()=$cnt1]">
+            <xsl:variable name="ckind" select="@constrkind"/>
+            <xsl:variable name="cnr" select="@constrnr"/>
+            <xsl:if test="$cnstr=0">
+              <!-- here the redefined constructor is retrieved from definiens -->
+              <xsl:element name="b">
+                <xsl:text>redefine </xsl:text>
+              </xsl:element>
+              <xsl:choose>
+                <xsl:when test="key($ckind,$cnr)">
+                  <xsl:apply-templates select="key($ckind,$cnr)">
+                    <xsl:with-param name="indef">
+                      <xsl:text>1</xsl:text>
+                    </xsl:with-param>
+                    <xsl:with-param name="nl" select="$nl"/>
+                  </xsl:apply-templates>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:for-each select="document($constrs,/)">
+                    <xsl:apply-templates select="key($ckind,$cnr)">
+                      <xsl:with-param name="indef">
+                        <xsl:text>1</xsl:text>
+                      </xsl:with-param>
+                      <xsl:with-param name="nl" select="$nl"/>
+                    </xsl:apply-templates>
+                  </xsl:for-each>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:if>
             <xsl:element name="b">
               <xsl:choose>
                 <xsl:when test="DefMeaning/@kind=&apos;e&apos;">

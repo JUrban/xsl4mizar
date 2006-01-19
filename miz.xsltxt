@@ -784,14 +784,29 @@ tpl [Definition] {
         <a { @NAME=`concat("NM",@nr)`;
 	 <b { "mode ";}  abs1(#k="M",#fnr=`@formatnr`);
 	 <b { " is "; } } apply[Expansion/Typ]; ";"; <br; }}
-    else { $nl = { if [@nr] { "0"; } else { "1"; }}
-	   apply[Constructor](#indef="1",#nl=$nl); 
+    else { 
+     $nl = { if [@nr] { "0"; } else { "1"; }}
+// Constructor may be missing, if this is a redefinition
+// that does not change its types. In that case, the Constructor needs
+// to be retrieved from the Definiens - see below.
+     apply[Constructor](#indef="1",#nl=$nl);
+
 // @nr is present iff Definiens is present; it can be 0 if
 // the deiniens is not labeled, otherwise it is the proposition number
 // of its deftheorem
     if [@nr] { $nr1 = `@nr`;
        $cnt1 = `1 + count(preceding-sibling::Definition[@nr])`;
+       $cnstr = `count(Constructor)`;
        for-each [../following-sibling::Definiens[position()=$cnt1]] {
+         $ckind = `@constrkind`; $cnr = `@constrnr`;
+         if [$cnstr=0] {
+           // here the redefined constructor is retrieved from definiens 
+	    <b { "redefine "; }
+            if [key($ckind,$cnr)] { apply[key($ckind,$cnr)](#indef="1",#nl=$nl); }
+            else {
+	    for-each [document($constrs,/)] { 
+	      apply[key($ckind,$cnr)](#indef="1",#nl=$nl); } }
+         }
          <b { if [DefMeaning/@kind='e'] { " equals "; } else { " means "; } }
 	 if [$nr1>0]  { ":"; plab(#nr=$nr1); ": ";} 
 	 <a { @NAME=`concat("D",@defnr)`; 
