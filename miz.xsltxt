@@ -320,13 +320,15 @@ tpl [Pred](#i,#not,#pr) {
 	   $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
 	   $fnr = car(#l=$pi);
 	   $antonym = cadr(#l=$pi);
+	   $plink = third(#l=$pi);
+	   $pid = { if [$plink="1"] { `@pid`; } else { "0";} }
 	   $predattr = { if [$antonym>1] { "1";} else { "0"; }}
 	   $neg = { if [$not="1"] { `($antonym + $not) mod 2`; }
 		    else { `$antonym mod 2`; }}
            if [$neg="1"] { "not ";}
        if [(@kind='V') and ($predattr="0")] {
 	  apply[*[position() = last()]]; " is ";  
-	  abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr)); }
+	  abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr, #pid=$pid)); }
        else { pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#pid=`@pid`); }} }}
 //,#sym1=abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`))); }}
 //  "[ "; list(#separ=",", #elems=`*`); "]"; }
@@ -380,6 +382,7 @@ tpl [Typ] {
 //DEBUG ":"; `@pid`; ":"; $pi; ":";
       $fnr = car(#l=$pi);
       $expand = cadr(#l=$pi);
+      $plink = third(#l=$pi);
       $k1= { if [@kind="M"] { "M"; } else { "L";} }
       if [($expand="0") or not(@pid)] {
         pp(#k=$k1,#nr=`@nr`,#args=`*[not(name()="Cluster")]`,#pid=`@pid`);}
@@ -389,7 +392,7 @@ tpl [Typ] {
       else {
 //      abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr));
       $sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr);
-      $vis= cddr(#l=$pi); $el =`.`;  //DEBUG ":"; `@pid`; ":"; $pi; ":";
+      $vis= cdddr(#l=$pi); $el =`.`;  //DEBUG ":"; `@pid`; ":"; $pi; ":";
       $pid=`@pid`;
 //      apply[$el/*];
 //      if [not(@pid)] 
@@ -465,9 +468,11 @@ tpl [Adjective] {
      $pi = { patt_info(#k="V", #nr=`@nr`, #pid =`@pid`); }
      $fnr = car(#l=$pi);
      $anto = cadr(#l=$pi);
-     $neg = { if [@value="false"] { `($anto + 1) mod 2`; } else { $anto; }}
+     $plink = third(#l=$pi);
+     $pid = { if [$plink="1"] { `@pid`; } else { "0";} }
+     $neg = { if [@value="false"] { `($anto + 1) mod 2`; } else { `$anto mod 2`; }}
      if [$neg="1"] { "non ";}
-     abs(#k="V", #nr=`@nr`, #sym=abs1(#k="V", #nr=`@nr`, #fnr=$fnr)); }
+     abs(#k="V", #nr=`@nr`, #sym=abs1(#k="V", #nr=`@nr`, #fnr=$fnr, #pid=$pid)); }
 //	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
 
 tpl [Proposition] { 
@@ -858,6 +863,8 @@ tpl car(#l) { `substring-before($l,":")`;}
 tpl cdr(#l) { `substring-after($l,":")`;}
 tpl cadr(#l) { car(#l=cdr(#l=$l));}
 tpl cddr(#l) { cdr(#l=cdr(#l=$l));}
+tpl third(#l) { car(#l=cddr(#l=$l)); }
+tpl cdddr(#l) { cdr(#l=cddr(#l=$l));}
 
 // List utilities
 
@@ -933,8 +940,10 @@ tpl ft_clist(#f,#t,#sep) {
 
 // add the constructor href, $c tells if it is from current article
 // #sym is optional Mizar symbol
-tpl absref(#elems,#c,#sym) { 
-     for-each [$elems] { $mk=mkind(#kind=`@kind`); $alc=lc(#s=`@aid`);
+// #pid links to  patterns instead of constructors
+tpl absref(#elems,#c,#sym,#pid) { 
+     $n = { if [$pid>0] { "N"; } else { ""; }}
+     for-each [$elems] { $mk=mkind(#kind=`@kind`,#notat=$pid); $alc=lc(#s=`@aid`);
       <a { 
        if [($linking = 'q') or (($linking = 'm') and not($c = "1"))] { 
 //          @onClick="l1(this.getAttribute('lu'))";
@@ -943,19 +952,28 @@ tpl absref(#elems,#c,#sym) {
           @href=`concat($mmlq,@aid,":",$mk,".",@nr)`;
 	  }
        else { 
-         @href=`concat($alc, ".", $ext, "#",@kind,@nr)`; 
+         @href=`concat($alc, ".", $ext, "#",$n,@kind,@nr)`; 
          if [$c] { @target="_self"; } }
        if [$titles="1"] { @title=`concat(@aid,":",$mk,".",@nr)`; }
        if [$sym] { $sym; }
-       else { if [$relnames>0] { `@kind`; `@relnr`; }
-         else { `@kind`; `@nr`; "_"; `@aid`;  } } }} }
+       else { if [$relnames>0] { $n; `@kind`; `@relnr`; }
+         else { $n; `@kind`; `@nr`; "_"; `@aid`;  } } }} }
 
-tpl abs(#k,#nr,#sym) { 
+tpl abs(#k,#nr,#sym,#pid) { 
    #c1 = { if [$mml = "1"] { "0"; } else { "1"; } }
-   if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#c=$c1,#sym=$sym); }
-   else { 
-      for-each [document($constrs,/)] { 
-      absref(#elems=`key($k,$nr)`,#sym=$sym); } } }
+   if [$pid>0] { 
+      $k1 = `concat('P_',$k)`;
+      if [key($k1,$nr)[$pid=@relnr]] { 
+	 absref(#elems=`key($k1,$nr)[$pid=@relnr]`,#c=$c1,#sym=$sym,#pid=$pid); }
+      else { 
+	 for-each [document($patts,/)] { 
+	 absref(#elems=`key($k1,$nr)[$pid=@relnr]`,#sym=$sym,#pid=$pid); } } }
+   else {
+      if [key($k,$nr)] { absref(#elems=`key($k,$nr)`,#c=$c1,#sym=$sym); }
+      else { 
+         for-each [document($constrs,/)] { 
+	 absref(#elems=`key($k,$nr)`,#sym=$sym); } } }
+} 
 
 
 // return first symbol corresponding to constructor;
@@ -1006,26 +1024,28 @@ tpl patt_info(#k,#nr,#pid) {
      if [$md and key('EXP',$pid)] { 
 	for-each [key('EXP',$pid)] { 
 		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=$vis));} }
+		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=cons(#h="0",#t=$vis)));} }
      else { if [key($pkey,$nr)[$pid=@relnr]] { 
         for-each [key($pkey,$nr)[$pid=@relnr]] {
 		 $shift0 = { if [@antonymic] {"1";} else {"0";}}
 		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
 			    else { $shift0; } }
+                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
 		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=$vis));} }
+		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));} }
      else { for-each [document($patts,/)] {
      if [$md and key('EXP',$pid)] { 
 	for-each [key('EXP',$pid)] { 
 		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=$vis));} }
+		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=cons(#h="0",#t=$vis)));} }
      else { if [key($pkey,$nr)[$pid=@relnr]] {
                 for-each [key($pkey,$nr)[$pid=@relnr]] {
 		 $shift0 = { if [@antonymic] {"1";} else {"0";}}
 		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
 			    else { $shift0; } }
+                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
 		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=$vis));
+		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));
 //		 `(@formatnr + @formatnr) + $shift`; 
 } }
 else { "failedpid:"; $k1;":";$nr;":"; $pid;":";}
@@ -1036,15 +1056,17 @@ else { "failedpid:"; $k1;":";$nr;":"; $pid;":";}
 	         $shift0 = { if [Expansion or @antonymic] {"1";} else {"0";}}
 		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
 			    else { $shift0; } }
+                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
 		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=$vis));} }
+		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));} }
      else { for-each [document($patts,/)] {
                 for-each [key($pkey,$nr)[position()=1]] {
 	        $shift0 = { if [Expansion or @antonymic] {"1";} else {"0";}}
 		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
 			    else { $shift0; } }
+                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
 		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=$vis));}}} } }
+		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));}}} } }
 
 
 // pretty printer - gets arguments, visibility info from pattern,
@@ -1058,13 +1080,15 @@ tpl pp(#k,#nr,#args,#parenth,#pid,#loci) {
      if [$pid>0] {
      if [key($pkey,$nr)[$pid=@relnr]] { 
         for-each [key($pkey,$nr)[$pid=@relnr]] {
+       $npid = { if [@redefnr>0] { $pid; }}
        pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`, 
-           #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci); } }
+           #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci, #pid=$npid); } }
      else { for-each [document($patts,/)] {
               if [key($pkey,$nr)[$pid=@relnr]] {
                 for-each [key($pkey,$nr)[$pid=@relnr]] {
+     $npid = { if [@redefnr>0] { $pid; }}
      pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`,
-         #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci); } }
+         #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci, #pid=$npid); } }
 // failure, print in absolute notation
      else { abs(#k=$k, #nr=$nr); "("; 
        list(#separ=",",#elems=$args); ")"; }
@@ -1073,13 +1097,15 @@ tpl pp(#k,#nr,#args,#parenth,#pid,#loci) {
      else {
      if [key($pkey,$nr)] { 
         for-each [key($pkey,$nr)[position()=1]] {
+       $npid = { if [@redefnr>0] { `@relnr`; }}
        pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`, 
-           #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci); } }
+           #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci, #pid=$npid); } }
      else { for-each [document($patts,/)] {
               if [key($pkey,$nr)] {
                 for-each [key($pkey,$nr)[position()=1]] { 
+     $npid = { if [@redefnr>0] { `@relnr`; }}
      pp1(#k=$k,#nr=$nr,#args=$args, #vis=`Visible/Int`,
-         #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci); } }
+         #fnr=`@formatnr`, #parenth=$parenth, #loci=$loci, #pid=$npid); } }
 // failure, print in absolute notation
      else { abs(#k=$k, #nr=$nr); "("; 
        list(#separ=",",#elems=$args); ")"; }
@@ -1087,7 +1113,8 @@ tpl pp(#k,#nr,#args,#parenth,#pid,#loci) {
 }
  
 // it is legal to pass onlt #loci instead of #args here
-tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci) {
+// #pid is passed to abs, causes linking to patterns
+tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid) {
     $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
             else { for-each [document($formats,/)] {
                      for-each [key('F',$fnr)] { 
@@ -1103,45 +1130,45 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci) {
     // print spanned paranthesis or left bracket
     if [($np>0)] { <span { @class=`concat("p",$paren_color)`;
       if [$rsym=''] { "("; } else { 
-         abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr)); } 
+         abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); } 
       <span { @class="default";
 
     // this is duplicated later - needed for Mozilla - bad escaping
       for-each [$vis] { 
        if [position() <= $la] {
 	$x=`@x`;
-	if [$loci="1"] { ploci(#nr=$x); }
+	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
 	else { apply[$args[position() = $x]](#p=$np); }
 	if [position() < $la] { ",";} } }
       if [$rsym=''] {
        if [not($parenth>0) or ($la>0)] { " "; } 
-       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr)); " "; }
+       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); " "; }
       for-each [$vis] { 
        if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
        if [position() > $la] {
 	$x=`@x`;
-	if [$loci="1"] { ploci(#nr=$x); }
+	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
         else { apply[$args[position()  = $x]](#p=$np); }
         if [position() < last()] { ",";} } }
        }
-      if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym); } }
+      if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym, #pid=$pid); } }
     } else {
 
       for-each [$vis] { 
        if [position() <= $la] {
 	$x=`@x`;
-	if [$loci="1"] { ploci(#nr=$x); }
+	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
 	else { apply[$args[position() = $x]](#p=$np); }
 	if [position() < $la] { ",";} } }
       if [$rsym=''] {
        if [not($parenth>0) or ($la>0)] { " "; } 
-       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr)); 
+       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
        if [$k='G'] { "(#"; } " "; }
       for-each [$vis] { 
        if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
        if [position() > $la] {
 	$x=`@x`;
-	if [$loci="1"] { ploci(#nr=$x); }
+	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
         else { apply[$args[position()  = $x]](#p=$np); }
         if [position() < last()] { ",";} } }
       if [$k='G'] { " #)"; } 
@@ -1207,8 +1234,8 @@ tpl getref(#k,#anr,#nr) {
            mkref(#aid=`@aid`, #nr=$nr, #k=$k); }}}
     else { mkref(#aid=$aname,#nr=$nr,#k=$k,#c="1"); }}
 
-// translate constructor kinds to their mizar/mmlquery names
-tpl mkind(#kind) {
+// translate constructor (notation) kinds to their mizar/mmlquery names
+tpl mkind(#kind,#notat) {
    choose { 
       when [$kind = 'M'] { "mode";}
       when [$kind = 'V'] { "attr";}
@@ -1247,6 +1274,7 @@ tpl [ArgTypes] { if [*] { <b { "let "; } ploci(#nr="1");
 
 // #indef tells not to use Argtypes (we are inside Definition)
 tpl [Constructor](#indef,#nl) { 
+    $loci = { if [$mml="1"] { "1"; } else { "2"; }}
     if [not($indef="1")] { apply[ArgTypes]; }
     if [@redefnr>0] { <b { "redefine "; } }
     <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
@@ -1263,7 +1291,7 @@ tpl [Constructor](#indef,#nl) {
     else { if [@kind='V'] {
 	   ploci(#nr=`count(ArgTypes/Typ)`); " is ";  
 	  abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); }
-    else { pp(#k=`@kind`,#nr=`@relnr`,#args=`ArgTypes/Typ`, #loci="1"); }
+    else { pp(#k=`@kind`,#nr=`@relnr`,#args=`ArgTypes/Typ`, #loci=$loci); }
 // "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
 }
     if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
@@ -1277,12 +1305,14 @@ tpl [Constructor](#indef,#nl) {
 tpl [NotationBlock/Pattern] {
 // pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
 // #fnr=`@formatnr`, #loci="1"); <br;
+$loci = { if [$mml="1"] { "1"; } else { "2"; }}
+<a { @NAME=`concat("N",@kind,@nr)`;
 <b { if [@antonymic] { "antonym "; } else { "synonym "; }}
 pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
-#fnr=`@formatnr`, #loci="1"); <b { " for "; } 
+#fnr=`@formatnr`, #loci=$loci); } <b { " for "; } 
 
 pp(#k=`@constrkind`,#nr=`@constrnr`,
-#pid=`@redefnr`, #loci="1"); ";"; <br;
+#pid=`@redefnr`, #loci=$loci); ";"; <br;
 
 }
 
