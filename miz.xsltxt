@@ -159,7 +159,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 #top = `/`;
 
 // relative nr of the first expandable mode
-#first_exp = { `/Pattern[(@constrkind='M') and (@constrnr=0)][1]/@relnr`; }
+// #first_exp = { `//Pattern[(@constrkind='M') and (@constrnr=0)][1]/@relnr`; }
 
 // Formulas
 
@@ -320,10 +320,11 @@ tpl [Pred](#i,#not,#pr) {
 	   $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
 	   $fnr = car(#l=$pi);
 	   $antonym = cadr(#l=$pi);
+	   $predattr = { if [$antonym>1] { "1";} else { "0"; }}
 	   $neg = { if [$not="1"] { `($antonym + $not) mod 2`; }
-		    else { $antonym; }}
+		    else { `$antonym mod 2`; }}
            if [$neg="1"] { "not ";}
-       if [@kind='V'] {
+       if [(@kind='V') and ($predattr="0")] {
 	  apply[*[position() = last()]]; " is ";  
 	  abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr)); }
        else { pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#pid=`@pid`); }} }}
@@ -353,7 +354,7 @@ tpl [Func](#p) {
       otherwise { 
         $par = { if [$p>0] { `$p+1`;} else { 
                  if [name(..)='Func'] { "1"; } else { "0";} }  }
-        pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#parenth=$par); }}} 
+        pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#parenth=$par,#pid=`@pid`); }}} 
 
 tpl [PrivFunc](#p) { ppfunc(#nr=`@nr`); "("; 
     list(#separ=",", #elems=`*[position()>1]`); ")"; }
@@ -772,15 +773,14 @@ tpl [SchemeBlock] {
 
 
 //   ( ( CorrectnessCondition*, elCorrectness?,
-//       elJustifiedProperty*, elConstructor? )
+//       elJustifiedProperty*, elConstructor?, elPattern? )
 //   | ( elConstructor, elConstructor, elConstructor+,
-//       elRegistration, CorrectnessCondition*, elCorrectness? ))
+//       elRegistration, CorrectnessCondition*, 
+//       elCorrectness?, elPattern+ ))
 // ##TODO: commented registartion and strict attr for defstruct
 tpl [Definition] {     
     if [@expandable="true"] { 
-       $cnt = `1 + count(preceding-sibling::Definition[@expandable="true"])`;
-       // get the $cnt-th pattern following this DefinitionBlock
-       for-each [../following-sibling::Pattern[Expansion][$cnt]] {
+       for-each [Pattern] {
         <a { @NAME=`concat("NM",@nr)`;
 	 <b { "mode ";}  abs1(#k="M",#fnr=`@formatnr`);
 	 <b { " is "; } } apply[Expansion/Typ]; ";"; <br; }}
@@ -822,7 +822,8 @@ tpl [Definition] {
 }
 } 
 }
-    apply[*[not((name()='Constructor') or (name()='Registration'))]]; }
+    apply[*[not((name()='Constructor') or (name()='Pattern') 
+                or (name()='Registration'))]]; }
 
 //   ( elLet | elAssume | elGiven | AuxiliaryItem |
 //     elCanceled | elDefinition )*, elEndPosition
@@ -1008,7 +1009,9 @@ tpl patt_info(#k,#nr,#pid) {
 		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=$vis));} }
      else { if [key($pkey,$nr)[$pid=@relnr]] { 
         for-each [key($pkey,$nr)[$pid=@relnr]] {
-		 $shift = { if [@antonymic] {"1";} else {"0";}}
+		 $shift0 = { if [@antonymic] {"1";} else {"0";}}
+		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
+			    else { $shift0; } }
 		 $vis = mk_vis_list(#els=`Visible/Int`);
 		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=$vis));} }
      else { for-each [document($patts,/)] {
@@ -1018,7 +1021,9 @@ tpl patt_info(#k,#nr,#pid) {
 		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=$vis));} }
      else { if [key($pkey,$nr)[$pid=@relnr]] {
                 for-each [key($pkey,$nr)[$pid=@relnr]] {
-		 $shift = { if [@antonymic] {"1";} else {"0";}}
+		 $shift0 = { if [@antonymic] {"1";} else {"0";}}
+		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
+			    else { $shift0; } }
 		 $vis = mk_vis_list(#els=`Visible/Int`);
 		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=$vis));
 //		 `(@formatnr + @formatnr) + $shift`; 
@@ -1028,12 +1033,16 @@ else { "failedpid:"; $k1;":";$nr;":"; $pid;":";}
      else { 
      if [key($pkey,$nr)] { 
         for-each [key($pkey,$nr)[position()=1]] {
-	         $shift = { if [Expansion or @antonymic] {"1";} else {"0";}}
+	         $shift0 = { if [Expansion or @antonymic] {"1";} else {"0";}}
+		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
+			    else { $shift0; } }
 		 $vis = mk_vis_list(#els=`Visible/Int`);
 		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=$vis));} }
      else { for-each [document($patts,/)] {
                 for-each [key($pkey,$nr)[position()=1]] {
-	        $shift = { if [Expansion or @antonymic] {"1";} else {"0";}}
+	        $shift0 = { if [Expansion or @antonymic] {"1";} else {"0";}}
+		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
+			    else { $shift0; } }
 		 $vis = mk_vis_list(#els=`Visible/Int`);
 		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=$vis));}}} } }
 
@@ -1077,7 +1086,7 @@ tpl pp(#k,#nr,#args,#parenth,#pid,#loci) {
 }}}
 }
  
-
+// it is legal to pass onlt #loci instead of #args here
 tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci) {
     $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
             else { for-each [document($formats,/)] {
@@ -1086,7 +1095,7 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci) {
     // try if right bracket
     $rsym = { if [($k='K') and ($la='0')] {
                  abs1(#k=$k, #nr=$nr, #r="1"); } }
-    $np = { if [not($args) or ($k='G')] { "0"; } else {
+    $np = { if [not($vis) or ($k='G')] { "0"; } else {
                if [$parenth>0] { $parenth; } else { 
                   if [not($rsym='')] { "1"; } else { "0";} } } }
     $paren_color = `$np mod $pcolors_nr`;
@@ -1223,8 +1232,8 @@ tpl refkind(#kind) {
 tpl [Article] { 
     pcomment(#str=`concat($aname, "  semantic presentation")`); <br;
     for-each [*] { apply[.]; 
-      if [(not(name()='Definiens')) and (not(name()='Reservation')) 
-          and (not(name()='Pattern'))] { <br;} } }
+      if [(not(name()='Definiens')) and (not(name()='Reservation'))] 
+         { <br;} } }
 
 // processing of imported documents
 tpl [Theorem] { <b { "theorem "; } 
@@ -1264,7 +1273,20 @@ tpl [Constructor](#indef,#nl) {
       else { if [$nl="1"] { ";"; <br;} }
 }
 
-// ignore Patterns now
+// display synonym and antonym definiiotns
+tpl [NotationBlock/Pattern] {
+// pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
+// #fnr=`@formatnr`, #loci="1"); <br;
+<b { if [@antonymic] { "antonym "; } else { "synonym "; }}
+pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
+#fnr=`@formatnr`, #loci="1"); <b { " for "; } 
+
+pp(#k=`@constrkind`,#nr=`@constrnr`,
+#pid=`@redefnr`, #loci="1"); ";"; <br;
+
+}
+
+// ignore normal Patterns now
 tpl [Pattern] {}
 
 // Default
