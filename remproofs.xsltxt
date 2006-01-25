@@ -1,0 +1,19 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
+// rremoving all proof elements from the xml
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL remproofs.xsltxt > remproofs.xsl
+
+// Then e.g.: xsltproc remproofs.xsl ordinal2.xml > remproofs.xml1
+
+
+output method=xml;
+
+
+tpl [Proof] {}
+
+tpl [*] { copy { apply [@*]; apply; } }
+tpl [@*] { copy-of `.`; }
+
