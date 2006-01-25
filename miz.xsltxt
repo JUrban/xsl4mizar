@@ -632,18 +632,24 @@ tpl [ThesisExpansions/Pair] {
 
 // Registrations
 tpl [RCluster] { if [$mml="1"] { apply[ArgTypes]; }
-                 <b { "cluster "; }
+		 $nr1 = `1 + count(preceding::RCluster)`;
+		 <a { @NAME=`concat("RC",$nr1)`;
+		      <b { "cluster "; } }
                  if [ErrorCluster] { "errorcluster"; }
 	         else { apply[*[3]]; " "; apply[*[2]]; }
                  ";"; <br; if [$mml="1"] { <br; }}
 tpl [CCluster] { if [$mml="1"] { apply[ArgTypes]; }
-                 <b { "cluster "; }
+		 $nr1 = `1 + count(preceding::CCluster)`;
+		 <a { @NAME=`concat("CC",$nr1)`;
+		      <b { "cluster "; } }
                  if [ErrorCluster] { "errorcluster"; }
 	         else { apply[*[2]]; <b {" -> ";} apply[*[4]]; " "; 
                         apply[*[3]]; }
                  ";"; <br; if [$mml="1"] { <br; }}
 tpl [FCluster] { if [$mml="1"] { apply[ArgTypes]; }
-                 <b { "cluster "; }
+		 $nr1 = `1 + count(preceding::FCluster)`;
+		 <a { @NAME=`concat("FC",$nr1)`;
+		      <b { "cluster "; } }
                  if [ErrorCluster] { "errorcluster"; }
 	         else { apply[*[2]]; <b {" -> ";} apply[*[3]]; }
                  ";"; <br; if [$mml="1"] { <br; }}
