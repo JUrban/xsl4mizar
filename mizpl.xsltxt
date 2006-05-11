@@ -714,7 +714,10 @@ tpl [CCluster] { if [ErrorCluster] { } else {
     else { "( "; apply[*[4]]; " )"; } }
     "))"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="cc"); "),[mptp_info("; `@nr`; 
-    ",[],ccluster,position(0,0),[])]).\n"; } }
+    ",[],ccluster,position(0,0),["; 
+    if [$mml="0"] { 
+       "proof_level(["; `translate(../@newlevel,"_",",")`; "])"; }
+    "])]).\n"; } }
 
 tpl [FCluster] { if [ErrorCluster] { } else {
     "fof("; absk(#el=`.`,#kind="fc"); ",sort,";
@@ -726,7 +729,10 @@ tpl [FCluster] { if [ErrorCluster] { } else {
     else { "( "; apply[Cluster]; " )"; } }
     ")"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="fc"); "),[mptp_info("; `@nr`; 
-    ",[],fcluster,position(0,0),[])]).\n"; } }
+    ",[],fcluster,position(0,0),[";
+    if [$mml="0"] { 
+       "proof_level(["; `translate(../@newlevel,"_",",")`; "])"; }
+    "])]).\n"; } }
 
 tpl [RCluster] { if [ErrorCluster] { } else {
     "fof("; absk(#el=`.`,#kind="rc"); ",sort,";
@@ -740,7 +746,10 @@ tpl [RCluster] { if [ErrorCluster] { } else {
     else { "( "; apply[Cluster]; " )"; } }
     ")"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="rc"); "),[mptp_info("; `@nr`; 
-    ",[],rcluster,position(0,0),[])]).\n"; } }
+    ",[],rcluster,position(0,0),[";
+    if [$mml="0"] { 
+       "proof_level(["; `translate(../@newlevel,"_",",")`; "])"; }
+    "])]).\n"; } }
 
 
 tpl [ArgTypes] { if [Typ] {
@@ -912,7 +921,8 @@ tpl priv_def(#k,#nr,#pl) {
 
 tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
-	     //Reconsider|//SchemeFuncDecl|//SchemeBlock]; }
+	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
+	     //CCluster|//FCluster|//RCluster]; }
 	  else { apply; } }
 
 
