@@ -71,19 +71,155 @@ key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
 
 // Formulas
 
+// old versions without pretty-printing
+// // #i is nr of the bound variable, 1 by default 
+// // empty list can be after ':' for type 'set'
+// tpl [For](#i,#pl,#k) { 
+//   $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
+//   "!["; pvar(#nr=$j); ": "; apply[Typ[1]](#i=$j,#pl=$pl); "]: "; 
+//   apply[*[2]](#i=$j,#pl=$pl); }
+
+// // need to put brackets around PrivPred here - may contain For
+// tpl [Not](#i,#pl) { $not_s; 
+//     if [For|PrivPred] { "("; apply[*[1]](#i=$i,#pl=$pl); ")"; } 
+//     else { apply[*[1]](#i=$i,#pl=$pl); }}
+// tpl [And](#i,#pl) { "( "; 
+//     ilist(#separ=$and_s, #elems=`*`, #i=$i,#pl=$pl); " )"; }
+
+
+// pretty printing for FOF
+#pid_Ex 		= { "-1"; } // usually NegFrmPtr
+#pid_Ex_Univ 		= { "-2"; } // usually UnivFrmPtr
+#pid_Ex_InnerNot 	= { "-3"; } // usually NegFrmPtr
+#pid_Impl 		= { "-4"; } // usually NegFrmPtr
+#pid_Impl_And 		= { "-5"; } // usually ConjFrmPtr       
+#pid_Impl_RightNot 	= { "-6"; } // usually NegFrmPtr
+#pid_Iff 		= { "-7"; } // usually ConjFrmPtr
+#pid_Or 		= { "-8"; } // usually NegFrmPtr
+#pid_Or_And 		= { "-9"; } // usually ConjFrmPtr
+#pid_Or_LeftNot 	= { "-10"; } // usually NegFrmPtr
+#pid_Or_RightNot 	= { "-11"; } // usually NegFrmPtr
+
+tpl is_or(#el) { for-each [$el] { if [(@pid=$pid_Or) 
+        and (*[1][@pid=$pid_Or_And]) and (count(*[1]/*)=2)
+	and (*[1]/*[1][@pid=$pid_Or_LeftNot])
+	and (*[1]/*[2][@pid=$pid_Or_RightNot])]
+ { "1"; } else { "0"; }}}
+
+tpl is_impl(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)=2)
+	and (*[1]/*[2][@pid=$pid_Impl_RightNot])]
+ { "1"; } else { "0"; }}}
+
+tpl is_impl1(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>2)
+	and (*[1]/*[@pid=$pid_Impl_RightNot])]
+ { "1"; } else { "0"; }}}
+
+tpl is_impl2(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>=2)
+	and (*[1]/*[@pid=$pid_Impl_RightNot])]
+ { "1"; } else { "0"; }}}
+
+
+tpl is_equiv(#el) { for-each [$el] {
+       $e1 = { if [(@pid=$pid_Iff) and (count(*)=2)] {
+		  $i1 = { is_impl(#el=`$el/*[1]`); } 
+		  if [$i1="1"] { is_impl(#el=`*[2]`); }
+		  else { "0"; }}
+	       else { "0"; } }
+       if [$e1="1"] { 
+	  $res1 = { are_equal( #el1=`*[1]/*[1]/*[1]`, 
+			       #el2=`*[2]/*[1]/*[2]/*[1]`); }
+	  $res2 = { are_equal( #el1=`*[2]/*[1]/*[1]`, 
+			       #el2=`*[1]/*[1]/*[2]/*[1]`); }
+	  if [($res1="1") and ($res2="1")] { "1"; }
+          else { "0"; }}
+       else  { $e1; }}}
+
+//  recursive equality on subnodes and attributes
+tpl are_equal(#el1,#el2) { 
+    if[ not(name($el1)=name($el2)) or not(count($el1/*)=count($el2/*))
+	or not(count($el1/@*)=count($el2/@*))] { "0"; }
+    else { 
+	 $s1 = { for-each [$el1/@*] { `string()`;} }
+	 $s2 = { for-each [$el2/@*] { `string()`;} }
+	 if [not($s1=$s2)] { "0"; }
+    else 
+     { are_equal_many(#els1=`$el1/*`,#els2=`$el2/*`,#nr=`count($el1/*)`); }}}
+
+tpl are_equal_many(#els1,#els2,#nr) { if [$nr > 0] {
+    $el1=`$els1[position()=$nr]`;
+    $el2=`$els2[position()=$nr]`; 
+    $res1 = { are_equal(#el1=$el1, #el2=$el2); }
+    if [$res1="1"] { are_equal_many(#els1=$els1, #els2=$els2, #nr=`$nr - 1`);}
+    else { "0"; }} else { "1"; }}
+
+
 // #i is nr of the bound variable, 1 by default 
 // empty list can be after ':' for type 'set'
-tpl [For](#i,#pl,#k) { 
-  $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
-  "!["; pvar(#nr=$j); ": "; apply[Typ[1]](#i=$j,#pl=$pl); "]: "; 
-  apply[*[2]](#i=$j,#pl=$pl); }
+tpl [For](#i,#pl,#k,#ex) {
+  $j = { if [$i>0] { `$i + 1`;} else { "1"; } } 
+  if [$ex="1"] { 
+   $nm = { `name(*[2])`; }
+   "?["; pvar(#nr=$j); ": "; apply[Typ[1]](#i=$j,#pl=$pl); "]: ";
+   if [$nm = "For"] { apply[*[2]](#i=$j,#ex=$ex,#pl=$pl); }
+   else { apply[Not/*[1]](#i=$j,#pl=$pl); }
+  }
+  else { 
+   "!["; pvar(#nr=$j); ": "; apply[Typ[1]](#i=$j,#pl=$pl); "]: ";
+   apply[*[2]](#i=$j,#pl=$pl); }
+ }
+
+
+// return 1 if this is a Not-ended sequence of For-s
+tpl check_for_not(#el) { 
+    if [name($el)="Not"] { "1"; } 
+    else { if [name($el)="For"] { check_for_not(#el=`$el/*[2]`); }
+    else { "0"; }}}
 
 // need to put brackets around PrivPred here - may contain For
-tpl [Not](#i,#pl) { $not_s; 
-    if [For|PrivPred] { "("; apply[*[1]](#i=$i,#pl=$pl); ")"; } 
-    else { apply[*[1]](#i=$i,#pl=$pl); }}
-tpl [And](#i,#pl) { "( "; 
-    ilist(#separ=$and_s, #elems=`*`, #i=$i,#pl=$pl); " )"; }
+tpl [Not](#i,#pl) { 
+    $fnb = { if [For] { check_for_not(#el=`*[1]/*[2]`); } else { "0"; } }
+    if [$fnb="1"]  { apply[*[1]](#i=$i,#pl=$pl,#ex="1"); }
+    else { 
+	 $i1= is_impl(#el=`.`);
+	 if [$i1="1"] { "( "; apply[*[1]/*[1]](#i=$i,#pl=$pl); $imp_s;
+			apply[*[1]/*[2]/*[1]](#i=$i,#pl=$pl); " )"; }
+         else {
+	      $i2= is_or(#el=`.`);
+	      if [$i2="1"] { "( "; apply[*[1]/*[1]/*[1]](#i=$i,#pl=$pl); $or_s;
+			apply[*[1]/*[2]/*[1]](#i=$i,#pl=$pl); " )"; }
+           else { 
+             $i3= is_impl1(#el=`.`);
+	    if [($i3="1") and (*[1]/*[not(name()="Not")]) and (*[1]/Not)] { "( ( "; 
+	     ilist(#separ=$and_s, #elems=`*[1]/*[not(name()="Not")]`, #i=$i,#pl=$pl);
+	    " )"; $imp_s;
+	    "( "; ilist(#separ=$or_s, #elems=`*[1]/Not/*[1]`, #i=$i,#pl=$pl); " ) )"; }
+             else { $not_s; 
+		    if [For|PrivPred] { "("; apply[*[1]](#i=$i,#pl=$pl); ")"; } 
+		    else { apply[*[1]](#i=$i,#pl=$pl); } } } } } }
+
+// try for equivalence
+tpl [And](#i,#pl) { "( "; $e1= is_equiv(#el=`.`); 
+    if [$e1="1"] { 
+       apply[*[1]/*[1]/*[1]](#i=$i,#pl=$pl); $equiv_s;
+       apply[*[1]/*[1]/*[2]/*[1]](#i=$i,#pl=$pl); }
+    else { // a bit risky?
+    if [(@pid=$pid_Iff) and (count(*)=2)] {
+       $i1= is_impl(#el=`*[1]`);
+       if [$i1="1"] { 
+	  apply[*[1]/*[1]/*[1]](#i=$i,#pl=$pl); $equiv_s;
+	  apply[*[1]/*[1]/*[2]/*[1]](#i=$i,#pl=$pl); }
+       else { $i2= is_impl(#el=`*[2]`);
+       if [$i2="1"] { 
+	  apply[*[2]/*[1]/*[2]/*[1]](#i=$i,#pl=$pl); $equiv_s;
+	  apply[*[2]/*[1]/*[1]](#i=$i,#pl=$pl); }
+       else { ilist(#separ=$and_s, #elems=`*`, #i=$i,#pl=$pl); }}}
+    else { ilist(#separ=$and_s, #elems=`*`, #i=$i,#pl=$pl); }}
+    " )";
+    }
+
 // here we differ from Mizar and ILF - all 'V' are turned into 'sort'
 // ##GRM: Sch_Pred : "p" Number "_" Scheme_Name
 tpl [Pred](#i,#pl) { 
