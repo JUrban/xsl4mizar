@@ -1,0 +1,86 @@
+stylesheet "1.0";
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// TSTP XML solutions to MML Query DLI syntax
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL tstp2dli.xsltxt >tstp2dli.xsl
+
+
+output method=text;
+
+strip-space "*";
+
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+// tpl [tstp] { "Mizar rendering of ATP proof steps:\n"; apply; }
+tpl [formula] { "A:step "; $nm=`@name`; $nm; "="; apply; "\n"; }
+tpl [quantifier/variable] { "$for("; pvar(#nm=`@name`); ",$type(HIDDEN:mode 1),"; }
+tpl [variable] { pvar(#nm=`@name`); }
+tpl [quantifier[@type='existential']] { "$not("; apply; ")"; } 
+tpl [negation|] { "$not("; apply; ")"; } 
+tpl [function|predicate] { 
+    if [name(..)="quantifier"] { "("; }
+    transl_constr(#nm=`@name`); "("; ilist(#separ=",", #elems=`*`); ")"; 
+    if [name(..)="quantifier"] { ")"; }
+}
+tpl [conjunction] { "$and("; ilist(#separ=",", #elems=`*`); ")"; } 
+tpl [disjunction] { "$not($and("; notlist(#separ=",", #elems=`*`); "))"; } 
+tpl [implication] { "$not($and("; apply[*[1]]; ","; "$not("; apply[*[2]]; ")))"; }
+
+tpl [defined-predicate[@name='equal']]  { 
+    if [name(..)="quantifier"] { "("; }
+    transl_constr(#nm="r1_hidden"); "("; ilist(#separ=",", #elems=`*`); ")";
+    if [name(..)="quantifier"] { ")"; }
+ }
+tpl [defined-predicate[@name='false']]  { "$not($verum)"; } 
+tpl [defined-predicate[@name='true']]  { "$verum"; } 
+
+tpl transl_constr(#nm) {
+    $pref = `substring-before($nm,"_")`;
+    if [$pref] {
+       $k = `substring($pref,1,1)`;
+       $nr = `substring($pref,2)`;
+       // test if $nr is digit
+       if [$nr >= 0] { 
+	  $art = `substring-after($nm,"_")`;
+	  uc(#s=$art); ":"; mkind(#kind=$k); " "; $nr;
+	  }
+       else { $nm; }
+       }
+    else { $nm; }
+}
+
+tpl pvar(#nm) { 
+    $l = `substring($nm,1,1)`;
+    $nr = `substring($nm,2)`;
+    // test if $nr is digit
+    if [$nr >= 0] { "$"; $l; " "; $nr; }
+    else { $nm; }
+}
+
+tpl ilist(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $separ; } }
+}
+
+tpl notlist(#separ,#elems) { 
+ for-each [$elems] {
+  "$not("; apply[.]; ")"; if [not(position()=last())] { $separ; } }
+}
+
+tpl mkind(#kind) {
+   choose { 
+      when [$kind = 'm'] { "mode";}
+      when [$kind = 'v'] { "attr";}
+      when [$kind = 'r'] { "pred";}
+      when [$kind = 'k'] { "func";}
+      when [$kind = 'g'] { "aggr";}
+      when [$kind = 'l'] { "struct";}
+      when [$kind = 'u'] { "sel";}
+ }}
