@@ -53,6 +53,12 @@ output method=html;
 // tells whether relative or absolute names are shown
 #relnames= { "1"; }
 
+// link by inferences to ATP solutions rendered by MMLQuery; experimental - off
+#linkby= { "0"; }
+
+// directory with by ATP solutions; each article in its own subdir
+#lbydir= { "_by/"; }
+
 
 // keys for fast constructor and reference lookup
 key "M" [Constructor[@kind='M']] `@relnr` ;
@@ -482,10 +488,23 @@ tpl [Proposition] {
     if [@nr>0] { plab(#nr=`@nr`); ": ";}  apply; " ";}
 
 // Justifications
-tpl [By	](#nbr) { if [(count(*)>0)] { <b { "by "; } 
-      <i { list(#separ=", ", #elems=`*`); } } ";"; 
-      if [not($nbr="1")] { <br;  } }
-tpl [IterStep/By] { if [(count(*)>0)] { <b { "by "; } 
+tpl linkbyif(#line,#col,#by) { if [$linkby=1] { 
+	  <a { @href=`concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`;
+	       @class="txt"; @target="byATP"; <b { $by; " "; } }}
+       else { <b { $by; " "; } }}
+  
+tpl [By	](#nbr) { if [(count(*)>0)] { 
+       linkbyif(#line=`@line`,#col=`@col`,#by="by");
+       <i { list(#separ=", ", #elems=`*`); } ";"; }
+    else { 
+	 if [$linkby=1] { 
+	      <a { @href=`concat($lbydir,$anamelc,"/",@line,"_",@col,".html")`;
+		   @class="txt"; @target="byATP"; ";"; }}
+         else { ";"; }
+    }
+    if [not($nbr="1")] { <br;  } }
+tpl [IterStep/By] { if [(count(*)>0)] { 
+      linkbyif(#line=`@line`,#col=`@col`,#by="by");
       <i { list(#separ=", ", #elems=`*`); } }}
 tpl [From](#nbr) { <b { "from "; }
         <i { getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
