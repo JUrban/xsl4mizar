@@ -18,11 +18,29 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
 tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
 
-// tpl [tstp] { "Mizar rendering of ATP proof steps:\n"; apply; }
-tpl [formula] { "A:step "; $nm=`@name`; $nm; "="; apply; "\n"; }
+tpl [tstp] { ":: <h3><center><a href=\"http://mmlquery.mizar.org\">MML Query</a> rendering of ATP proof steps</center></h3><br/>\n"; apply; }
+tpl [formula] { 
+    ":: "; "<a name=\""; `@name`; "\"/> ";
+    if [source/non-logical-data[@name='file']] { 
+       `@status`; ": ";
+       for-each [source/non-logical-data[@name='file']/*[2]] { `@name`; }
+    }
+    else {
+      for-each [source/non-logical-data[@name='inference']] { 
+	 "inference: "; for-each [*[1]] { `@name`; } 
+	 "("; ilist(#separ=",", #elems=`*[3]/*[not(@name='theory')]`); ")";
+      }
+    }
+    "<br/>\n";
+    "A:step "; `@name`; "="; apply[*[1]]; "\n"; 
+}
 tpl [quantifier/variable] { "$for("; pvar(#nm=`@name`); ",$type(HIDDEN:mode 1),"; }
 tpl [variable] { pvar(#nm=`@name`); }
-tpl [quantifier[@type='existential']] { "$not("; apply; ")"; } 
+tpl [quantifier] { 
+    if [@type='existential'] { "$not("; apply[variable]; "$not(";  apply[*[position() = last()]]; "))"; }
+    else { apply; }
+    for-each [variable] { ")"; }
+}
 tpl [negation|] { "$not("; apply; ")"; } 
 tpl [function|predicate] { 
     if [name(..)="quantifier"] { "("; }
@@ -40,6 +58,8 @@ tpl [defined-predicate[@name='equal']]  {
  }
 tpl [defined-predicate[@name='false']]  { "$not($verum)"; } 
 tpl [defined-predicate[@name='true']]  { "$verum"; } 
+
+tpl [non-logical-data] { "<a href=\"#"; `@name`; "\">"; `@name`; "</a>"; }
 
 tpl transl_constr(#nm) {
     $pref = `substring-before($nm,"_")`;
