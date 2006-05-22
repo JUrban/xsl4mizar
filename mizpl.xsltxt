@@ -639,10 +639,15 @@ tpl redefinition(#el) {
         "( "; absc1(#el=`.`); 
 	if [$l0 > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
 	if [@kind = 'K'] { $eq_s; } else { $equiv_s; }
-        absredef(#el=`.`); 
-	if [$l0 > $s] { "("; 
-           arglist(#separ=",",#elems=`ArgTypes/Typ[position() > $s]`,#s=$s); 
-	   ")";
+
+	if [(@kind='R') and (@absredefnr=1) and (@redefaid="HIDDEN")] {
+	    "( "; ploci(#nr=`$l0 - 1`); $eq_s; ploci(#nr=$l0); " )"; }
+        else { 
+	     absredef(#el=`.`); 
+	     if [$l0 > $s] { "("; 
+		arglist(#separ=",",#elems=`ArgTypes/Typ[position() > $s]`,#s=$s); 
+		")";
+             }
 	} ")";
       } else {
       if [(@kind = 'V') or (@kind = 'M')] {
