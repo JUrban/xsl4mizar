@@ -18,6 +18,10 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
 tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
 
+// MML Query needs numbers for proper display of indeces, 
+// hence this poor-man's numberization of proof-levels
+tpl usto0(#s) { `translate($s, "_", "0")`; }
+
 tpl [tstp] { ":: <h3><center><a href=\"http://mmlquery.mizar.org\">MML Query</a> rendering of ATP proof steps</center></h3><br/>\n"; apply; }
 tpl [formula] { 
     ":: "; "<a name=\""; `@name`; "\"/> ";
@@ -27,8 +31,7 @@ tpl [formula] {
     }
     else {
       for-each [source/non-logical-data[@name='inference']] { 
-	 "inference: "; for-each [*[1]] { `@name`; } 
-	 "("; ilist(#separ=",", #elems=`*[3]/*[not(@name='theory')]`); ")";
+	 "inference: "; apply[.];
       }
     }
     "<br/>\n";
@@ -44,13 +47,23 @@ tpl [quantifier] {
 tpl [negation|] { "$not("; apply; ")"; } 
 tpl [function|predicate] { 
     if [name(..)="quantifier"] { "("; }
-    transl_constr(#nm=`@name`); "("; ilist(#separ=",", #elems=`*`); ")"; 
+    $tc = { transl_constr(#nm=`@name`); }
+    if [contains($tc, ":attr") or contains($tc, ":mode")  or contains($tc, ":struct")] {
+       "$is("; apply[*[1]]; ","; $tc; 
+       "("; ilist(#separ=",", #elems=`*[position()>1]`); ")"; ")";
+    }   
+    else { $tc; "("; ilist(#separ=",", #elems=`*`); ")"; }
     if [name(..)="quantifier"] { ")"; }
 }
 tpl [conjunction] { "$and("; ilist(#separ=",", #elems=`*`); ")"; } 
 tpl [disjunction] { "$not($and("; notlist(#separ=",", #elems=`*`); "))"; } 
 tpl [implication] { "$not($and("; apply[*[1]]; ","; "$not("; apply[*[2]]; ")))"; }
-
+tpl [equivalence] {  
+    "$and(";
+    "$not($and("; apply[*[1]]; ","; "$not("; apply[*[2]]; ")))"; ",";
+    "$not($and("; apply[*[2]]; ","; "$not("; apply[*[1]]; ")))";
+    ")";
+}
 tpl [defined-predicate[@name='equal']]  { 
     if [name(..)="quantifier"] { "("; }
     transl_constr(#nm="r1_hidden"); "("; ilist(#separ=",", #elems=`*`); ")";
@@ -59,20 +72,32 @@ tpl [defined-predicate[@name='equal']]  {
 tpl [defined-predicate[@name='false']]  { "$not($verum)"; } 
 tpl [defined-predicate[@name='true']]  { "$verum"; } 
 
-tpl [non-logical-data] { "<a href=\"#"; `@name`; "\">"; `@name`; "</a>"; }
+tpl [non-logical-data] { 
+    // there can be embedded inferences
+    if [@name='inference'] { 
+       for-each [*[1]] { `@name`; } 
+       "("; ilist(#separ=",", #elems=`*[3]/*[not(@name='theory')]`); ")";
+    }
+    else { "<a href=\"#"; `@name`; "\">"; `@name`; "</a>"; } }
 
 tpl transl_constr(#nm) {
     $pref = `substring-before($nm,"_")`;
     if [$pref] {
        $k = `substring($pref,1,1)`;
        $nr = `substring($pref,2)`;
+       $art = `substring-after($nm,"_")`;
        // test if $nr is digit
-       if [$nr >= 0] { 
-	  $art = `substring-after($nm,"_")`;
-	  uc(#s=$art); ":"; mkind(#kind=$k); " "; $nr;
+       if [$nr >= 0] {
+	  if [$k="c"] { "$"; $pref; " "; usto0(#s=$art);}
+	  else { uc(#s=$art); ":"; mkind(#kind=$k); " "; $nr; }
 	  }
-       else { $nm; }
+       else { 
+       // test for skolem - esk3_4, epred1_2
+	  $esk = `substring($pref,1,3)`;
+	  if [$esk="esk" or $esk="epr"] { "$"; $pref; " "; $art;}
+	  else { $nm; }
        }
+    }
     else { $nm; }
 }
 
