@@ -54,11 +54,22 @@ output method=html;
 #relnames= { "1"; }
 
 // link by inferences to ATP solutions rendered by MMLQuery; experimental - off
+// 1 - static linking (to pre-generated html)
+// 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor)
 #linkby= { "0"; }
 
-// directory with by ATP solutions; each article in its own subdir
+// directory with by ATP solutions in HTML; each article in its own subdir
 #lbydir= { "_by/"; }
 
+// directory with by ATP solutions in DLI; each article in its own subdir
+// now whole url for the CGI script
+#lbydliurl= { "http://lipa.ms.mff.cuni.cz/~urban/xmlmml/html.930/_by_dli/"; }
+
+// URL of the DLI-processor CGI
+#lbydlicgi= { "http://mmlquery.mizar.org/cgi-bin/mmlquery/dli"; }
+
+// complete prefix of the DLI-processor CGI request
+$lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // keys for fast constructor and reference lookup
 key "M" [Constructor[@kind='M']] `@relnr` ;
@@ -488,18 +499,19 @@ tpl [Proposition] {
     if [@nr>0] { plab(#nr=`@nr`); ": ";}  apply; " ";}
 
 // Justifications
-tpl linkbyif(#line,#col,#by) { if [$linkby=1] { 
-	  <a { @href=`concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`;
-	       @class="txt"; @target="byATP"; <b { $by; " "; } }}
-       else { <b { $by; " "; } }}
+tpl linkbyif(#line,#col,#by) { 
+    if [$linkby>0] { 
+       $byurl = { choose { 
+	      when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
+	      when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } } }
+       <a { @href=$byurl; @class="txt"; @target="byATP"; <b { $by; " "; } }}
+    else { <b { $by; " "; } }}
   
 tpl [By	](#nbr) { if [(count(*)>0)] { 
        linkbyif(#line=`@line`,#col=`@col`,#by="by");
        <i { list(#separ=", ", #elems=`*`); } ";"; }
     else { 
-	 if [$linkby=1] { 
-	      <a { @href=`concat($lbydir,$anamelc,"/",@line,"_",@col,".html")`;
-		   @class="txt"; @target="byATP"; ";"; }}
+	 if [$linkby>0] {  linkbyif(#line=`@line`,#col=`@col`,#by=";"); }
          else { ";"; }
     }
     if [not($nbr="1")] { <br;  } }
