@@ -521,7 +521,10 @@ tpl [Proposition] {
     if [following-sibling::*[1][(name()="By") and (@linked="true")]] { 
       if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
               or (name(..) = "Conclusion"))] { <b { "then "; } }}
-    if [@nr>0] { plab(#nr=`@nr`); ": ";}  apply; " ";}
+    if [@nr>0] { if [($proof_links>0) and not(string-length(@plevel)>0)] { 
+		    plab1(#nr=`@nr`,#txt="Lemma"); } 
+                 else { plab(#nr=`@nr`);} ": ";}
+    apply; " ";}
 
 // Justifications
 tpl linkbyif(#line,#col,#by) { 
@@ -551,7 +554,45 @@ tpl [IterStep/From] { <b { "from "; }
    <i { getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
         list(#separ=", ", #elems=`*`); ")"; } }
 
-tpl [Ref] { if [not(@articlenr)] {  plab(#nr=`@nr`); }
+
+// ##REQUIRE: the following two can be called only if $proof_links>0
+tpl top_propname(#el) { for-each [$el/..] {
+    if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] {
+       $k= { if [@kind='D'] { "Def"; } else { "Th"; }}
+       mkref(#aid=$aname,#nr=`@nr`,#k=`@kind`,#c="1",#nm=`concat($k,@nr)`);
+    }
+    else { $k1 = `concat($el/@nr,":")`;
+           $k2 = `key("E",$k1)/@propnr`;
+	   <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#","E",$k2)`;  
+		plab1(#nr=`$el/@nr`,#txt="Lemma"); }}}}
+
+tpl get_parent_level(#pl,#ls,#n) {
+    $p= { `$ls - $n`; }     $p1= { `$ls -( $n + 1)`; }
+    if [substring($pl,$p,1)='_'] { `substring($pl,1,$p1)`; }
+    else { if [$n<10] { get_parent_level(#pl=$pl,#ls=$ls,#n=`$n+1`); } } }
+
+// name of private reference - name of the proposition
+tpl privname(#nr,#pl) {
+      $k1 = `concat($nr,":",$pl)`;
+      if [key("E",$k1)] { 
+	 if [not(string-length($pl)>0)] { top_propname(#el=`key("E",$k1)`); }
+	 else { 
+	      $txt= { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
+	      <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#",$txt)`; plab(#nr=`@nr`); } } }
+      else { 
+	   $ls = `string-length($pl)`;
+	   if [$ls>0] { 
+	      $pl1 = { get_parent_level(#pl=$pl,#ls=$ls,#n="1"); }
+	      privname(#nr=$nr,#pl=$pl1); } }
+ }
+
+tpl get_nearest_level(#el) { for-each [$el] { 
+    if [@newlevel] { `@newlevel`;} else { get_nearest_level(#el=`..`); } }}
+
+tpl [Ref] { if [not(@articlenr)] {  
+	       if [$proof_links=0] { plab(#nr=`@nr`); }
+	       else { $pl=get_nearest_level(#el=`..`); privname(#nr=`@nr`,#pl=$pl); }
+            }
             else { getref(#k=`@kind`, #anr=`@articlenr`, #nr=`@nr`);} }
 tpl [ErrorInf](#nbr) { "errorinference;"; if [not($nbr="1")] { <br;  } }
 tpl [IterStep/ErrorInf] { "errorinference"; }
@@ -781,8 +822,9 @@ tpl [Reservation/Typ] { ""; }
 tpl [Definiens/*] { ""; }
 
 tpl [JustifiedTheorem] { <b { "theorem "; } 
-    for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } 
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
+    if [$proof_links>0] { plab1(#nr=$nr1,#txt="Th"); ": "; } 
+    else { for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } } 
     <a { @NAME=`concat("T",$nr1)`; 
 	 pcomment(#str=`concat($aname,":",$nr1)`); }
     if [Proof] { <div { @class="add"; apply[*[1]/*[1]]; } apply[*[2]]; }
@@ -793,7 +835,8 @@ tpl [JustifiedTheorem] { <b { "theorem "; }
 tpl [DefTheorem] { 
     $nr1 = `1+count(preceding-sibling::DefTheorem)`;
     ":: "; <b { "deftheorem "; }
-    for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); } " ";
+    if [$proof_links>0] { plab1(#nr=$nr1,#txt="Def"); } 
+    else { for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); }} " ";
 //    <a { @NAME=`concat("D",$nr1)`; 
     if [@constrkind] { "  defines "; 
 		abs(#k=`@constrkind`, #nr=`@constrnr`, 
@@ -890,7 +933,8 @@ tpl [Definition] {
 	      apply[key($ckind,$cnr)](#indef="1",#nl=$nl); } }
          }
          <b { if [DefMeaning/@kind='e'] { " equals "; } else { " means "; } }
-	 if [$nr1>0]  { ":"; plab(#nr=$nr1); ": ";} 
+	 if [$nr1>0]  { ":"; if [$proof_links>0] { plab1(#nr=`@defnr`,#txt="Def");} 
+			     else { plab(#nr=$nr1); } ": ";} 
 	 <a { @NAME=`concat("D",@defnr)`; 
 	 pcomment(#str=`concat($aname,":def ",@defnr)`); }
 //	 ":: "; `@aid`; ":def "; `@defnr`; <br; "  ";
@@ -1285,6 +1329,9 @@ tpl ppfunc(#nr) {  if [$colored="1"] { <font { @color=$pfcolor;
 tpl plab(#nr) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
     "E"; $nr;} }  else { "E"; $nr;} } }
 
+tpl plab1(#nr,#txt) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
+    $txt; $nr;} }  else { $txt; $nr;} } }
+
 tpl pcomment0(#str) { <i { if [$colored="1"] {
 <font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}
 
@@ -1292,7 +1339,8 @@ tpl pcomment(#str) { pcomment0(#str=$str); <br;}
 
 // theorem, definition and scheme references
 // add the reference's href, $c tells if it is from current article
-tpl mkref(#aid,#nr,#k,#c) { 
+// $nm passes theexplicit text to be displayed
+tpl mkref(#aid,#nr,#k,#c,#nm) { 
       $mk=refkind(#kind=$k); $alc=lc(#s=$aid);
       <a {   
        @class="ref";
@@ -1302,7 +1350,7 @@ tpl mkref(#aid,#nr,#k,#c) {
 	 @href=`concat($alc, ".", $ext, "#",$k,$nr)`;  
          if [$c] { @target="_self"; } }
        if [$titles="1"] { @title=`concat($aid,":",$mk,".",$nr)`; }
-       $aid; ":"; if [not($k="T")] { $mk; " ";} $nr;  } }
+       if [$nm] { $nm; } else { $aid; ":"; if [not($k="T")] { $mk; " ";} $nr; } } }
 
 tpl getschref(#anr,#nr) {
     if [$anr>0] { for-each [document($schms,/)] {
