@@ -715,7 +715,9 @@ tpl [Suppose] {
              andlist(#elems=`*`); ";"; <br; }
 tpl [PerCases] { 
 // <b { "per cases "; }
-      apply; }
+  <a { add_hs_attrs(); <b { "cases "; }}
+  <span { @class="hide"; apply[*[1]]; }  apply[*[position()>1]]; }
+
 
 
 // Blocks
@@ -740,7 +742,7 @@ tpl [SupposeBlock] {
 //   |  ( ( elCaseBlock+ | elSupposeBlock+ ),
 //        elPerCases, elEndPosition, elBlockThesis ) )
 tpl [PerCasesReasoning] {
-    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "per cases "; } }
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "per "; } }
     apply[PerCases];
     <div { @class="add"; apply[BlockThesis];
            apply[Thesis];
