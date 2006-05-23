@@ -113,6 +113,30 @@ key "D_R" [Symbol[@kind='R']] `@nr`;
 key "D_U" [Symbol[@kind='U']] `@nr`;
 key "D_V" [Symbol[@kind='V']] `@nr`;
 
+
+// tells if linkage of proof elements is done; default is off
+#proof_links = { "0"; }
+
+// keys for absolute linkage inside proofs; 
+// requires preprocessing by addabsrefs, otherwise wrong results,
+// so commented now (could be uncommented using conditional include probably)
+
+// lookup for local constants
+key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
+
+// lookup for propositions
+key "E" [Proposition|IterEquality|Now] `concat(@nr,":",@plevel)` ;
+
+// lookup for scheme functors and predicates
+key "f" [SchemeFuncDecl] `concat(@nr,":",@plevel)` ;
+key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
+
+// lookup for private functors and predicates
+key "pf" [DefFunc] `concat(@nr,":",@plevel)` ;
+key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
+
+
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
@@ -493,6 +517,7 @@ tpl [Adjective] {
 //	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
 
 tpl [Proposition] { 
+    if [$proof_links>0] {<a { @NAME=propname(#n=`@propnr`, #pl=`@plevel`); }}
     if [following-sibling::*[1][(name()="By") and (@linked="true")]] { 
       if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
               or (name(..) = "Conclusion"))] { <b { "then "; } }}
@@ -609,12 +634,6 @@ tpl [Conclusion] { if [(By[@linked="true"]) or
 			    apply[ IterEquality|By|From|ErrorInf
 				   |SkippedProof](#nbr="1");
 			    try_th_exps(#el=`.`); <br; } } }}
-tpl [Case] { <b { "case "; } if [count(*)>1] { <b { "that ";} }
-             andlist(#elems=`*`); ";"; <br; }
-tpl [Suppose] { <b { "suppose "; } if [count(*)>1] { <b { "that ";} } 
-             andlist(#elems=`*`); ";"; <br; }
-tpl [PerCases] { <b { "per cases "; } apply; }
-
 // Auxiliary items
 tpl [Consider] { $j=`@nr - 1`; <b { if [By[@linked="true"]] { "then "; }
 		 "consider ";}
@@ -684,18 +703,35 @@ tpl [FCluster] { if [$mml="1"] { apply[ArgTypes]; }
                  if [ErrorCluster] { "errorcluster"; }
 	         else { apply[*[2]]; <b {" -> ";} apply[*[3]]; }
                  ";"; <br; if [$mml="1"] { <br; }}
+
+// special block skeleton items
+tpl [Case] { 
+//	   <b { "case "; } 
+	   if [count(*)>1] { <b { "that ";} }
+             andlist(#elems=`*`); ";"; <br; }
+tpl [Suppose] { 
+//	      <b { "suppose "; } 
+	      if [count(*)>1] { <b { "that ";} } 
+             andlist(#elems=`*`); ";"; <br; }
+tpl [PerCases] { 
+// <b { "per cases "; }
+      apply; }
+
+
 // Blocks
 tpl [BlockThesis] { } // "blockthesis: "; apply; ";"; <br; }
 
 //   (  ( elBlockThesis, elCase, elThesis, Reasoning )
 //   |  ( elCase, Reasoning, elBlockThesis ) )
 tpl [CaseBlock] { 
-    <div { apply[Case];
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "case "; } }
+    apply[Case];
     <div { @class="add"; apply[*[not(name()='Case')]]; }
     <b { "end;"; } } }
 
 tpl [SupposeBlock] {
-    <div { apply[Suppose];
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "suppose "; } } 
+    apply[Suppose];
     <div { @class="add"; apply[*[not(name()='Suppose')]]; }
     <b { "end;"; } } }
 
@@ -704,7 +740,8 @@ tpl [SupposeBlock] {
 //   |  ( ( elCaseBlock+ | elSupposeBlock+ ),
 //        elPerCases, elEndPosition, elBlockThesis ) )
 tpl [PerCasesReasoning] {
-    <div { apply[PerCases];
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "per cases "; } }
+    apply[PerCases];
     <div { @class="add"; apply[BlockThesis];
            apply[Thesis];
            apply[CaseBlock | SupposeBlock]; }
@@ -712,7 +749,7 @@ tpl [PerCasesReasoning] {
 
 //   elBlockThesis, Reasoning 
 tpl [Proof] {
-    <div { <a { add_hs2_attrs(); <b { "proof "; } }
+    <div { <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "proof "; } }
     <div { @class="add"; apply; }
     <b { "end;"; } } }
 
@@ -721,7 +758,7 @@ tpl [Proof] {
 tpl [Now](#nkw) {
     if [not($nkw="1")] { 
        <div { if [@nr>0] { plab(#nr=`@nr`); ": ";}
-	    <a { add_hs2_attrs(); <b {  "now "; } }
+	    <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b {  "now "; } }
 	    <div { @class="add"; apply[BlockThesis];
 	    apply[*[not(name()='BlockThesis')]]; } 
 	    <b { "end;"; } } }
@@ -767,6 +804,7 @@ tpl [DefTheorem] {
 
 tpl add_hs_attrs { @class="txt"; @onclick="hs(this)"; @href="javascript:()"; }
 tpl add_hs2_attrs { @class="txt"; @onclick="hs2(this)"; @href="javascript:()"; }
+tpl add_hsNdiv_attrs { @class="txt"; @onclick="hsNdiv(this)"; @href="javascript:()"; }
 
 //   Property, elProposition, Justification
 tpl [JustifiedProperty] {
@@ -892,6 +930,11 @@ tpl [NotationBlock] {
 
 tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
 tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+
+// utilities for adding lemma names
+tpl addp(#pl) { if [string-length($pl)>0] { ":"; $pl; }}
+tpl propname(#n,#pl) { "E"; $n; addp(#pl=$pl); }
 
 // poor man's data structure, aka "colon-list"
 #nil = { ""; }
@@ -1404,6 +1447,12 @@ else { if (obj.nextSibling.style.display == 'none')
  { obj.nextSibling.style.display = 'block'; }
  else { obj.nextSibling.style.display = 'none';  }}
 return false;
+}
+function hsNdiv(obj)
+{
+var ndiv = obj;
+while (ndiv.nextSibling.nodeName != 'DIV') { ndiv = ndiv.nextSibling; }
+return hs2(ndiv);
 }
 // End -->
 "; }
