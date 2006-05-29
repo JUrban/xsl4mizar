@@ -425,6 +425,7 @@ tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
     "inference(mizar_by,[],["; refs(#el=`.`,#pl=$pl,#prnr=$prnr); "])"; }}
 
 // handles Refs for From, (possibly linked) By and ThesisExpansions
+// ignores possible ThesisExpansions/Pair - each has a Ref added to it
 tpl refs(#el,#pl,#prnr) { for-each [$el] {
     if [@linked] { 
        if [name(..)="IterStep"] {
@@ -549,7 +550,8 @@ tpl [Reconsider] { $cnr = `@constnr`; $pl=`@plevel`;
 // The argument types of scheme functors are forgotten by Mizar
 // so we do not use them either and use $true
 tpl [SchemeFuncDecl] { $pl=`@plevel`; 
-    $nm =  { "f"; `@nr`; addp(#pl=$pl); }
+//    $nm =  { "f"; `@nr`; addp(#pl=$pl); }
+    $nm = { sch_fpname(#k="f",#nr=`@nr`,#schnr=`../@schemenr`,#aid=$aname); }
     $levl = { ",["; `translate($pl,"_",",")`; "],";}
     $l = `count(ArgTypes/Typ)`;
     "fof(dt_";  $nm; ",sort,"; 
