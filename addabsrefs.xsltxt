@@ -78,14 +78,14 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // #e optionally is the element giving context, e.g. for schemes
 tpl [Pred](#i,#s,#e) {
-  <Pred {
-  if [@kind='P'] { copy-of `@*`; 
+  <Pred { copy-of `@*`; 
+  if [@kind='P'] { 
       if [$e] { abs_fp(#el=$e); } else { abs_fp(#el=`.`); }
       apply(#s=$s,#e=$e); }
   else { abs(#k=`@kind`, #nr=`@nr`); apply(#s=$s,#e=$e); }}}
 
-tpl [Func](#s,#e) { <Func {  
-  if [@kind='F']  { copy-of `@*`; 
+tpl [Func](#s,#e) { <Func {  copy-of `@*`; 
+  if [@kind='F']  {
      if [$e] { abs_fp(#el=$e); } else { abs_fp(#el=`.`); }
      apply(#s=$s,#e=$e); } 
   else { abs(#k=`@kind`, #nr=`@nr`); apply(#s=$s,#e=$e); }}}
@@ -103,7 +103,7 @@ tpl [Adjective](#s,#e) { <Adjective
 
 // Types
 tpl [Typ](#s,#e) { 
-   <Typ {
+   <Typ { copy-of `@*`; 
    if [@kind="M"] { abs(#k="M", #nr=`@nr`); }
    else { if [@kind="G"] { abs(#k="L", #nr=`@nr`); }
      else { `@kind`; }}
@@ -139,7 +139,10 @@ tpl [Ref](#s) { if [not(@articlenr)] { copy { apply [@*](#s=$s); apply(#s=$s); }
             else { <Ref {  copy-of `@*`;
     getref(#k=`@kind`, #anr=`@articlenr`, #nr=`@nr`);} }}
 
+// the pair is copied here too, for easy handling by miz.xsl,
+// but is ignored by mizpl.xsl
 tpl [ThesisExpansions/Pair] { 
+   <Pair { copy-of `@*`; }
    $x= `@x`;
    <Ref {
    if [key('DF',$x)] { 
