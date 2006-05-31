@@ -853,8 +853,9 @@ tpl add_hsNdiv_attrs { @class="txt"; @onclick="hsNdiv(this)"; @href="javascript:
 
 //   Property, elProposition, Justification
 tpl [JustifiedProperty] {
-  <a { add_hs_attrs();
-     <b { `translate(name(*[1]), $ucletters, $lcletters)`;   " "; }}
+    $nm = { lc(#s=`name(*[1])`); }
+  <a { add_hs_attrs(); 
+     <b { if [$nm="antisymmetry"] { "asymmetry"; } else { $nm; } " "; }}
   <span { @class="hide"; <br; apply[*[2]]; }  apply[*[position()>2]]; }
 
 //  Formula | ( elProposition, Justification )

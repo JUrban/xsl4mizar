@@ -2871,10 +2871,22 @@
 
   <!-- Property, elProposition, Justification -->
   <xsl:template match="JustifiedProperty">
+    <xsl:variable name="nm">
+      <xsl:call-template name="lc">
+        <xsl:with-param name="s" select="name(*[1])"/>
+      </xsl:call-template>
+    </xsl:variable>
     <xsl:element name="a">
       <xsl:call-template name="add_hs_attrs"/>
       <xsl:element name="b">
-        <xsl:value-of select="translate(name(*[1]), $ucletters, $lcletters)"/>
+        <xsl:choose>
+          <xsl:when test="$nm=&quot;antisymmetry&quot;">
+            <xsl:text>asymmetry</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$nm"/>
+          </xsl:otherwise>
+        </xsl:choose>
         <xsl:text> </xsl:text>
       </xsl:element>
     </xsl:element>
