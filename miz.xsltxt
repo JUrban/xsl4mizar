@@ -793,11 +793,13 @@ tpl [PerCasesReasoning] {
 //   elBlockThesis, Reasoning 
 // the Proof is done in two parts, as a preparation for printing
 // top proofs into separate documents, and their loading via AJAX
-tpl [Conclusion/Proof | Proof/Proof | Now/Proof] {
+// this is a non-top-level proof
+tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock/Proof] {
     <div { <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "proof "; } }
     <div { @class="add"; apply; }
     <b { "end;"; } } }
 
+// hence the rest is a top-level proof
 tpl [Proof] {
     $nm = `concat("proofs/",$anamelc,"/",@newlevel)`;
     <div { <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "proof "; } }
