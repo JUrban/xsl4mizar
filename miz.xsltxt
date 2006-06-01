@@ -117,6 +117,9 @@ key "D_V" [Symbol[@kind='V']] `@nr`;
 // tells if linkage of proof elements is done; default is off
 #proof_links = { "0"; }
 
+// tells if proofs are fetched through AJAX; default is off
+#ajax_proofs = { "0"; }
+
 // keys for absolute linkage inside proofs; 
 // requires preprocessing by addabsrefs, otherwise wrong results,
 // so commented now (could be uncommented using conditional include probably)
@@ -800,11 +803,22 @@ tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock
     <b { "end;"; } } }
 
 // hence the rest is a top-level proof
+// xsltxt cannot use xsl:document yet, so manually insert
+// <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html">
+// if you want ajax_proofs
 tpl [Proof] {
     $nm = `concat("proofs/",$anamelc,"/",@newlevel)`;
-    <div { <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "proof "; } }
-    <div { @class="add"; apply; }
-    <b { "end;"; } } }
+    <div { 
+	 <a { 
+	    if [$ajax_proofs>0]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
+	    if [$proof_links>0] { @title=`@newlevel`; } 
+	    <b { "proof "; } 
+	    }
+         if [$ajax_proofs>0]	{ <span; <div { @class="add"; apply; } }
+	 else { <div { @class="add"; apply; } }
+	 <b { "end;"; } 
+	 } 
+     }
 
 
 //   Reasoning, elBlockThesis 
@@ -861,6 +875,7 @@ tpl [DefTheorem] {
 tpl add_hs_attrs { @class="txt"; @onclick="hs(this)"; @href="javascript:()"; }
 tpl add_hs2_attrs { @class="txt"; @onclick="hs2(this)"; @href="javascript:()"; }
 tpl add_hsNdiv_attrs { @class="txt"; @onclick="hsNdiv(this)"; @href="javascript:()"; }
+tpl add_ajax_attrs(#u) { @class="txt"; @onclick=`concat("makeRequest(this,'",$u,"')")`; @href="javascript:()"; }
 
 //   Property, elProposition, Justification
 tpl [JustifiedProperty] {
@@ -1517,6 +1532,41 @@ var ndiv = obj;
 while (ndiv.nextSibling.nodeName != 'DIV') { ndiv = ndiv.nextSibling; }
 return hs2(ndiv);
 }
+function makeRequest(obj,url) {
+        var http_request = false;
+        if (window.XMLHttpRequest) { // Mozilla, Safari,...
+            http_request = new XMLHttpRequest();
+            if (http_request.overrideMimeType) {
+                http_request.overrideMimeType('text/xml');
+            }
+        } else if (window.ActiveXObject) { // IE
+            try {
+                http_request = new ActiveXObject('Msxml2.XMLHTTP');
+            } catch (e) {
+                try {
+                    http_request = new ActiveXObject('Microsoft.XMLHTTP');
+                } catch (e) {}
+            }
+        }
+        if (!http_request) {
+            alert('Giving up :( Cannot create an XMLHTTP instance');
+            return false;
+        }
+        http_request.onreadystatechange = function() { insertRequest(obj,http_request); };
+        http_request.open('GET', url, true);
+        http_request.send(null);
+    }
+function insertRequest(obj,http_request) {
+        if (http_request.readyState == 4) {
+            if (http_request.status == 200) {
+	    var ndiv = obj;
+	    while (ndiv.nodeName != 'SPAN') { ndiv = ndiv.nextSibling; }
+	    ndiv.innerHTML = http_request.responseText;
+	    obj.onclick = function(){ return hs2(obj) };
+            } else {
+                alert('There was a problem with the request.');
+		alert(http_request.status);
+            }}}
 // End -->
 "; }
 <base { 
