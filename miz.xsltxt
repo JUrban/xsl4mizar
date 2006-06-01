@@ -791,10 +791,19 @@ tpl [PerCasesReasoning] {
     <b { "end;"; } } }
 
 //   elBlockThesis, Reasoning 
-tpl [Proof] {
+// the Proof is done in two parts, as a preparation for printing
+// top proofs into separate documents, and their loading via AJAX
+tpl [Conclusion/Proof | Proof/Proof | Now/Proof] {
     <div { <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "proof "; } }
     <div { @class="add"; apply; }
     <b { "end;"; } } }
+
+tpl [Proof] {
+    $nm = `concat("proofs/",$anamelc,"/",@newlevel)`;
+    <div { <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "proof "; } }
+    <div { @class="add"; apply; }
+    <b { "end;"; } } }
+
 
 //   Reasoning, elBlockThesis 
 // #nkw tells not to print the keword (used if hereby was printed above)
@@ -893,8 +902,9 @@ tpl [SchemeBlock] {
      "s"; `@schemenr`; "{ ";
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`); 
     " } :"; <br;
-    <div { @class="add"; apply[Proposition]; } <b { "provided"; }
-    <div { @class="add"; list(#separ=" and ", #elems=`SchemePremises/Proposition`); }
+    <div { @class="add"; apply[Proposition]; } 
+    if [SchemePremises/Proposition] { <b { "provided"; }
+       <div { @class="add"; list(#separ=" and ", #elems=`SchemePremises/Proposition`); } }
     apply[*[position() = last() - 1]];  }}
 
 
