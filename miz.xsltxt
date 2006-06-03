@@ -202,6 +202,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // know
 #top = `/`;
 
+// debugging message
+#dbgmsg = { "zzzzzzzzz"; }
+
 // relative nr of the first expandable mode
 // #first_exp = { `//Pattern[(@constrkind='M') and (@constrnr=0)][1]/@relnr`; }
 
@@ -265,11 +268,28 @@ tpl [Not](#i,#pr) {
 			apply[*[1]/*[2]/*[1]](#i=$i); " )"; }
            else { 
              $i3= is_impl1(#el=`.`);
-	     if [$i3="1"] { "( ( "; 
-	     ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i,#pr="1");
-	    " )"; " implies "; 
-	    "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i,#pr="1"); " ) )"; }
-              else { "not "; apply[*[1]](#i=$i); } } } } } }
+	     if [$i3="1"] {
+		// just print the last guy (mostly #pid_Impl_RightNot, but could have disappeared)
+		// as succedent, and the rest as antecedent; remove redundant negations along the way;
+		"( "; ilist(#separ = " & ", #elems=`*[1]/*[not(@pid=$pid_Impl_RightNot)]`, #i=$i,#pr="1"); " implies "; 
+			apply[*[1]/*[@pid=$pid_Impl_RightNot]/*[1]](#i=$i); " )"; 
+             }
+// this was too AI, mizar is much simpler
+// 	     $cnt=`count(*[1]/*)`; 
+// 	     $pcnt1 = { if [$i3="1"] { count_positive(#els=`*[1]/*`,#nr=$cnt); } else {"10000";} }
+// 	     $pcnt = $pcnt1;
+// 	     // $pcnt1; ":"; $cnt; ":"; $i3;
+//              if [($pcnt>0) and ($pcnt<$cnt)] {
+// 	     // "hhhhhhhhhhhh";
+// 		"( "; put_positive(#separ=" & ",#els=`*[1]/*`,#nr=$pcnt,#i=$i); " implies "; 
+// 		put_positive(#separ=" or ",#els=`*[1]/*`,#nr=`$cnt - $pcnt`,#neg="1",#i=$i); ")"; 
+// 	     }
+//              else { if [($i3="1") and ($pcnt=0)] { "( "; put_positive(#separ=" or ",#els=`*[1]/*`,#nr=$cnt,#neg="1",#i=$i); ")"; }
+//	     if [$i3="1"  and (*[1]/*[not(name()="Not")]) and (*[1]/Not)] { "( ( "; 
+//	     ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i,#pr="1");
+//	    " )"; " implies "; 
+//	    "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i,#pr="1"); " ) )"; }
+              else { "not "; apply[*[1]](#i=$i); } } } } } } 
 // tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
 //                else { "not "; apply[*[1]]; } }
 
@@ -285,6 +305,51 @@ tpl [Not](#i,#pr) {
 #pid_Or_And 		= { "-9"; } // usually ConjFrmPtr
 #pid_Or_LeftNot 	= { "-10"; } // usually NegFrmPtr
 #pid_Or_RightNot 	= { "-11"; } // usually NegFrmPtr
+
+// means that "not" will not be used
+tpl is_positive(#el) { for-each [$el] {
+    if [(name()="Not")] { 
+       if [Pred[(@kind='V') or (@kind='R')]] { 
+	  $pi = { patt_info(#k=`*[1]/@kind`, #nr=`*[1]/@nr`, #pid =`*[1]/@pid`); }
+	  $antonym = cadr(#l=$pi);
+	  `$antonym mod 2`; }
+       else { "0"; }
+    }
+    else { 
+	 if [(name()="Pred") and ((@kind='V') or (@kind='R'))] {
+	    $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
+	    $antonym = cadr(#l=$pi);
+	    `($antonym + 1) mod 2`;
+	 }
+	 else { "1"; }}}}
+
+tpl count_positive(#els,#nr) {  
+    if [$nr > 0] {
+       $el1=`$els[position()=$nr]`;
+       $res1 = { is_positive(#el=`$els[position()=$nr]`); }
+       $res2 = { count_positive(#els=$els,#nr=`$nr - 1`); }
+//DEBUG       `concat($res1,":",$res2)`;
+       `$res1 + $res2`;
+    }
+    else { "0"; }}
+
+// if $neg, then put negative, striping the negation
+tpl put_positive(#separ,#els,#nr,#neg,#i) { if [$nr > 0] {
+    $el1=`$els[position()=1]`;
+    $pos = is_positive(#el=$el1);
+    $pos1 = { if [$neg="1"] { `($neg + $pos) mod 2`; } else { $pos; }}
+    if [$pos1="1"] { 
+       $nm = `name($el1)`;
+       if [$neg="1"] { // change this if is_positive changes!
+	  choose {
+	  when [$nm="Not"]  { apply[$el1/*[1]](#i=$i); }
+	  when [$nm="Pred"]  { apply[$el1](#i=$i,#not="1"); }
+	  otherwise { $dbgmsg; $nm; } }
+       }
+       else { if [$nm="Not"]  { apply[$el1/*[1]](#i=$i,#not="1"); }
+	      else { apply[$el1](#i=$i); }} 
+       if [$nr > 1] { $separ; } }
+    put_positive(#separ=$separ,#els=`$els[position() > 1]`,#nr=`$nr - $pos1`,#neg=$neg); } }
 
 tpl is_or(#el) { for-each [$el] { if [(@pid=$pid_Or) 
         and (*[1][@pid=$pid_Or_And]) and (count(*[1]/*)=2)
@@ -421,7 +486,7 @@ tpl [Fraenkel](#p) {
 tpl [Typ] { 
    " ";
    if [count(*)>0] { apply[*[1]]; }
-   if [(@kind="M") or (@kind="G")] { 
+   if [(@kind="M") or (@kind="G") or (@kind="L")] { 
       $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
 //DEBUG ":"; `@pid`; ":"; $pi; ":";
       $fnr = car(#l=$pi);
