@@ -15,8 +15,18 @@ strip-space "*";
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
+// directory with articles in html; we assume it is one level up
+// #baseurl= { "http://lipa.ms.mff.cuni.cz/~urban/xmlmml/html.930/"; }
+#baseurl= { "../"; }
+
+// name of article from which this by-explanation comes;
+// needs to be passed as a parameter!!
+#anamelc= { "current_article"; }
+
 tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
 tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+
 
 // MML Query needs numbers for proper display of indeces, 
 // hence this poor-man's numberization of proof-levels
@@ -27,7 +37,7 @@ tpl [formula] {
     ":: "; "<a name=\""; `@name`; "\"/> ";
     if [source/non-logical-data[@name='file']] { 
        `@status`; ": ";
-       for-each [source/non-logical-data[@name='file']/*[2]] { `@name`; }
+       for-each [source/non-logical-data[@name='file']/*[2]] { get_mizar_url(#nm=`@name`); }
     }
     else {
       for-each [source/non-logical-data[@name='inference']] { 
@@ -97,6 +107,26 @@ tpl transl_constr(#nm) {
 	  if [$esk="esk" or $esk="epr"] { "$"; $pref; " "; $art;}
 	  else { $nm; }
        }
+    }
+    else { $nm; }
+}
+
+tpl get_mizar_url(#nm) {
+    $pref = `substring-before($nm,"_")`;
+    if [$pref] {
+    $k = `substring($pref,1,1)`;
+    $k2 = `substring($pref,2,1)`;
+    $nr = { if [$k2>0] { `substring($pref,2)`;} else { `substring($pref,3)`;} }
+    $art = `substring-after($nm,"_")`;
+    choose {
+      when [$k="t"] { "<a href=\""; $baseurl; $art; ".html#T"; $nr; "\">"; $nm; "</a>";}
+      when [$k="l"] { "<a href=\""; $baseurl; $art; ".html#E"; $nr; "\">"; $nm; "</a>";}
+      when [$k="e"] { "<a href=\""; $baseurl; $anamelc; ".html#E"; $nr; ":"; $art; "\">"; $nm; "</a>";}
+      when [($k="d") and ($k2>0)] { "<a href=\""; $baseurl; $art; ".html#D"; $nr; "\">"; $nm; "</a>";}
+      when [($k2="c") and (($k="f") or ($k="c") or ($k="r"))] 
+	   { "<a href=\""; $baseurl; $art; ".html#"; uc(#s=$pref); "\">"; $nm; "</a>";}
+      otherwise { $nm; }
+    } 
     }
     else { $nm; }
 }
