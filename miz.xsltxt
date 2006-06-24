@@ -879,7 +879,8 @@ tpl [Proof] {
 	    if [$proof_links>0] { @title=`@newlevel`; } 
 	    <b { "proof "; } 
 	    }
-         if [$ajax_proofs>0]	{ <span; <div { @class="add"; apply; } }
+         if [$ajax_proofs>0]	{ <span; //add xsl:document here
+	    <div { @class="add"; apply; } }
 	 else { <div { @class="add"; apply; } }
 	 <b { "end;"; } 
 	 } 
