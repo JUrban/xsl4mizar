@@ -1,6 +1,6 @@
 stylesheet 1.0;
 
-// $Revision: 1.67 $
+// $Revision: 1.68 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
@@ -268,8 +268,8 @@ tpl [For](#i,#k,#ex,#pr) {
    ft_list(#f=$l,#t=$j,#sep=", ");
    " being"; apply[*[1]]; if [not(($nm = "For") or ($nm="Not"))] {" holds ";} 
    if [($nm = "And") or ($nm="For")] { <br; }
-   if [$nm="Not"] {    apply[*[2]](#i=`$j+1`,#st="1"); }
-   else { apply[*[2]](#i=`$j+1`); }}
+   if [$nm="Not"] {  " ";  apply[*[2]](#i=`$j+1`,#st="1"); }
+   else { " "; apply[*[2]](#i=`$j+1`); }}
   if [$pr] { " )"; }
  } }
 
@@ -893,7 +893,7 @@ tpl [DefFunc] { <b { "deffunc "; } ppfunc(#nr=`@nr`); "(";
                 apply[*[3]]; " = ";
 	        apply[*[2]]; ";"; <br; }
 tpl [DefPred] { <b { "defpred ";} pppred(#nr=`@nr`); "["; 
-                list(#separ=",", #elems=`ArgTypes/Typ`); "] means ";
+                list(#separ=",", #elems=`ArgTypes/Typ`); "] "; <b { "means "; }
 	        apply[*[2]]; ";"; <br; }
 
 // Thesis after skeleton item, with definiens numbers
@@ -1130,6 +1130,9 @@ tpl [Definition] {
        for-each [Pattern] {
         <a { @NAME=`concat("NM",@nr)`;
 	 <b { "mode ";}  abs1(#k="M",#fnr=`@formatnr`);
+	 if [Visible/Int] { " of "; 
+	    for-each [Visible/Int] { 
+		     ploci(#nr=`@x`); if [not(position()=last())] { ","; } }}
 	 <b { " is "; } } apply[Expansion/Typ]; ";"; <br; }}
     else { 
      $nl = { if [@nr] { "0"; } else { "1"; }}

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <!-- $Revision: 1.22 $ -->
+  <!-- $Revision: 1.23 $ -->
   <!-- XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking -->
   <!-- XML terms, formulas and types to less verbose format. -->
   <!-- To produce standard XSLT from this do e.g.: -->
@@ -484,6 +484,7 @@
             </xsl:if>
             <xsl:choose>
               <xsl:when test="$nm=&quot;Not&quot;">
+                <xsl:text> </xsl:text>
                 <xsl:apply-templates select="*[2]">
                   <xsl:with-param name="i" select="$j+1"/>
                   <xsl:with-param name="st">
@@ -492,6 +493,7 @@
                 </xsl:apply-templates>
               </xsl:when>
               <xsl:otherwise>
+                <xsl:text> </xsl:text>
                 <xsl:apply-templates select="*[2]">
                   <xsl:with-param name="i" select="$j+1"/>
                 </xsl:apply-templates>
@@ -3034,7 +3036,10 @@
       </xsl:with-param>
       <xsl:with-param name="elems" select="ArgTypes/Typ"/>
     </xsl:call-template>
-    <xsl:text>] means </xsl:text>
+    <xsl:text>] </xsl:text>
+    <xsl:element name="b">
+      <xsl:text>means </xsl:text>
+    </xsl:element>
     <xsl:apply-templates select="*[2]"/>
     <xsl:text>;</xsl:text>
     <xsl:element name="br"/>
@@ -3859,6 +3864,17 @@
               </xsl:with-param>
               <xsl:with-param name="fnr" select="@formatnr"/>
             </xsl:call-template>
+            <xsl:if test="Visible/Int">
+              <xsl:text> of </xsl:text>
+              <xsl:for-each select="Visible/Int">
+                <xsl:call-template name="ploci">
+                  <xsl:with-param name="nr" select="@x"/>
+                </xsl:call-template>
+                <xsl:if test="not(position()=last())">
+                  <xsl:text>,</xsl:text>
+                </xsl:if>
+              </xsl:for-each>
+            </xsl:if>
             <xsl:element name="b">
               <xsl:text> is </xsl:text>
             </xsl:element>
