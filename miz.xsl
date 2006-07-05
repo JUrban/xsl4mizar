@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <!-- $Revision: 1.23 $ -->
+  <!-- $Revision: 1.24 $ -->
   <!-- XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking -->
   <!-- XML terms, formulas and types to less verbose format. -->
   <!-- To produce standard XSLT from this do e.g.: -->
@@ -3829,10 +3829,7 @@
           <xsl:attribute name="class">
             <xsl:text>add</xsl:text>
           </xsl:attribute>
-          <xsl:call-template name="list">
-            <xsl:with-param name="separ">
-              <xsl:text> and </xsl:text>
-            </xsl:with-param>
+          <xsl:call-template name="andlist">
             <xsl:with-param name="elems" select="SchemePremises/Proposition"/>
           </xsl:call-template>
         </xsl:element>

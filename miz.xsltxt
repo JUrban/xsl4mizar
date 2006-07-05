@@ -1,6 +1,6 @@
 stylesheet 1.0;
 
-// $Revision: 1.68 $
+// $Revision: 1.69 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
@@ -1115,7 +1115,8 @@ tpl [SchemeBlock] {
     " } :"; <br;
     <div { @class="add"; apply[Proposition]; } 
     if [SchemePremises/Proposition] { <b { "provided"; }
-       <div { @class="add"; list(#separ=" and ", #elems=`SchemePremises/Proposition`); } }
+       <div { @class="add"; 
+       andlist(#elems=`SchemePremises/Proposition`); } }
     apply[*[position() = last() - 1]];  }}
 
 
