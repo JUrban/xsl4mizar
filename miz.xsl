@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <!-- $Revision: 1.24 $ -->
+  <!-- $Revision: 1.25 $ -->
   <!-- XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking -->
   <!-- XML terms, formulas and types to less verbose format. -->
   <!-- To produce standard XSLT from this do e.g.: -->
   <!-- java -jar xsltxt.jar toXSL miz.xsltxt >miz.xsl -->
-  <!-- Then e.g.: xalan -XSL miz.xsl <ordinal2.pre >ordinal2.pre1 -->
+  <!-- Then e.g.: xsltproc miz.xsl ordinal2.pre >ordinal2.pre1 -->
   <!-- TODO: number B vars in fraenkel -->
   <!-- handle F and H parenthesis as K parenthesis -->
   <!-- article numbering in Ref? -->
@@ -119,6 +119,10 @@
   </xsl:param>
   <!-- tells if proofs are fetched through AJAX; default is off -->
   <xsl:param name="ajax_proofs">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- tells if only selected items are generated to subdirs; default is off -->
+  <xsl:param name="generate_items">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- keys for absolute linkage inside proofs; -->
@@ -2269,8 +2273,22 @@
       </xsl:choose>
       <xsl:text>: </xsl:text>
     </xsl:if>
-    <xsl:apply-templates/>
-    <xsl:text> </xsl:text>
+    <xsl:choose>
+      <xsl:when test="($generate_items&gt;0) and not(string-length(@plevel)&gt;0)">
+        <xsl:call-template name="pcomment">
+          <xsl:with-param name="str" select="concat($aname, &quot;:lemma &quot;, @propnr)"/>
+        </xsl:call-template>
+        <xsl:apply-templates/>
+        <xsl:text> </xsl:text>
+        <xsl:if test="following-sibling::*[1][(name()=&quot;By&quot;) or (name()=&quot;From&quot;) or (name()=&quot;Proof&quot;)]">
+          <xsl:apply-templates select="following-sibling::*[1]"/>
+        </xsl:if>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:apply-templates/>
+        <xsl:text> </xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- Justifications -->
@@ -3485,11 +3503,30 @@
     <xsl:text/>
   </xsl:template>
 
+  <!-- xsltxt cannot use xsl:document yet, so manually insert -->
+  <!-- <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html"> -->
+  <!-- if you want ajax_proofs -->
   <xsl:template match="JustifiedTheorem">
+    <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
+    <xsl:choose>
+      <xsl:when test="$generate_items&gt;0">
+        <!-- add xsl:document here -->
+	<xsl:document href="items/{$anamelc}/th_{$nr1}" format="html">
+        <xsl:call-template name="jt"/>
+	</xsl:document>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="jt"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- assumes that is inside JustifiedTheorem -->
+  <xsl:template name="jt">
+    <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:element name="b">
       <xsl:text>theorem </xsl:text>
     </xsl:element>
-    <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:choose>
       <xsl:when test="$proof_links&gt;0">
         <xsl:call-template name="plab1">
@@ -6044,13 +6081,24 @@
 
   <!-- Default -->
   <xsl:template match="/">
-    <xsl:element name="html">
-      <!-- output the css defaults for div and p (for indenting) -->
-      <xsl:element name="style">
-        <xsl:attribute name="type">
-          <xsl:text>text/css</xsl:text>
-        </xsl:attribute>
-        <xsl:text>
+    <xsl:choose>
+      <xsl:when test="$generate_items = &quot;1&quot;">
+        <xsl:apply-templates select="/*/JustifiedTheorem"/>
+        <xsl:for-each select="/*/Proposition">
+          <!-- add xsl:documents here -->
+          <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html">
+          <xsl:apply-templates select="."/>
+	  </xsl:document>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:element name="html">
+          <!-- output the css defaults for div and p (for indenting) -->
+          <xsl:element name="style">
+            <xsl:attribute name="type">
+              <xsl:text>text/css</xsl:text>
+            </xsl:attribute>
+            <xsl:text>
 div { padding: 0 0 0 0; margin: 0 0 0 0; } 
 div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
 p { margin: 0 0 0 0; } 
@@ -6070,13 +6118,13 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 .default { background-color: white; color: black; } 
 .default:hover { background-color: white; color: black; }
 </xsl:text>
-      </xsl:element>
-      <xsl:element name="head">
-        <xsl:element name="script">
-          <xsl:attribute name="type">
-            <xsl:text>text/javascript</xsl:text>
-          </xsl:attribute>
-          <xsl:text>
+          </xsl:element>
+          <xsl:element name="head">
+            <xsl:element name="script">
+              <xsl:attribute name="type">
+                <xsl:text>text/javascript</xsl:text>
+              </xsl:attribute>
+              <xsl:text>
 &lt;!-- 
 function hs(obj)
 {
@@ -6141,30 +6189,32 @@ function insertRequest(obj,http_request) {
             }}}
 // End --&gt;
 </xsl:text>
+            </xsl:element>
+            <xsl:element name="base">
+              <xsl:choose>
+                <xsl:when test="$linking = &quot;s&quot;">
+                  <xsl:attribute name="target">
+                    <xsl:text>_self</xsl:text>
+                  </xsl:attribute>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:attribute name="target">
+                    <xsl:text>mmlquery</xsl:text>
+                  </xsl:attribute>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:element>
+          </xsl:element>
+          <xsl:element name="body">
+            <!-- first read the keys for imported stuff -->
+            <!-- apply[document($constrs,/)/Constructors/Constructor]; -->
+            <!-- apply[document($thms,/)/Theorems/Theorem]; -->
+            <!-- apply[document($schms,/)/Schemes/Scheme]; -->
+            <!-- then process the whole document -->
+            <xsl:apply-templates/>
+          </xsl:element>
         </xsl:element>
-        <xsl:element name="base">
-          <xsl:choose>
-            <xsl:when test="$linking = &quot;s&quot;">
-              <xsl:attribute name="target">
-                <xsl:text>_self</xsl:text>
-              </xsl:attribute>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:attribute name="target">
-                <xsl:text>mmlquery</xsl:text>
-              </xsl:attribute>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:element>
-      </xsl:element>
-      <xsl:element name="body">
-        <!-- first read the keys for imported stuff -->
-        <!-- apply[document($constrs,/)/Constructors/Constructor]; -->
-        <!-- apply[document($thms,/)/Theorems/Theorem]; -->
-        <!-- apply[document($schms,/)/Schemes/Scheme]; -->
-        <!-- then process the whole document -->
-        <xsl:apply-templates/>
-      </xsl:element>
-    </xsl:element>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 </xsl:stylesheet>

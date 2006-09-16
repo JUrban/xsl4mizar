@@ -1,13 +1,13 @@
 stylesheet 1.0;
 
-// $Revision: 1.69 $
+// $Revision: 1.70 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
 // To produce standard XSLT from this do e.g.: 
 // java -jar xsltxt.jar toXSL miz.xsltxt >miz.xsl
 
-// Then e.g.: xalan -XSL miz.xsl <ordinal2.pre >ordinal2.pre1
+// Then e.g.: xsltproc miz.xsl ordinal2.pre >ordinal2.pre1
 
 // TODO: number B vars in fraenkel
 //       handle F and H parenthesis as K parenthesis
@@ -120,6 +120,9 @@ key "D_V" [Symbol[@kind='V']] `@nr`;
 
 // tells if proofs are fetched through AJAX; default is off
 #ajax_proofs = { "0"; }
+
+// tells if only selected items are generated to subdirs; default is off
+#generate_items = { "0"; }
 
 // keys for absolute linkage inside proofs; 
 // requires preprocessing by addabsrefs, otherwise wrong results,
@@ -720,7 +723,13 @@ tpl [Proposition] {
     if [@nr>0] { if [($proof_links>0) and not(string-length(@plevel)>0)] { 
 		    plab1(#nr=`@nr`,#txt="Lemma"); } 
                  else { plab(#nr=`@nr`);} ": ";}
-    apply; " ";}
+    if [($generate_items>0) and not(string-length(@plevel)>0)] 
+       { pcomment(#str=`concat($aname, ":lemma ", @propnr)`);
+         apply; " ";
+	 if [following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")]] { 	 
+	 apply[`following-sibling::*[1]`]; }
+	}
+    else { apply; " ";} }
 
 // Justifications
 tpl linkbyif(#line,#col,#by) { 
@@ -1040,8 +1049,20 @@ tpl [Now](#nkw) {
 tpl [Reservation/Typ] { ""; }
 tpl [Definiens/*] { ""; }
 
-tpl [JustifiedTheorem] { <b { "theorem "; } 
+
+// xsltxt cannot use xsl:document yet, so manually insert
+// <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html">
+// if you want ajax_proofs
+tpl [JustifiedTheorem] { 
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
+    if [$generate_items>0]	{ //add xsl:document here 
+       jt(); } 
+    else { jt(); } }
+
+// assumes that is inside JustifiedTheorem
+tpl jt {
+    $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
+    <b { "theorem "; } 
     if [$proof_links>0] { plab1(#nr=$nr1,#txt="Th"); ": "; } 
     else { for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } } 
     <a { @NAME=`concat("T",$nr1)`; 
@@ -1676,7 +1697,14 @@ pp(#k=`@constrkind`,#nr=`@constrnr`,
 tpl [Pattern] {}
 
 // Default
-tpl [/] { <html { 
+tpl [/] { if [$generate_items = "1"] { apply[/*/JustifiedTheorem];
+   for-each [/*/Proposition] {
+// add xsl:documents here
+// <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html">
+apply[`.`];
+} }
+
+else { <html { 
 
 // output the css defaults for div and p (for indenting)
         <style { @type="text/css";  "
@@ -1783,7 +1811,7 @@ if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} }
 //          apply[document($schms,/)/Schemes/Scheme];
  
 // then process the whole document
-          apply; }} }
+          apply; }} }}
   
 // tpl [*] { copy { apply [@*]; apply; } }
 // tpl [@*] { copy-of `.`; }
