@@ -1,13 +1,15 @@
 stylesheet 1.0;
 
-// $Revision: 1.70 $
+// $Revision: 1.71 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
 // To produce standard XSLT from this do e.g.: 
-// java -jar xsltxt.jar toXSL miz.xsltxt >miz.xsl
+// java -jar xsltxt.jar toXSL miz.xsltxt | sed -e 's/<!\-\- *\(<\/*xsl:document.*\) *\-\->/\1/g' >miz.xsl
+// (the sed hack is there because xsl:document is not yet supported by xsltxtx)
 
 // Then e.g.: xsltproc miz.xsl ordinal2.pre >ordinal2.pre1
+
 
 // TODO: number B vars in fraenkel
 //       handle F and H parenthesis as K parenthesis
@@ -927,14 +929,37 @@ tpl [ThesisExpansions/Pair] {
 	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D"); } }}}
 
 // Registrations
-tpl [RCluster] { if [$mml="1"] { apply[ArgTypes]; }
+tpl [RCluster] { 
+    $nr1 = `1 + count(preceding::RCluster)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/rc_{$nr1}" format="html">
+       rc();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { rc(); } }
+
+tpl rc {
+                 if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
 		 $nr1 = `1 + count(preceding::RCluster)`;
 		 <a { @NAME=`concat("RC",$nr1)`;
 		      <b { "cluster "; } }
                  if [ErrorCluster] { "errorcluster"; }
 	         else { apply[*[3]]; " "; apply[*[2]]; }
                  ";"; <br; if [$mml="1"] { <br; }}
-tpl [CCluster] { if [$mml="1"] { apply[ArgTypes]; }
+
+tpl [CCluster] { 
+    $nr1 = `1 + count(preceding::CCluster)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/cc_{$nr1}" format="html">
+       cc();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { cc(); } }
+
+
+tpl cc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
 		 $nr1 = `1 + count(preceding::CCluster)`;
 		 <a { @NAME=`concat("CC",$nr1)`;
 		      <b { "cluster "; } }
@@ -942,12 +967,23 @@ tpl [CCluster] { if [$mml="1"] { apply[ArgTypes]; }
 	         else { apply[*[2]]; <b {" -> ";} apply[*[4]]; " "; 
                         apply[*[3]]; }
                  ";"; <br; if [$mml="1"] { <br; }}
-tpl [FCluster] { if [$mml="1"] { apply[ArgTypes]; }
+
+tpl [FCluster] { 
+    $nr1 = `1 + count(preceding::FCluster)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/fc_{$nr1}" format="html">
+       fc();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { fc(); } }
+
+tpl fc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
 		 $nr1 = `1 + count(preceding::FCluster)`;
 		 <a { @NAME=`concat("FC",$nr1)`;
 		      <b { "cluster "; } }
                  if [ErrorCluster] { "errorcluster"; }
-	         else { apply[*[2]]; <b {" -> ";} apply[*[3]]; }
+	         else { apply[*[2]]; <b {" -> ";} apply[*[3]]; apply[Typ];}
                  ";"; <br; if [$mml="1"] { <br; }}
 
 // special block skeleton items
@@ -1006,7 +1042,7 @@ tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock
 
 // hence the rest is a top-level proof
 // xsltxt cannot use xsl:document yet, so manually insert
-// <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html">
+// (now done as perl postproc)
 // if you want ajax_proofs
 tpl [Proof] {
     $nm = `concat("proofs/",$anamelc,"/",@newlevel)`;
@@ -1016,8 +1052,12 @@ tpl [Proof] {
 	    if [$proof_links>0] { @title=`@newlevel`; } 
 	    <b { "proof "; } 
 	    }
-         if [$ajax_proofs>0]	{ <span; //add xsl:document here
-	    <div { @class="add"; apply; } }
+         if [$ajax_proofs>0]	{ <span; 
+// <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html">
+	    <div { @class="add"; apply; }
+// </xsl:document>
+   $bogus=`1`;
+ }
 	 else { <div { @class="add"; apply; } }
 	 <b { "end;"; } 
 	 } 
@@ -1050,13 +1090,18 @@ tpl [Reservation/Typ] { ""; }
 tpl [Definiens/*] { ""; }
 
 
-// xsltxt cannot use xsl:document yet, so manually insert
-// <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html">
-// if you want ajax_proofs
+// xsltxt cannot use xsl:document yet, so manually insert it 
+// (now done by the perl postproc)
+// the bogus is there to ensure that the ending xsl:doc element
+// is printed by xslxtxt.jar too
 tpl [JustifiedTheorem] { 
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
-    if [$generate_items>0]	{ //add xsl:document here 
-       jt(); } 
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html">
+       jt();
+// </xsl:document>
+   $bogus=`1`;
+ } 
     else { jt(); } }
 
 // assumes that is inside JustifiedTheorem
@@ -1073,6 +1118,16 @@ tpl jt {
 	else { apply[*[1]/*[1]]; " "; apply[*[2]]; } } } }
 
 tpl [DefTheorem] { 
+    $nr1 = `1+count(preceding-sibling::DefTheorem)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/def_{$nr1}" format="html">
+       dt();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { dt(); } }
+
+tpl dt {
     $nr1 = `1+count(preceding-sibling::DefTheorem)`;
     ":: "; <b { "deftheorem "; }
     if [$proof_links>0] { plab1(#nr=$nr1,#txt="Def"); } 
@@ -1129,6 +1184,15 @@ tpl [SchemePredDecl] {
 //   element elSchemePremises { elProposition* },
 //   elProposition, Justification, elEndPosition
 tpl [SchemeBlock] {
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/sch_{@schemenr}" format="html">
+       sd();
+// </xsl:document>
+   $bogus=`1`;
+   } 
+   else { sd(); } }
+
+tpl sd {
     <div { <a { @NAME=`concat("S",@schemenr)`; <b { "scheme  "; }
     pcomment(#str=`concat($aname,":sch ",@schemenr)`); }
      "s"; `@schemenr`; "{ ";
@@ -1697,11 +1761,14 @@ pp(#k=`@constrkind`,#nr=`@constrnr`,
 tpl [Pattern] {}
 
 // Default
-tpl [/] { if [$generate_items = "1"] { apply[/*/JustifiedTheorem];
+tpl [/] { if [$generate_items = "1"] { 
+    apply[/*/JustifiedTheorem|/*/DefTheorem|/*/SchemeBlock];
+    apply[//RCluster|//CCluster|//FCluster];
    for-each [/*/Proposition] {
-// add xsl:documents here
 // <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html">
 apply[`.`];
+// </xsl:document>
+   $bogus=`1`;
 } }
 
 else { <html { 

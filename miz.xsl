@@ -1,11 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <!-- $Revision: 1.25 $ -->
+  <!-- $Revision: 1.26 $ -->
   <!-- XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking -->
   <!-- XML terms, formulas and types to less verbose format. -->
   <!-- To produce standard XSLT from this do e.g.: -->
-  <!-- java -jar xsltxt.jar toXSL miz.xsltxt >miz.xsl -->
+  <!-- java -jar xsltxt.jar toXSL miz.xsltxt | sed -e 's/<!\-\- *\(<\/*xsl:document.*\) *\-\->/\1/g' >miz.xsl -->
+  <!-- (the sed hack is there because xsl:document is not yet supported by xsltxtx) -->
   <!-- Then e.g.: xsltproc miz.xsl ordinal2.pre >ordinal2.pre1 -->
   <!-- TODO: number B vars in fraenkel -->
   <!-- handle F and H parenthesis as K parenthesis -->
@@ -3126,7 +3127,22 @@
 
   <!-- Registrations -->
   <xsl:template match="RCluster">
-    <xsl:if test="$mml=&quot;1&quot;">
+    <xsl:variable name="nr1" select="1 + count(preceding::RCluster)"/>
+    <xsl:choose>
+      <xsl:when test="$generate_items&gt;0">
+        <xsl:document href="items/{$anamelc}/rc_{$nr1}" format="html"> 
+        <xsl:call-template name="rc"/>
+        </xsl:document> 
+        <xsl:variable name="bogus" select="1"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="rc"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="rc">
+    <xsl:if test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
       <xsl:apply-templates select="ArgTypes"/>
     </xsl:if>
     <xsl:variable name="nr1" select="1 + count(preceding::RCluster)"/>
@@ -3156,7 +3172,22 @@
   </xsl:template>
 
   <xsl:template match="CCluster">
-    <xsl:if test="$mml=&quot;1&quot;">
+    <xsl:variable name="nr1" select="1 + count(preceding::CCluster)"/>
+    <xsl:choose>
+      <xsl:when test="$generate_items&gt;0">
+        <xsl:document href="items/{$anamelc}/cc_{$nr1}" format="html"> 
+        <xsl:call-template name="cc"/>
+        </xsl:document> 
+        <xsl:variable name="bogus" select="1"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="cc"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="cc">
+    <xsl:if test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
       <xsl:apply-templates select="ArgTypes"/>
     </xsl:if>
     <xsl:variable name="nr1" select="1 + count(preceding::CCluster)"/>
@@ -3190,7 +3221,22 @@
   </xsl:template>
 
   <xsl:template match="FCluster">
-    <xsl:if test="$mml=&quot;1&quot;">
+    <xsl:variable name="nr1" select="1 + count(preceding::FCluster)"/>
+    <xsl:choose>
+      <xsl:when test="$generate_items&gt;0">
+        <xsl:document href="items/{$anamelc}/fc_{$nr1}" format="html"> 
+        <xsl:call-template name="fc"/>
+        </xsl:document> 
+        <xsl:variable name="bogus" select="1"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="fc"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="fc">
+    <xsl:if test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
       <xsl:apply-templates select="ArgTypes"/>
     </xsl:if>
     <xsl:variable name="nr1" select="1 + count(preceding::FCluster)"/>
@@ -3212,6 +3258,7 @@
           <xsl:text> -&gt; </xsl:text>
         </xsl:element>
         <xsl:apply-templates select="*[3]"/>
+        <xsl:apply-templates select="Typ"/>
       </xsl:otherwise>
     </xsl:choose>
     <xsl:text>;</xsl:text>
@@ -3388,7 +3435,7 @@
 
   <!-- hence the rest is a top-level proof -->
   <!-- xsltxt cannot use xsl:document yet, so manually insert -->
-  <!-- <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html"> -->
+  <!-- (now done as perl postproc) -->
   <!-- if you want ajax_proofs -->
   <xsl:template match="Proof">
     <xsl:variable name="nm" select="concat(&quot;proofs/&quot;,$anamelc,&quot;/&quot;,@newlevel)"/>
@@ -3416,15 +3463,15 @@
       <xsl:choose>
         <xsl:when test="$ajax_proofs&gt;0">
           <xsl:element name="span"/>
-          <!-- add xsl:document here -->
-	  <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html">
+          <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html"> 
           <xsl:element name="div">
             <xsl:attribute name="class">
               <xsl:text>add</xsl:text>
             </xsl:attribute>
             <xsl:apply-templates/>
           </xsl:element>
-	  </xsl:document>
+          </xsl:document> 
+          <xsl:variable name="bogus" select="1"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:element name="div">
@@ -3503,17 +3550,18 @@
     <xsl:text/>
   </xsl:template>
 
-  <!-- xsltxt cannot use xsl:document yet, so manually insert -->
-  <!-- <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html"> -->
-  <!-- if you want ajax_proofs -->
+  <!-- xsltxt cannot use xsl:document yet, so manually insert it -->
+  <!-- (now done by the perl postproc) -->
+  <!-- the bogus is there to ensure that the ending xsl:doc element -->
+  <!-- is printed by xslxtxt.jar too -->
   <xsl:template match="JustifiedTheorem">
     <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
-        <!-- add xsl:document here -->
-	<xsl:document href="items/{$anamelc}/th_{$nr1}" format="html">
+        <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html"> 
         <xsl:call-template name="jt"/>
-	</xsl:document>
+        </xsl:document> 
+        <xsl:variable name="bogus" select="1"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:call-template name="jt"/>
@@ -3587,6 +3635,21 @@
   </xsl:template>
 
   <xsl:template match="DefTheorem">
+    <xsl:variable name="nr1" select="1+count(preceding-sibling::DefTheorem)"/>
+    <xsl:choose>
+      <xsl:when test="$generate_items&gt;0">
+        <xsl:document href="items/{$anamelc}/def_{$nr1}" format="html"> 
+        <xsl:call-template name="dt"/>
+        </xsl:document> 
+        <xsl:variable name="bogus" select="1"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="dt"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="dt">
     <xsl:variable name="nr1" select="1+count(preceding-sibling::DefTheorem)"/>
     <xsl:text>:: </xsl:text>
     <xsl:element name="b">
@@ -3829,6 +3892,20 @@
   <!-- element elSchemePremises { elProposition* }, -->
   <!-- elProposition, Justification, elEndPosition -->
   <xsl:template match="SchemeBlock">
+    <xsl:choose>
+      <xsl:when test="$generate_items&gt;0">
+        <xsl:document href="items/{$anamelc}/sch_{@schemenr}" format="html"> 
+        <xsl:call-template name="sd"/>
+        </xsl:document> 
+        <xsl:variable name="bogus" select="1"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="sd"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="sd">
     <xsl:element name="div">
       <xsl:element name="a">
         <xsl:attribute name="NAME">
@@ -6083,12 +6160,13 @@
   <xsl:template match="/">
     <xsl:choose>
       <xsl:when test="$generate_items = &quot;1&quot;">
-        <xsl:apply-templates select="/*/JustifiedTheorem"/>
+        <xsl:apply-templates select="/*/JustifiedTheorem|/*/DefTheorem|/*/SchemeBlock"/>
+        <xsl:apply-templates select="//RCluster|//CCluster|//FCluster"/>
         <xsl:for-each select="/*/Proposition">
-          <!-- add xsl:documents here -->
-          <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html">
+          <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html"> 
           <xsl:apply-templates select="."/>
-	  </xsl:document>
+          </xsl:document> 
+          <xsl:variable name="bogus" select="1"/>
         </xsl:for-each>
       </xsl:when>
       <xsl:otherwise>
