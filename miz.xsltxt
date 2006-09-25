@@ -1,6 +1,6 @@
 stylesheet 1.0;
 
-// $Revision: 1.72 $
+// $Revision: 1.73 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
@@ -11,17 +11,17 @@ stylesheet 1.0;
 // Then e.g.: xsltproc miz.xsl ordinal2.pre >ordinal2.pre1
 
 
-// TODO: number B vars in fraenkel
+// TODO: number B vars in fraenkel - done since 1.72
 //       handle F and H parenthesis as K parenthesis
 //       article numbering in Ref?
-//       absolute definiens numbers for thesisExpansions?
-//       do not display BlockThesis for Proof?
+//       absolute definiens numbers for thesisExpansions? - done
+//       do not display BlockThesis for Proof? - done, should but should be optional for Now
 //       add @nr to canceled
 //       Constructor should know its serial number! - needed in defs
 //       possibly also article?
 //       change globally 'G' to 'L' for types? -> then change the
 //       hacks here and in emacs.el
-//       display definiens?
+//       display definiens? - done
 
 // NOTES: constructor disambiguation is done using the absolute numbers
 //        (attribute 'nr' and 'aid' of the Constructor element.
