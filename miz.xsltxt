@@ -1,6 +1,6 @@
 stylesheet 1.0;
 
-// $Revision: 1.73 $
+// $Revision: 1.74 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
@@ -54,7 +54,7 @@ output method=html;
 
 
 // print identifiers (like in JFM) instead of normalized names
-$print_identifiers = { "0"; }
+$print_identifiers = { "1"; }
 
 
 // tells whether relative or absolute names are shown
@@ -226,7 +226,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // Formulas
 
-// #i is nr of the bound variable, 1 by default 
+// #i is nr of the bound variable, 0 by default 
 // #k is start of the sequence of vars with the same type, $i by default 
 // we now output only one typing for such sequences
 // #ex tells that we should print it as existential statement,
@@ -234,14 +234,14 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // should guarantee that there _is_ a Not after the block of For-s)
 // #pr tells to put the formula in paranthesis
 tpl [For](#i,#k,#ex,#pr) { 
-  $j = { if [$i] { $i;} else { "1"; } }
+  $j = { if [$i] { $i;} else { "0"; } }
   $l = { if [$k] { $k;} else { $j; } }
 
   if [$l = $j] { // print initial quantifier if at the beginning of var segment
      if [$pr] { "( "; }
      if [$ex="1"] { "ex "; } else { "for "; }
   }
-  pqvar(#nr = $j, #vid = `@vid`);
+  pqvar(#nr = `$j + 1`, #vid = `@vid`);
 
   $nm = { `name(*[2])`; }
   $eq1 = { if [($nm = "For") and (*[1]/@nr = *[2]/*[1]/@nr)]
@@ -597,6 +597,7 @@ tpl [ErrorFrm](#i,#pr,#not) { if [$not="1"] { " not "; } "errorfrm"; }
 
 // Terms
 // #p is the parenthesis count
+// #i is the size of the var stack
 tpl [Var](#p,#i) { 
     if [$print_identifiers > 0]
     {
@@ -609,17 +610,31 @@ tpl [Var](#p,#i) {
 // search parent For and Fraenkel for #nr, return its vid
 // #bound says how many vars ( -1) are currently quantified
 // (depth of the quantifier stack), so we need to go 
-// #bound - #nr times up
+// #bound - #nr times up (this is now passed just as #up)
 tpl get_vid(#up) {
     if [name() = "For"] {
-       if [$up = "1"] { `@vid`; }
-       else { for-each [..] { get_vid(#up = `$up - 1`); } } }
+       if [$up = "0"] { `@vid`; }
+       else { for-each [..] { get_vid(#up = `$up - 1`); } } 
+    }
     else { 
+    if [(name() = "Typ") and (name(..) = "Fraenkel")] {
+       // the case for var inside fraenkel typ - 
+       // only previous lamdaargs are available
+       $tnr = `count(preceding-sibling::Typ)`;
+       if [$up < $tnr] { 
+          `preceding-sibling::Typ[position() = (last() - $up)]/@vid`; }
+       else { for-each [../..] { get_vid(#up = `$up - $tnr`); } }
+    }
+    else {
     if [name() = "Fraenkel"] {
-       $nnr = { `$up - count(Typ)`; }
-       if [$nnr < 2] { `@vid`; }
-       else { for-each [..] { get_vid(#up = $nnr); } } }
-    else { for-each [..] { get_vid(#up = $up); } } } 
+       // the case for var inside lambdaterm and lambdaformula -
+       // all lamdaargs are available
+       $tnr = `count(Typ)`;
+       if [$up < $tnr] { 
+          `Typ[position() = (last() - $up)]/@vid`; }
+       else { for-each [..] { get_vid(#up = `$up - $tnr`); } }
+    }
+    else { for-each [..] { get_vid(#up = $up); } } } } 
 }
 
 tpl [LocusVar](#p,#i) { ploci(#nr=`@nr`); } 
@@ -644,25 +659,28 @@ tpl [PrivFunc](#p,#i) { ppfunc(#nr=`@nr`); "(";
 tpl [ErrorTrm](#p,#i) { "errortrm"; }
 
 tpl [Fraenkel](#p,#i) {
-    $j = { if [$i] { $i;} else { "1"; } }
+    $j = { if [$i] { $i;} else { "0"; } }
     $par = { if [$p>0] { `$p+1`;} else { "1"; } }
     $inc = { `count(*) - 2`; } // number of vars introduced here
     $paren_color = `$par mod $pcolors_nr`;
      <span { @class=`concat("p",$paren_color)`; "{"; 
        <span { @class="default"; " ";
+         // first display the term
          apply[*[position() = last() - 1]](#p = $par, #i = `$j + $inc`); 
+	 // then the var types
          if  [count(*)>2] 
 	 { 
 	     " where ";  
 	     for-each[*[position() < last() - 1]] 
 	     {
-		pqvar(#nr = `$j + position() - 1`, #vid = `@vid`);
+		pqvar(#nr = `$j + position()`, #vid = `@vid`);
 		$eq1 = { if [position()=last()] { "0"; } else {
 			    are_equal(#el1=`.`,#el2=`following-sibling::*[1]`); } }
-		if [$eq1="0"]  {  " is "; apply[.](#i=`$j+position()`); }
+		if [$eq1="0"]  {  " is "; apply[.](#i=`$j + position() - 1`); }
                 if [not(position()=last())] { ", "; }
               }
           }
+	 // then the formula
          " : "; apply[*[position() = last()]](#i = `$j + $inc`); " "; }
        "}"; } " ";
  }
@@ -947,7 +965,7 @@ tpl [Consider] { $j=`@nr - 1`; <b { if [By[@linked="true"]] { "then "; }
 
 tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; } 
     "reconsider "; } pconst(#nr=$j); " = "; 
-    jlist(#j=$j, #sep2=" = ", #elems=`*[(position() > 1) 
+    jlist(#j=$j, #sep2=" = ", #elems=`*[(not(name() = "Typ")) 
                         and (position() < (last() - 1))]`);
     " as "; apply[*[1]]; " "; 
     apply[*[last()]]; } 
@@ -1678,7 +1696,10 @@ tpl pqvar(#nr, #vid) {
        $nm = { for-each [document($ids, /)] {
 		  for-each [key('D_I', $vid)] { `@name`; } } }
 
-       if [$colored = "1"] { <font { @color = $varcolor; $nm; } } else { $nm;} 
+       if [$colored = "1"] { 
+	  <font { @color = $varcolor; 
+	  if [$titles="1"] { @title=`concat("b",$nr)`; } $nm; } } 
+       else { $nm;} 
     }
     else { pvar(#nr = $nr); }
 }
