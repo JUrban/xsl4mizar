@@ -1,6 +1,6 @@
 stylesheet 1.0;
 
-// $Revision: 1.74 $
+// $Revision: 1.75 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
@@ -639,7 +639,13 @@ tpl get_vid(#up) {
 
 tpl [LocusVar](#p,#i) { ploci(#nr=`@nr`); } 
 tpl [FreeVar](#p,#i) { "X"; `@nr`; }
-tpl [Const](#p,#i) { pconst(#nr=`@nr`); }
+tpl [Const](#p,#i) { 
+    if [($print_identifiers > 0) and ($proof_links>0)]
+    {
+      $pl=get_nearest_level(#el=`..`); absconst(#nr=`@nr`,#pl=$pl);
+    }
+    else { pconst(#nr=`@nr`); }
+}
 tpl [InfConst](#p,#i) { "D"; `@nr`; }
 tpl [Num](#p,#i) {  `@nr`; }
 tpl [Func](#p,#i) { 
@@ -845,6 +851,10 @@ tpl top_propname(#el) { for-each [$el/..] {
 	   <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#","E",$k2)`;  
 		plab1(#nr=`$el/@nr`,#txt="Lemma"); }}}}
 
+// tries to cut off what follows last underscore before position #n
+// the string length #ls does not change;
+// $n<10 is there probably as aguard against too much looping - should
+// be fixed
 tpl get_parent_level(#pl,#ls,#n) {
     $p= { `$ls - $n`; }     $p1= { `$ls -( $n + 1)`; }
     if [substring($pl,$p,1)='_'] { `substring($pl,1,$p1)`; }
@@ -864,6 +874,32 @@ tpl privname(#nr,#pl) {
 	      $pl1 = { get_parent_level(#pl=$pl,#ls=$ls,#n="1"); }
 	      privname(#nr=$nr,#pl=$pl1); } }
  }
+
+
+// find the constant with #nr on level #pl or higher,
+// print @constnr "_" $pl
+tpl absconst(#nr,#pl) {
+    if [key("C",$pl)[@nr=$nr]] { for-each [key("C",$pl)[@nr = $nr]] {
+       ppconst(#nr = $nr, #vid = `Typ[position() = 1]/@vid`); } }
+    else { if [key("C",$pl)[@nr < $nr]] { 
+      for-each [key("C",$pl)[@nr < $nr]] { if [position() = last()] {
+         $n1 = getcnr(#el=`.`); $lastnr = `@nr + $n1 - 1`; $n2 = `@nr`;
+      if [$lastnr >= $nr] { ppconst(#nr = $nr, #vid = `Typ[position() = ($nr - $n2 + 1)]/@vid`); }
+	 else { $dbgmsg;}}}}
+    else {
+	 $ls = `string-length($pl)`;
+	 if [$ls>0] { 
+	      $pl1 = { get_parent_level(#pl=$pl,#ls=$ls,#n="1"); }
+	      absconst(#nr=$nr,#pl=$pl1); } else { $dbgmsg; }}
+ }}
+
+// count local constants introduced in the current element -
+// this asssumes Let | Given | TakeAsVar | Consider | Set | Reconsider
+tpl getcnr(#el) { for-each [$el] {
+    if [(name() = "Reconsider")] { `count(Var|LocusVar|Const|InfConst|
+		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|ErrorTrm)`; }
+    else { `count(Typ)`; } }}
+
 
 tpl get_nearest_level(#el) { for-each [$el] { 
     if [@newlevel] { `@newlevel`;} else { get_nearest_level(#el=`..`); } }}
@@ -938,7 +974,7 @@ tpl [Given] { $j=`@nr - 1`; <b {"given ";}
               ";"; try_th_exps(#el=`.`); <br; }
 
 tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(#el=`.`); <br; }
-tpl [TakeAsVar] { <b { "take "; } pconst(#nr=`@nr`); " = ";   apply[*[2]]; 
+tpl [TakeAsVar] { <b { "take "; } ppconst(#nr=`@nr`, #vid = `Typ[1]/@vid`); " = ";   apply[*[2]]; 
 		  ";"; try_th_exps(#el=`.`); <br; }
 tpl [Conclusion] { if [(By[@linked="true"]) or 
 		   (IterEquality/IterStep[1]/By[@linked="true"])] 
@@ -964,13 +1000,22 @@ tpl [Consider] { $j=`@nr - 1`; <b { if [By[@linked="true"]] { "then "; }
                  apply[*[2]]; }
 
 tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; } 
-    "reconsider "; } pconst(#nr=$j); " = "; 
-    jlist(#j=$j, #sep2=" = ", #elems=`*[(not(name() = "Typ")) 
-                        and (position() < (last() - 1))]`);
+    "reconsider "; } 
+// should work both for old and new reconsider
+    for-each [*[(not(name() = "Typ")) and (position() < (last() - 1))]] {
+	 $p1 = `position()`;
+	 ppconst(#nr=`$j + position() - 1`, #vid = `../Typ[$p1]/@vid`);
+	 " = ";
+	 apply[.];
+	 if [not($p1=last())] { ", "; }}
+
+//  ppconst(#nr=$j, #vid = `Typ[1]/@vid`); " = "; 
+//  jlist(#j=$j, #sep2=" = ", #elems=`*[(not(name() = "Typ")) 
+//                        and (position() < (last() - 1))]`);
     " as "; apply[*[1]]; " "; 
     apply[*[last()]]; } 
 
-tpl [Set] { <b { "set ";} pconst(#nr=`@nr`); " = "; apply[*[1]]; ";"; <br; }
+tpl [Set] { <b { "set ";} ppconst(#nr=`@nr`, #vid=`Typ/@vid`); " = "; apply[*[1]]; ";"; <br; }
 tpl [DefFunc] { <b { "deffunc "; } ppfunc(#nr=`@nr`); "(";  
                 list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
                 apply[*[3]]; " = ";
@@ -1412,8 +1457,9 @@ tpl arglist(#separ,#elems) {
   ploci(#nr=`position()`); if [not(position()=last())] { $separ; } }
 }
 
+// this now assumes that all #elems are Typ
 tpl jtlist(#j,#sep2,#elems) { 
-    for-each [$elems] { pconst(#nr=`$j+position()`);
+    for-each [$elems] { ppconst(#nr=`$j+position()`, #vid = `@vid`);
         if [position()=last()] { $sep2; apply[.]; }
 	   else { 
 		$eq1 = { are_equal(#el1=`.`,#el2=`following-sibling::*[1]`); }
@@ -1422,10 +1468,11 @@ tpl jtlist(#j,#sep2,#elems) {
 
 
 // add numbers starting at #j+1 between #sep1 and #sep2 - now with constants
-tpl jlist(#j,#sep2,#elems) { 
-for-each [$elems] {
-  apply[.]; if [not(position()=last())] 
-  {  ", "; pconst(#nr=`$j+position()`); $sep2; } }}
+// not used now
+// tpl jlist(#j,#sep2,#elems) { 
+// for-each [$elems] {
+//   apply[.]; if [not(position()=last())] 
+//   {  ", "; pconst(#nr=`$j+position()`); $sep2; } }}
 
 // like jlist, but with loci
 tpl alist(#j,#sep1,#sep2,#elems) { 
@@ -1710,6 +1757,20 @@ tpl pvar(#nr) { if [$colored="1"] { <font { @color=$varcolor;
 
 tpl pconst(#nr) {  if [$colored="1"] { <font { @color=$constcolor; 
     "c"; <sub { $nr;} } } else { "c"; <sub { $nr;} } }
+
+tpl ppconst(#nr, #vid) { 
+    if [($print_identifiers > 0) and ($vid > 0)] 
+    {
+       $nm = { for-each [document($ids, /)] {
+		  for-each [key('D_I', $vid)] { `@name`; } } }
+
+       if [$colored = "1"] { 
+	  <font { @color = $constcolor; 
+	  if [$titles="1"] { @title=`concat("c",$nr)`; } $nm; } } 
+       else { $nm;} 
+    }
+    else { pconst(#nr = $nr); }
+}
 
 tpl ploci(#nr) {  if [$colored="1"] { <font { @color=$locicolor; 
     "a"; <sub { $nr;} } } else { "a"; <sub { $nr;} } }
