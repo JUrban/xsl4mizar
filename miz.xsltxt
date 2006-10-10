@@ -1,6 +1,6 @@
 stylesheet 1.0;
 
-// $Revision: 1.75 $
+// $Revision: 1.76 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
@@ -239,7 +239,7 @@ tpl [For](#i,#k,#ex,#pr) {
 
   if [$l = $j] { // print initial quantifier if at the beginning of var segment
      if [$pr] { "( "; }
-     if [$ex="1"] { "ex "; } else { "for "; }
+     if [$ex="1"] { " ex "; } else { "for "; }
   }
   pqvar(#nr = `$j + 1`, #vid = `@vid`);
 
@@ -528,6 +528,25 @@ tpl are_equal_many(#els1,#els2,#nr) { if [$nr > 0] {
     if [$res1="1"] { are_equal_many(#els1=$els1, #els2=$els2, #nr=`$nr - 1`);}
     else { "0"; }} else { "1"; }}
 
+//  recursive equality on subnodes and attributes upto the @vid attribute
+tpl are_equal_vid(#el1,#el2) { 
+    if[ not(name($el1)=name($el2)) or not(count($el1/*)=count($el2/*))
+	or not(count($el1/@*)=count($el2/@*))] { "0"; }
+    else { 
+	 $s1 = { for-each [$el1/@*] { if[not(name()="div")] { `string()`;}} }
+	 $s2 = { for-each [$el2/@*] { if[not(name()="div")] { `string()`;}} }
+	 if [not($s1=$s2)] { "0"; }
+    else 
+     { are_equal_many_vid(#els1=`$el1/*`,#els2=`$el2/*`,#nr=`count($el1/*)`); }}}
+
+tpl are_equal_many_vid(#els1,#els2,#nr) { if [$nr > 0] {
+    $el1=`$els1[position()=$nr]`;
+    $el2=`$els2[position()=$nr]`; 
+    $res1 = { are_equal_vid(#el1=$el1, #el2=$el2); }
+    if [$res1="1"] { are_equal_many_vid(#els1=$els1, #els2=$els2, #nr=`$nr - 1`);}
+    else { "0"; }} else { "1"; }}
+
+
 tpl [And](#i,#pr) { $e1= is_equiv(#el=`.`); 
     if [$e1="1"] { "( ";
        apply[*[1]/*[1]/*[1]](#i=$i,#pr="1"); " iff ";
@@ -637,7 +656,18 @@ tpl get_vid(#up) {
     else { for-each [..] { get_vid(#up = $up); } } } } 
 }
 
-tpl [LocusVar](#p,#i) { ploci(#nr=`@nr`); } 
+tpl [LocusVar](#p,#i) { 
+    // try defininda possibly containing "it"
+    if [(ancestor::DefMeaning) and (ancestor::Definiens[(@constrkind="M") or (@constrkind="K")])]
+    {
+       $maxnr = { for-each [ancestor::Definiens] { `count(Typ)`;}}
+       if [@nr = $maxnr] 
+       { 
+          <b { "it"; } 
+       }
+       else { ploci(#nr=`@nr`); }
+    }
+    else { ploci(#nr=`@nr`); } }
 tpl [FreeVar](#p,#i) { "X"; `@nr`; }
 tpl [Const](#p,#i) { 
     if [($print_identifiers > 0) and ($proof_links>0)]
@@ -681,7 +711,7 @@ tpl [Fraenkel](#p,#i) {
 	     {
 		pqvar(#nr = `$j + position()`, #vid = `@vid`);
 		$eq1 = { if [position()=last()] { "0"; } else {
-			    are_equal(#el1=`.`,#el2=`following-sibling::*[1]`); } }
+			    are_equal_vid(#el1=`.`,#el2=`following-sibling::*[1]`); } }
 		if [$eq1="0"]  {  " is "; apply[.](#i=`$j + position() - 1`); }
                 if [not(position()=last())] { ", "; }
               }
@@ -934,34 +964,50 @@ tpl [IterStep] { apply;  }
 tpl [Let](#fst,#beg) { 
   $has_thesis = { if [following-sibling::*[1][name()="Thesis"]] { "1"; }
 		  else { "0"; }  }
-  $it_step = { if [$has_thesis="1"] { "2"; } else { "1"; }}
-  if // if not first in a sequence, it is already handled
+  $it_step = { if [$has_thesis="1"] { "2"; } else { "1"; }} 
+  if // if not first in a sequence, it is already handled - do nothing -
+     // this prevents the default proof traversal of already handled Lets 
     [not($fst="1") and (preceding-sibling::*[position()=$it_step][name()="Let"])] {}
-  else {
+  else { // try next Let for the same type - we cannot deal with thesis here 
   $next = { if [(count(Typ)=1) and 
      (following-sibling::*[position()=$it_step][name()="Let"][count(Typ)=1]) and
      (($has_thesis="0") or 
      ((following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)]) 
      and
      (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])))]
-	{  are_equal(#el1=`./Typ`,
+	{  are_equal_vid(#el1=`./Typ`,
                   #el2=`following-sibling::*[position()=$it_step]/Typ`); }
 	else { "0"; }}
-  if [$next="1"] {
-    $beg1 = { if [$beg] { $beg; } else { `@nr`;} }
-    apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=$beg1); }
-   else { 
-    if [$beg] // end of sequence
-    { <b { "let "; } ft_clist(#f=$beg,#t=`@nr`,#sep=", "); " be ";
-      apply[Typ]; ";"; <br; 
-      apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1"); }
-    else {
-       $j=`@nr - 1`; <b { "let "; } 
-	    jtlist(#j=$j, #sep2=" be ", #elems=`Typ`); 
-            ";"; try_th_exps(#el=`.`); <br; 
-       if [following-sibling::*[position()=$it_step][name()="Let"]] { 
-	  apply[following-sibling::*[position()=$it_step]](#fst="1"); }
-}} }}
+  if [$beg] // no thesis guaranteed, only one const guaranteed
+	    // this sequence has already been started,
+   {   
+       ", "; ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
+       if [$next="1"] // and does not end here - print the rest
+       {
+          apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=$beg);
+       }
+       else // or ends here - print the type, deal with following
+       { 
+          " be "; apply[Typ]; ";"; <br;
+	  apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1"); 
+       }
+   }
+  else  // start of sequence
+   {
+       <b { "let "; }
+       if [$next="1"] // not ending here; no thesis guaranteed, only one const guaranteed
+       {
+	  ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
+	  apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=`@nr`);
+       }
+       else // print them all
+       {
+          jtlist(#j=`@nr - 1`, #sep2=" be ", #elems=`Typ`);
+	  ";"; try_th_exps(#el=`.`); <br;
+	  apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1");
+       }
+   }
+ }}
 
 tpl [Assume] { <b { "assume "; }  if [count(*)>1] { <b { "that ";} <br; }
 	       andlist(#elems=`*`);
@@ -1337,8 +1383,24 @@ tpl [Definition] {
 	    for-each [Visible/Int] { 
 		     ploci(#nr=`@x`); if [not(position()=last())] { ","; } }}
 	 <b { " is "; } } apply[Expansion/Typ]; ";"; <br; }}
-    else { 
-     $nl = { if [@nr] { "0"; } else { "1"; }}
+    else 
+    { 
+       if [@nr and ($generate_items>0)]	
+       { 
+          $cnt1 = `1 + count(preceding-sibling::Definition[@nr])`;
+	  $defnr = `../following-sibling::Definiens[position()=$cnt1]/@defnr`;
+// <xsl:document href="items/{$anamelc}/dfs_{$defnr}" format="html">
+          dfs();
+// </xsl:document>
+          $bogus=`1`;
+       }
+       else { dfs(); }
+    }
+    apply[*[not((name()='Constructor') or (name()='Pattern') 
+                or (name()='Registration'))]]; }
+
+tpl dfs() {
+    $nl = { if [@nr] { "0"; } else { "1"; }}
 // Constructor may be missing, if this is a redefinition
 // that does not change its types. In that case, the Constructor needs
 // to be retrieved from the Definiens - see below.
@@ -1376,8 +1438,8 @@ tpl [Definition] {
 }
 } 
 }
-    apply[*[not((name()='Constructor') or (name()='Pattern') 
-                or (name()='Registration'))]]; }
+
+
 
 //   ( elLet | elAssume | elGiven | AuxiliaryItem |
 //     elCanceled | elDefinition )*, elEndPosition
@@ -1458,11 +1520,12 @@ tpl arglist(#separ,#elems) {
 }
 
 // this now assumes that all #elems are Typ
+// #sep2 is now either "be " or "being "
 tpl jtlist(#j,#sep2,#elems) { 
     for-each [$elems] { ppconst(#nr=`$j+position()`, #vid = `@vid`);
         if [position()=last()] { $sep2; apply[.]; }
 	   else { 
-		$eq1 = { are_equal(#el1=`.`,#el2=`following-sibling::*[1]`); }
+		$eq1 = { are_equal_vid(#el1=`.`,#el2=`following-sibling::*[1]`); }
 		if [$eq1="0"] { $sep2; apply[.]; } ", "; }} }
 //if [not(string() = string(following-sibling::*[1]))]
 
@@ -1486,13 +1549,6 @@ tpl ft_list(#f,#t,#sep) {
   if [$f = $t] {  pvar(#nr=$f); }
   else { if [$f < $t] { pvar(#nr=$f); $sep; 
             ft_list(#f=`$f+1`,#t=$t,#sep=$sep); } }}
-
-// from-to list of consts starting numbering at $f ending at $t
-tpl ft_clist(#f,#t,#sep) {
-  if [$f = $t] {  pconst(#nr=$f); }
-  else { if [$f < $t] { pconst(#nr=$f); $sep; 
-            ft_clist(#f=`$f+1`,#t=$t,#sep=$sep); } }}
-
 
 // add the constructor href, $c tells if it is from current article
 // #sym is optional Mizar symbol
@@ -1772,6 +1828,14 @@ tpl ppconst(#nr, #vid) {
     else { pconst(#nr = $nr); }
 }
 
+tpl pploci(#nr) { 
+    if [($print_identifiers > 0) and ($proof_links>0)]
+    {
+      $pl=get_nearest_level(#el=`..`); absconst(#nr=`@nr`,#pl=$pl);
+    }
+    else { pconst(#nr=`@nr`); }
+}
+
 tpl ploci(#nr) {  if [$colored="1"] { <font { @color=$locicolor; 
     "a"; <sub { $nr;} } } else { "a"; <sub { $nr;} } }
 
@@ -1865,8 +1929,8 @@ tpl [ArgTypes] { if [*] { <b { "let "; } ploci(#nr="1");
 
 // #indef tells not to use Argtypes (we are inside Definition)
 tpl [Constructor](#indef,#nl) { 
-    $loci = { if [$mml="1"] { "1"; } else { "2"; }}
-    if [not($indef="1")] { apply[ArgTypes]; }
+    $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
+    if [not($indef="1") or ($generate_items>0)] { apply[ArgTypes]; }
     if [@redefnr>0] { <b { "redefine "; } }
     <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
     if [@redefnr>0] { 
@@ -1913,7 +1977,7 @@ tpl [Pattern] {}
 // Default
 tpl [/] { if [$generate_items = "1"] { 
     apply[/*/JustifiedTheorem|/*/DefTheorem|/*/SchemeBlock];
-    apply[//RCluster|//CCluster|//FCluster];
+    apply[//RCluster|//CCluster|//FCluster|//Definition];
    for-each [/*/Proposition] {
 // <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html">
 apply[`.`];
