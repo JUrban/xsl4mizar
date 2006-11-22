@@ -1,6 +1,6 @@
 stylesheet 1.0;
 
-// $Revision: 1.76 $
+// $Revision: 1.77 $
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // XML terms, formulas and types to less verbose format.
 
@@ -658,14 +658,27 @@ tpl get_vid(#up) {
 
 tpl [LocusVar](#p,#i) { 
     // try defininda possibly containing "it"
-    if [(ancestor::DefMeaning) and (ancestor::Definiens[(@constrkind="M") or (@constrkind="K")])]
+    if [(ancestor::DefMeaning) and ($mml="0") and ($proof_links>0)]
     {
+       $it_possible = { if [(ancestor::Definiens[(@constrkind="M") or (@constrkind="K")])]
+		        { "1"; }
+			else { "0"; } }
+
        $maxnr = { for-each [ancestor::Definiens] { `count(Typ)`;}}
-       if [@nr = $maxnr] 
+       if [(@nr = $maxnr) and ($it_possible="1")] 
        { 
           <b { "it"; } 
        }
-       else { ploci(#nr=`@nr`); }
+       else {
+       if [@nr <= $maxnr] {
+	  $nr = `@nr`;
+	  for-each [ancestor::Definiens] {
+	     // preceding-sibling written this way selects in reverse document order
+	     $pl=get_nearest_level(#el=`preceding-sibling::DefinitionBlock[1]`);
+	     absconst(#nr=$nr,#pl=$pl);
+	  }
+       }
+       else { ploci(#nr=`@nr`); } }
     }
     else { ploci(#nr=`@nr`); } }
 tpl [FreeVar](#p,#i) { "X"; `@nr`; }
@@ -1404,7 +1417,10 @@ tpl dfs() {
 // Constructor may be missing, if this is a redefinition
 // that does not change its types. In that case, the Constructor needs
 // to be retrieved from the Definiens - see below.
-     apply[Constructor](#indef="1",#nl=$nl);
+     if [not(@nr)] { // for generate_items, we have to take loci from the constructor here
+	$indef1 = { if [($generate_items>0)] { "0"; } else { "1"; }}
+	apply[Constructor](#indef=$indef1,#nl=$nl);
+     } 
 
 // @nr is present iff Definiens is present; it can be 0 if
 // the deiniens is not labeled, otherwise it is the proposition number
@@ -1412,6 +1428,14 @@ tpl dfs() {
     if [@nr] { $nr1 = `@nr`;
        $cnt1 = `1 + count(preceding-sibling::Definition[@nr])`;
        $cnstr = `count(Constructor)`;
+       if [($generate_items>0)]  { // Definiens is better than Constructor for loci display
+       for-each [../following-sibling::Definiens[position()=$cnt1]] {
+       if [Typ] {
+	    <b { "let "; } ploci(#nr="1"); " be "; 
+            alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`Typ`); ";"; <br; 
+         } }
+       }
+       apply[Constructor](#indef="1",#nl=$nl);
        for-each [../following-sibling::Definiens[position()=$cnt1]] {
          $ckind = `@constrkind`; $cnr = `@constrnr`;
          if [$cnstr=0] {
@@ -1930,7 +1954,7 @@ tpl [ArgTypes] { if [*] { <b { "let "; } ploci(#nr="1");
 // #indef tells not to use Argtypes (we are inside Definition)
 tpl [Constructor](#indef,#nl) { 
     $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
-    if [not($indef="1") or ($generate_items>0)] { apply[ArgTypes]; }
+    if [not($indef="1")] { apply[ArgTypes]; }
     if [@redefnr>0] { <b { "redefine "; } }
     <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
     if [@redefnr>0] { 
