@@ -1,24 +1,24 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <!-- $Revision: 1.26 $ -->
+  <!-- $Revision: 1.27 $ -->
   <!-- XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking -->
   <!-- XML terms, formulas and types to less verbose format. -->
   <!-- To produce standard XSLT from this do e.g.: -->
   <!-- java -jar xsltxt.jar toXSL miz.xsltxt | sed -e 's/<!\-\- *\(<\/*xsl:document.*\) *\-\->/\1/g' >miz.xsl -->
   <!-- (the sed hack is there because xsl:document is not yet supported by xsltxtx) -->
   <!-- Then e.g.: xsltproc miz.xsl ordinal2.pre >ordinal2.pre1 -->
-  <!-- TODO: number B vars in fraenkel -->
+  <!-- TODO: number B vars in fraenkel - done since 1.72 -->
   <!-- handle F and H parenthesis as K parenthesis -->
   <!-- article numbering in Ref? -->
-  <!-- absolute definiens numbers for thesisExpansions? -->
-  <!-- do not display BlockThesis for Proof? -->
+  <!-- absolute definiens numbers for thesisExpansions? - done -->
+  <!-- do not display BlockThesis for Proof? - done, should but should be optional for Now -->
   <!-- add @nr to canceled -->
   <!-- Constructor should know its serial number! - needed in defs -->
   <!-- possibly also article? -->
   <!-- change globally 'G' to 'L' for types? -> then change the -->
   <!-- hacks here and in emacs.el -->
-  <!-- display definiens? -->
+  <!-- display definiens? - done -->
   <!-- NOTES: constructor disambiguation is done using the absolute numbers -->
   <!-- (attribute 'nr' and 'aid' of the Constructor element. -->
   <!-- This info for Constructors not defined in the article is -->
@@ -50,6 +50,10 @@
   <xsl:param name="colored">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- print identifiers (like in JFM) instead of normalized names -->
+  <xsl:variable name="print_identifiers">
+    <xsl:text>1</xsl:text>
+  </xsl:variable>
   <!-- tells whether relative or absolute names are shown -->
   <xsl:param name="relnames">
     <xsl:text>1</xsl:text>
@@ -114,6 +118,8 @@
   <xsl:key name="D_R" match="Symbol[@kind=&apos;R&apos;]" use="@nr"/>
   <xsl:key name="D_U" match="Symbol[@kind=&apos;U&apos;]" use="@nr"/>
   <xsl:key name="D_V" match="Symbol[@kind=&apos;V&apos;]" use="@nr"/>
+  <!-- identifiers -->
+  <xsl:key name="D_I" match="Symbol[@kind=&apos;I&apos;]" use="@nr"/>
   <!-- tells if linkage of proof elements is done; default is off -->
   <xsl:param name="proof_links">
     <xsl:text>0</xsl:text>
@@ -200,6 +206,10 @@
   <xsl:param name="vocs">
     <xsl:value-of select="concat($anamelc, &apos;.dcx&apos;)"/>
   </xsl:param>
+  <!-- .idx file with identifier names -->
+  <xsl:param name="ids">
+    <xsl:value-of select="concat($anamelc, &apos;.idx&apos;)"/>
+  </xsl:param>
   <!-- .dfs file with imported definientia -->
   <xsl:param name="dfs">
     <xsl:value-of select="concat($anamelc, &apos;.dfs&apos;)"/>
@@ -246,7 +256,7 @@
   <!-- relative nr of the first expandable mode -->
   <!-- #first_exp = { `//Pattern[(@constrkind='M') and (@constrnr=0)][1]/@relnr`; } -->
   <!-- Formulas -->
-  <!-- #i is nr of the bound variable, 1 by default -->
+  <!-- #i is nr of the bound variable, 0 by default -->
   <!-- #k is start of the sequence of vars with the same type, $i by default -->
   <!-- we now output only one typing for such sequences -->
   <!-- #ex tells that we should print it as existential statement, -->
@@ -264,7 +274,7 @@
           <xsl:value-of select="$i"/>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:text>1</xsl:text>
+          <xsl:text>0</xsl:text>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
@@ -278,6 +288,24 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
+    <xsl:if test="$l = $j">
+      <!-- print initial quantifier if at the beginning of var segment -->
+      <xsl:if test="$pr">
+        <xsl:text>( </xsl:text>
+      </xsl:if>
+      <xsl:choose>
+        <xsl:when test="$ex=&quot;1&quot;">
+          <xsl:text> ex </xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>for </xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:if>
+    <xsl:call-template name="pqvar">
+      <xsl:with-param name="nr" select="$j + 1"/>
+      <xsl:with-param name="vid" select="@vid"/>
+    </xsl:call-template>
     <xsl:variable name="nm">
       <xsl:value-of select="name(*[2])"/>
     </xsl:variable>
@@ -296,6 +324,7 @@
     </xsl:variable>
     <xsl:choose>
       <xsl:when test="$eq1=&quot;1&quot;">
+        <xsl:text>, </xsl:text>
         <xsl:apply-templates select="*[2]">
           <xsl:with-param name="i" select="$j+1"/>
           <xsl:with-param name="k" select="$l"/>
@@ -304,21 +333,12 @@
         </xsl:apply-templates>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:if test="$pr">
-          <xsl:text>( </xsl:text>
-        </xsl:if>
         <xsl:choose>
           <xsl:when test="$ex=&quot;1&quot;">
-            <xsl:text>ex </xsl:text>
-            <xsl:call-template name="ft_list">
-              <xsl:with-param name="f" select="$l"/>
-              <xsl:with-param name="t" select="$j"/>
-              <xsl:with-param name="sep">
-                <xsl:text>, </xsl:text>
-              </xsl:with-param>
-            </xsl:call-template>
             <xsl:text> being</xsl:text>
-            <xsl:apply-templates select="*[1]"/>
+            <xsl:apply-templates select="*[1]">
+              <xsl:with-param name="i" select="$j + 1"/>
+            </xsl:apply-templates>
             <xsl:choose>
               <xsl:when test="$nm = &quot;For&quot;">
                 <xsl:apply-templates select="*[2]">
@@ -471,16 +491,10 @@
             </xsl:choose>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:text>for </xsl:text>
-            <xsl:call-template name="ft_list">
-              <xsl:with-param name="f" select="$l"/>
-              <xsl:with-param name="t" select="$j"/>
-              <xsl:with-param name="sep">
-                <xsl:text>, </xsl:text>
-              </xsl:with-param>
-            </xsl:call-template>
             <xsl:text> being</xsl:text>
-            <xsl:apply-templates select="*[1]"/>
+            <xsl:apply-templates select="*[1]">
+              <xsl:with-param name="i" select="$j + 1"/>
+            </xsl:apply-templates>
             <xsl:if test="not(($nm = &quot;For&quot;) or ($nm=&quot;Not&quot;))">
               <xsl:text> holds </xsl:text>
             </xsl:if>
@@ -1340,6 +1354,79 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- recursive equality on subnodes and attributes upto the @vid attribute -->
+  <xsl:template name="are_equal_vid">
+    <xsl:param name="el1"/>
+    <xsl:param name="el2"/>
+    <xsl:choose>
+      <xsl:when test=" not(name($el1)=name($el2)) or not(count($el1/*)=count($el2/*))
+	or not(count($el1/@*)=count($el2/@*))">
+        <xsl:text>0</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:variable name="s1">
+          <xsl:for-each select="$el1/@*">
+            <xsl:if test="not(name()=&quot;div&quot;)">
+              <xsl:value-of select="string()"/>
+            </xsl:if>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:variable name="s2">
+          <xsl:for-each select="$el2/@*">
+            <xsl:if test="not(name()=&quot;div&quot;)">
+              <xsl:value-of select="string()"/>
+            </xsl:if>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="not($s1=$s2)">
+            <xsl:text>0</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="are_equal_many_vid">
+              <xsl:with-param name="els1" select="$el1/*"/>
+              <xsl:with-param name="els2" select="$el2/*"/>
+              <xsl:with-param name="nr" select="count($el1/*)"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="are_equal_many_vid">
+    <xsl:param name="els1"/>
+    <xsl:param name="els2"/>
+    <xsl:param name="nr"/>
+    <xsl:choose>
+      <xsl:when test="$nr &gt; 0">
+        <xsl:variable name="el1" select="$els1[position()=$nr]"/>
+        <xsl:variable name="el2" select="$els2[position()=$nr]"/>
+        <xsl:variable name="res1">
+          <xsl:call-template name="are_equal_vid">
+            <xsl:with-param name="el1" select="$el1"/>
+            <xsl:with-param name="el2" select="$el2"/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="$res1=&quot;1&quot;">
+            <xsl:call-template name="are_equal_many_vid">
+              <xsl:with-param name="els1" select="$els1"/>
+              <xsl:with-param name="els2" select="$els2"/>
+              <xsl:with-param name="nr" select="$nr - 1"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>0</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>1</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template match="And">
     <xsl:param name="i"/>
     <xsl:param name="pr"/>
@@ -1568,11 +1655,12 @@
           <xsl:with-param name="nr" select="@nr"/>
         </xsl:call-template>
         <xsl:text>[</xsl:text>
-        <xsl:call-template name="list">
+        <xsl:call-template name="ilist">
           <xsl:with-param name="separ">
             <xsl:text>,</xsl:text>
           </xsl:with-param>
           <xsl:with-param name="elems" select="*"/>
+          <xsl:with-param name="i" select="$i"/>
         </xsl:call-template>
         <xsl:text>]</xsl:text>
       </xsl:when>
@@ -1634,7 +1722,9 @@
         </xsl:if>
         <xsl:choose>
           <xsl:when test="(@kind=&apos;V&apos;) and ($predattr=&quot;0&quot;)">
-            <xsl:apply-templates select="*[position() = last()]"/>
+            <xsl:apply-templates select="*[position() = last()]">
+              <xsl:with-param name="i" select="$i"/>
+            </xsl:apply-templates>
             <xsl:text> is </xsl:text>
             <xsl:call-template name="abs">
               <xsl:with-param name="k" select="@kind"/>
@@ -1655,6 +1745,7 @@
               <xsl:with-param name="nr" select="@nr"/>
               <xsl:with-param name="args" select="*"/>
               <xsl:with-param name="pid" select="@pid"/>
+              <xsl:with-param name="i" select="$i"/>
             </xsl:call-template>
           </xsl:otherwise>
         </xsl:choose>
@@ -1675,11 +1766,12 @@
       <xsl:with-param name="nr" select="@nr"/>
     </xsl:call-template>
     <xsl:text>[</xsl:text>
-    <xsl:call-template name="list">
+    <xsl:call-template name="ilist">
       <xsl:with-param name="separ">
         <xsl:text>,</xsl:text>
       </xsl:with-param>
       <xsl:with-param name="elems" select="*[position() &lt; last()]"/>
+      <xsl:with-param name="i" select="$i"/>
     </xsl:call-template>
     <xsl:text>]</xsl:text>
   </xsl:template>
@@ -1688,12 +1780,16 @@
     <xsl:param name="i"/>
     <xsl:param name="pr"/>
     <xsl:param name="not"/>
-    <xsl:apply-templates select="*[1]"/>
+    <xsl:apply-templates select="*[1]">
+      <xsl:with-param name="i" select="$i"/>
+    </xsl:apply-templates>
     <xsl:text> is </xsl:text>
     <xsl:if test="$not=&quot;1&quot;">
       <xsl:text> not </xsl:text>
     </xsl:if>
-    <xsl:apply-templates select="*[2]"/>
+    <xsl:apply-templates select="*[2]">
+      <xsl:with-param name="i" select="$i"/>
+    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="Verum">
@@ -1722,57 +1818,222 @@
 
   <!-- Terms -->
   <!-- #p is the parenthesis count -->
+  <!-- #i is the size of the var stack -->
   <xsl:template match="Var">
     <xsl:param name="p"/>
-    <xsl:call-template name="pvar">
-      <xsl:with-param name="nr" select="@nr"/>
-    </xsl:call-template>
+    <xsl:param name="i"/>
+    <xsl:choose>
+      <xsl:when test="$print_identifiers &gt; 0">
+        <xsl:variable name="vid">
+          <xsl:call-template name="get_vid">
+            <xsl:with-param name="up" select="$i - @nr"/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:call-template name="pqvar">
+          <xsl:with-param name="nr" select="@nr"/>
+          <xsl:with-param name="vid" select="$vid"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="pvar">
+          <xsl:with-param name="nr" select="@nr"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- search parent For and Fraenkel for #nr, return its vid -->
+  <!-- #bound says how many vars ( -1) are currently quantified -->
+  <!-- (depth of the quantifier stack), so we need to go -->
+  <!-- #bound - #nr times up (this is now passed just as #up) -->
+  <xsl:template name="get_vid">
+    <xsl:param name="up"/>
+    <xsl:choose>
+      <xsl:when test="name() = &quot;For&quot;">
+        <xsl:choose>
+          <xsl:when test="$up = &quot;0&quot;">
+            <xsl:value-of select="@vid"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:for-each select="..">
+              <xsl:call-template name="get_vid">
+                <xsl:with-param name="up" select="$up - 1"/>
+              </xsl:call-template>
+            </xsl:for-each>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="(name() = &quot;Typ&quot;) and (name(..) = &quot;Fraenkel&quot;)">
+            <!-- the case for var inside fraenkel typ - -->
+            <!-- only previous lamdaargs are available -->
+            <xsl:variable name="tnr" select="count(preceding-sibling::Typ)"/>
+            <xsl:choose>
+              <xsl:when test="$up &lt; $tnr">
+                <xsl:value-of select="preceding-sibling::Typ[position() = (last() - $up)]/@vid"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:for-each select="../..">
+                  <xsl:call-template name="get_vid">
+                    <xsl:with-param name="up" select="$up - $tnr"/>
+                  </xsl:call-template>
+                </xsl:for-each>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:choose>
+              <xsl:when test="name() = &quot;Fraenkel&quot;">
+                <!-- the case for var inside lambdaterm and lambdaformula - -->
+                <!-- all lamdaargs are available -->
+                <xsl:variable name="tnr" select="count(Typ)"/>
+                <xsl:choose>
+                  <xsl:when test="$up &lt; $tnr">
+                    <xsl:value-of select="Typ[position() = (last() - $up)]/@vid"/>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:for-each select="..">
+                      <xsl:call-template name="get_vid">
+                        <xsl:with-param name="up" select="$up - $tnr"/>
+                      </xsl:call-template>
+                    </xsl:for-each>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:for-each select="..">
+                  <xsl:call-template name="get_vid">
+                    <xsl:with-param name="up" select="$up"/>
+                  </xsl:call-template>
+                </xsl:for-each>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="LocusVar">
     <xsl:param name="p"/>
-    <xsl:call-template name="ploci">
-      <xsl:with-param name="nr" select="@nr"/>
-    </xsl:call-template>
+    <xsl:param name="i"/>
+    <!-- try defininda possibly containing "it" -->
+    <xsl:choose>
+      <xsl:when test="(ancestor::DefMeaning) and ($mml=&quot;0&quot;) and ($proof_links&gt;0)">
+        <xsl:variable name="it_possible">
+          <xsl:choose>
+            <xsl:when test="(ancestor::Definiens[(@constrkind=&quot;M&quot;) or (@constrkind=&quot;K&quot;)])">
+              <xsl:text>1</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>0</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="maxnr">
+          <xsl:for-each select="ancestor::Definiens">
+            <xsl:value-of select="count(Typ)"/>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="(@nr = $maxnr) and ($it_possible=&quot;1&quot;)">
+            <xsl:element name="b">
+              <xsl:text>it</xsl:text>
+            </xsl:element>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:choose>
+              <xsl:when test="@nr &lt;= $maxnr">
+                <xsl:variable name="nr" select="@nr"/>
+                <xsl:for-each select="ancestor::Definiens">
+                  <!-- preceding-sibling written this way selects in reverse document order -->
+                  <xsl:variable name="pl">
+                    <xsl:call-template name="get_nearest_level">
+                      <xsl:with-param name="el" select="preceding-sibling::DefinitionBlock[1]"/>
+                    </xsl:call-template>
+                  </xsl:variable>
+                  <xsl:call-template name="absconst">
+                    <xsl:with-param name="nr" select="$nr"/>
+                    <xsl:with-param name="pl" select="$pl"/>
+                  </xsl:call-template>
+                </xsl:for-each>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:call-template name="ploci">
+                  <xsl:with-param name="nr" select="@nr"/>
+                </xsl:call-template>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="ploci">
+          <xsl:with-param name="nr" select="@nr"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="FreeVar">
     <xsl:param name="p"/>
+    <xsl:param name="i"/>
     <xsl:text>X</xsl:text>
     <xsl:value-of select="@nr"/>
   </xsl:template>
 
   <xsl:template match="Const">
     <xsl:param name="p"/>
-    <xsl:call-template name="pconst">
-      <xsl:with-param name="nr" select="@nr"/>
-    </xsl:call-template>
+    <xsl:param name="i"/>
+    <xsl:choose>
+      <xsl:when test="($print_identifiers &gt; 0) and ($proof_links&gt;0)">
+        <xsl:variable name="pl">
+          <xsl:call-template name="get_nearest_level">
+            <xsl:with-param name="el" select=".."/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:call-template name="absconst">
+          <xsl:with-param name="nr" select="@nr"/>
+          <xsl:with-param name="pl" select="$pl"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="pconst">
+          <xsl:with-param name="nr" select="@nr"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="InfConst">
     <xsl:param name="p"/>
+    <xsl:param name="i"/>
     <xsl:text>D</xsl:text>
     <xsl:value-of select="@nr"/>
   </xsl:template>
 
   <xsl:template match="Num">
     <xsl:param name="p"/>
+    <xsl:param name="i"/>
     <xsl:value-of select="@nr"/>
   </xsl:template>
 
   <xsl:template match="Func">
     <xsl:param name="p"/>
+    <xsl:param name="i"/>
     <xsl:choose>
       <xsl:when test="@kind=&apos;F&apos;">
         <xsl:call-template name="pschfvar">
           <xsl:with-param name="nr" select="@nr"/>
         </xsl:call-template>
         <xsl:text>(</xsl:text>
-        <xsl:call-template name="list">
+        <xsl:call-template name="ilist">
           <xsl:with-param name="separ">
             <xsl:text>,</xsl:text>
           </xsl:with-param>
           <xsl:with-param name="elems" select="*"/>
+          <xsl:with-param name="i" select="$i"/>
         </xsl:call-template>
         <xsl:text>)</xsl:text>
       </xsl:when>
@@ -1791,6 +2052,7 @@
         <xsl:text> of </xsl:text>
         <xsl:apply-templates select="*[position() = last()]">
           <xsl:with-param name="p" select="$p"/>
+          <xsl:with-param name="i" select="$i"/>
         </xsl:apply-templates>
       </xsl:when>
       <xsl:otherwise>
@@ -1817,6 +2079,7 @@
           <xsl:with-param name="args" select="*"/>
           <xsl:with-param name="parenth" select="$par"/>
           <xsl:with-param name="pid" select="@pid"/>
+          <xsl:with-param name="i" select="$i"/>
         </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
@@ -1824,26 +2087,40 @@
 
   <xsl:template match="PrivFunc">
     <xsl:param name="p"/>
+    <xsl:param name="i"/>
     <xsl:call-template name="ppfunc">
       <xsl:with-param name="nr" select="@nr"/>
     </xsl:call-template>
     <xsl:text>(</xsl:text>
-    <xsl:call-template name="list">
+    <xsl:call-template name="ilist">
       <xsl:with-param name="separ">
         <xsl:text>,</xsl:text>
       </xsl:with-param>
       <xsl:with-param name="elems" select="*[position()&gt;1]"/>
+      <xsl:with-param name="i" select="$i"/>
     </xsl:call-template>
     <xsl:text>)</xsl:text>
   </xsl:template>
 
   <xsl:template match="ErrorTrm">
     <xsl:param name="p"/>
+    <xsl:param name="i"/>
     <xsl:text>errortrm</xsl:text>
   </xsl:template>
 
   <xsl:template match="Fraenkel">
     <xsl:param name="p"/>
+    <xsl:param name="i"/>
+    <xsl:variable name="j">
+      <xsl:choose>
+        <xsl:when test="$i">
+          <xsl:value-of select="$i"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>0</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
     <xsl:variable name="par">
       <xsl:choose>
         <xsl:when test="$p&gt;0">
@@ -1854,6 +2131,10 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
+    <xsl:variable name="inc">
+      <xsl:value-of select="count(*) - 2"/>
+    </xsl:variable>
+    <!-- number of vars introduced here -->
     <xsl:variable name="paren_color" select="$par mod $pcolors_nr"/>
     <xsl:element name="span">
       <xsl:attribute name="class">
@@ -1865,20 +2146,48 @@
           <xsl:text>default</xsl:text>
         </xsl:attribute>
         <xsl:text> </xsl:text>
+        <!-- first display the term -->
         <xsl:apply-templates select="*[position() = last() - 1]">
           <xsl:with-param name="p" select="$par"/>
+          <xsl:with-param name="i" select="$j + $inc"/>
         </xsl:apply-templates>
+        <!-- then the var types -->
         <xsl:if test="count(*)&gt;2">
-          <xsl:text> where B is </xsl:text>
-          <xsl:call-template name="list">
-            <xsl:with-param name="separ">
-              <xsl:text>, B is </xsl:text>
-            </xsl:with-param>
-            <xsl:with-param name="elems" select="*[position() &lt; last() - 1]"/>
-          </xsl:call-template>
+          <xsl:text> where </xsl:text>
+          <xsl:for-each select="*[position() &lt; last() - 1]">
+            <xsl:call-template name="pqvar">
+              <xsl:with-param name="nr" select="$j + position()"/>
+              <xsl:with-param name="vid" select="@vid"/>
+            </xsl:call-template>
+            <xsl:variable name="eq1">
+              <xsl:choose>
+                <xsl:when test="position()=last()">
+                  <xsl:text>0</xsl:text>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:call-template name="are_equal_vid">
+                    <xsl:with-param name="el1" select="."/>
+                    <xsl:with-param name="el2" select="following-sibling::*[1]"/>
+                  </xsl:call-template>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:variable>
+            <xsl:if test="$eq1=&quot;0&quot;">
+              <xsl:text> is </xsl:text>
+              <xsl:apply-templates select=".">
+                <xsl:with-param name="i" select="$j + position() - 1"/>
+              </xsl:apply-templates>
+            </xsl:if>
+            <xsl:if test="not(position()=last())">
+              <xsl:text>, </xsl:text>
+            </xsl:if>
+          </xsl:for-each>
         </xsl:if>
+        <!-- then the formula -->
         <xsl:text> : </xsl:text>
-        <xsl:apply-templates select="*[position() = last()]"/>
+        <xsl:apply-templates select="*[position() = last()]">
+          <xsl:with-param name="i" select="$j + $inc"/>
+        </xsl:apply-templates>
         <xsl:text> </xsl:text>
       </xsl:element>
       <xsl:text>}</xsl:text>
@@ -1888,9 +2197,12 @@
 
   <!-- Types -->
   <xsl:template match="Typ">
+    <xsl:param name="i"/>
     <xsl:text> </xsl:text>
     <xsl:if test="count(*)&gt;0">
-      <xsl:apply-templates select="*[1]"/>
+      <xsl:apply-templates select="*[1]">
+        <xsl:with-param name="i" select="$i"/>
+      </xsl:apply-templates>
     </xsl:if>
     <xsl:choose>
       <xsl:when test="(@kind=&quot;M&quot;) or (@kind=&quot;G&quot;) or (@kind=&quot;L&quot;)">
@@ -1934,6 +2246,7 @@
               <xsl:with-param name="nr" select="@nr"/>
               <xsl:with-param name="args" select="*[not(name()=&quot;Cluster&quot;)]"/>
               <xsl:with-param name="pid" select="@pid"/>
+              <xsl:with-param name="i" select="$i"/>
             </xsl:call-template>
           </xsl:when>
           <!-- abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr)); -->
@@ -2001,6 +2314,7 @@
                       <xsl:with-param name="patt" select="Expansion/Typ"/>
                       <xsl:with-param name="fix" select="$el"/>
                       <xsl:with-param name="vis" select="Visible/Int"/>
+                      <xsl:with-param name="i" select="$i"/>
                     </xsl:call-template>
                   </xsl:if>
                 </xsl:for-each>
@@ -2049,6 +2363,7 @@
                           <xsl:with-param name="patt" select="Expansion/Typ"/>
                           <xsl:with-param name="fix" select="$el"/>
                           <xsl:with-param name="vis" select="Visible/Int"/>
+                          <xsl:with-param name="i" select="$i"/>
                         </xsl:call-template>
                       </xsl:if>
                     </xsl:for-each>
@@ -2069,10 +2384,13 @@
   <!-- tries to find and print the terms in #fix corresponding -->
   <!-- to the visible loci; #patt is structurally similar to -->
   <!-- #fix, up to the loci -->
+  <!-- the handling of #i is potentially incorrect if there is a Fraenkel as -->
+  <!-- a param of the type -->
   <xsl:template name="descent_many_vis">
     <xsl:param name="patt"/>
     <xsl:param name="fix"/>
     <xsl:param name="vis"/>
+    <xsl:param name="i"/>
     <xsl:if test="$vis">
       <xsl:variable name="v1" select="$vis[position()=1]/@x"/>
       <xsl:variable name="v2" select="$vis[position()&gt;1]"/>
@@ -2082,6 +2400,7 @@
         <xsl:with-param name="fixs" select="$fix/*[not(name()=&quot;Cluster&quot;)]"/>
         <xsl:with-param name="lnr" select="$v1"/>
         <xsl:with-param name="nr" select="count($patt/*[not(name()=&quot;Cluster&quot;)])"/>
+        <xsl:with-param name="i" select="$i"/>
       </xsl:call-template>
       <xsl:if test="$v2">
         <xsl:text>,</xsl:text>
@@ -2089,6 +2408,7 @@
           <xsl:with-param name="patt" select="$patt"/>
           <xsl:with-param name="fix" select="$fix"/>
           <xsl:with-param name="vis" select="$vis[position()&gt;1]"/>
+          <xsl:with-param name="i" select="$i"/>
         </xsl:call-template>
       </xsl:if>
     </xsl:if>
@@ -2099,6 +2419,7 @@
     <xsl:param name="fixs"/>
     <xsl:param name="lnr"/>
     <xsl:param name="nr"/>
+    <xsl:param name="i"/>
     <xsl:if test="$nr &gt; 0">
       <xsl:variable name="patt" select="$patts[position()=$nr]"/>
       <xsl:variable name="fix" select="$fixs[position()=$nr]"/>
@@ -2111,6 +2432,7 @@
               <xsl:with-param name="p">
                 <xsl:text>0</xsl:text>
               </xsl:with-param>
+              <xsl:with-param name="i" select="$i"/>
             </xsl:apply-templates>
           </xsl:for-each>
         </xsl:when>
@@ -2125,6 +2447,7 @@
                   <xsl:with-param name="fixs" select="$fix/*"/>
                   <xsl:with-param name="lnr" select="$lnr"/>
                   <xsl:with-param name="nr" select="count($patt/*)"/>
+                  <xsl:with-param name="i" select="$i"/>
                 </xsl:call-template>
               </xsl:when>
               <xsl:otherwise>
@@ -2140,6 +2463,7 @@
                 <xsl:with-param name="fixs" select="$fix/*"/>
                 <xsl:with-param name="lnr" select="$lnr"/>
                 <xsl:with-param name="nr" select="count($patt/*)"/>
+                <xsl:with-param name="i" select="$i"/>
               </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -2148,6 +2472,7 @@
                 <xsl:with-param name="fixs" select="$fixs"/>
                 <xsl:with-param name="lnr" select="$lnr"/>
                 <xsl:with-param name="nr" select="$nr - 1"/>
+                <xsl:with-param name="i" select="$i"/>
               </xsl:call-template>
             </xsl:otherwise>
           </xsl:choose>
@@ -2160,6 +2485,7 @@
   <!-- only attributes with pid are now printed, others are results of -->
   <!-- cluster mechanisms -->
   <xsl:template match="Cluster">
+    <xsl:param name="i"/>
     <xsl:call-template name="list">
       <xsl:with-param name="separ">
         <xsl:text> </xsl:text>
@@ -2171,6 +2497,7 @@
 
   <!-- Adjective -->
   <xsl:template match="Adjective">
+    <xsl:param name="i"/>
     <xsl:variable name="pi">
       <xsl:call-template name="patt_info">
         <xsl:with-param name="k">
@@ -2490,6 +2817,10 @@
     </xsl:for-each>
   </xsl:template>
 
+  <!-- tries to cut off what follows last underscore before position #n -->
+  <!-- the string length #ls does not change; -->
+  <!-- $n<10 is there probably as aguard against too much looping - should -->
+  <!-- be fixed -->
   <xsl:template name="get_parent_level">
     <xsl:param name="pl"/>
     <xsl:param name="ls"/>
@@ -2569,6 +2900,91 @@
         </xsl:if>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <!-- find the constant with #nr on level #pl or higher, -->
+  <!-- print @constnr "_" $pl -->
+  <xsl:template name="absconst">
+    <xsl:param name="nr"/>
+    <xsl:param name="pl"/>
+    <xsl:choose>
+      <xsl:when test="key(&quot;C&quot;,$pl)[@nr=$nr]">
+        <xsl:for-each select="key(&quot;C&quot;,$pl)[@nr = $nr]">
+          <xsl:call-template name="ppconst">
+            <xsl:with-param name="nr" select="$nr"/>
+            <xsl:with-param name="vid" select="Typ[position() = 1]/@vid"/>
+          </xsl:call-template>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="key(&quot;C&quot;,$pl)[@nr &lt; $nr]">
+            <xsl:for-each select="key(&quot;C&quot;,$pl)[@nr &lt; $nr]">
+              <xsl:if test="position() = last()">
+                <xsl:variable name="n1">
+                  <xsl:call-template name="getcnr">
+                    <xsl:with-param name="el" select="."/>
+                  </xsl:call-template>
+                </xsl:variable>
+                <xsl:variable name="lastnr" select="@nr + $n1 - 1"/>
+                <xsl:variable name="n2" select="@nr"/>
+                <xsl:choose>
+                  <xsl:when test="$lastnr &gt;= $nr">
+                    <xsl:call-template name="ppconst">
+                      <xsl:with-param name="nr" select="$nr"/>
+                      <xsl:with-param name="vid" select="Typ[position() = ($nr - $n2 + 1)]/@vid"/>
+                    </xsl:call-template>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:value-of select="$dbgmsg"/>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:if>
+            </xsl:for-each>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:variable name="ls" select="string-length($pl)"/>
+            <xsl:choose>
+              <xsl:when test="$ls&gt;0">
+                <xsl:variable name="pl1">
+                  <xsl:call-template name="get_parent_level">
+                    <xsl:with-param name="pl" select="$pl"/>
+                    <xsl:with-param name="ls" select="$ls"/>
+                    <xsl:with-param name="n">
+                      <xsl:text>1</xsl:text>
+                    </xsl:with-param>
+                  </xsl:call-template>
+                </xsl:variable>
+                <xsl:call-template name="absconst">
+                  <xsl:with-param name="nr" select="$nr"/>
+                  <xsl:with-param name="pl" select="$pl1"/>
+                </xsl:call-template>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="$dbgmsg"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- count local constants introduced in the current element - -->
+  <!-- this asssumes Let | Given | TakeAsVar | Consider | Set | Reconsider -->
+  <xsl:template name="getcnr">
+    <xsl:param name="el"/>
+    <xsl:for-each select="$el">
+      <xsl:choose>
+        <xsl:when test="(name() = &quot;Reconsider&quot;)">
+          <xsl:value-of select="count(Var|LocusVar|Const|InfConst|
+		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|ErrorTrm)"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="count(Typ)"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:for-each>
   </xsl:template>
 
   <xsl:template name="get_nearest_level">
@@ -2714,6 +3130,7 @@
     <xsl:choose>
       <xsl:when test="not($fst=&quot;1&quot;) and (preceding-sibling::*[position()=$it_step][name()=&quot;Let&quot;])"/>
       <xsl:otherwise>
+        <!-- try next Let for the same type - we cannot deal with thesis here -->
         <xsl:variable name="next">
           <xsl:choose>
             <xsl:when test="(count(Typ)=1) and 
@@ -2722,7 +3139,7 @@
      ((following-sibling::*[1][name()=&quot;Thesis&quot;][not(ThesisExpansions/Pair)]) 
      and
      (following-sibling::*[3][name()=&quot;Thesis&quot;][not(ThesisExpansions/Pair)])))">
-              <xsl:call-template name="are_equal">
+              <xsl:call-template name="are_equal_vid">
                 <xsl:with-param name="el1" select="./Typ"/>
                 <xsl:with-param name="el2" select="following-sibling::*[position()=$it_step]/Typ"/>
               </xsl:call-template>
@@ -2733,37 +3150,22 @@
           </xsl:choose>
         </xsl:variable>
         <xsl:choose>
-          <xsl:when test="$next=&quot;1&quot;">
-            <xsl:variable name="beg1">
-              <xsl:choose>
-                <xsl:when test="$beg">
-                  <xsl:value-of select="$beg"/>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:value-of select="@nr"/>
-                </xsl:otherwise>
-              </xsl:choose>
-            </xsl:variable>
-            <xsl:apply-templates select="following-sibling::*[position()=$it_step]">
-              <xsl:with-param name="fst">
-                <xsl:text>1</xsl:text>
-              </xsl:with-param>
-              <xsl:with-param name="beg" select="$beg1"/>
-            </xsl:apply-templates>
-          </xsl:when>
-          <xsl:otherwise>
+          <xsl:when test="$beg">
+            <xsl:text>, </xsl:text>
+            <xsl:call-template name="ppconst">
+              <xsl:with-param name="nr" select="@nr"/>
+              <xsl:with-param name="vid" select="Typ/@vid"/>
+            </xsl:call-template>
             <xsl:choose>
-              <xsl:when test="$beg">
-                <xsl:element name="b">
-                  <xsl:text>let </xsl:text>
-                </xsl:element>
-                <xsl:call-template name="ft_clist">
-                  <xsl:with-param name="f" select="$beg"/>
-                  <xsl:with-param name="t" select="@nr"/>
-                  <xsl:with-param name="sep">
-                    <xsl:text>, </xsl:text>
+              <xsl:when test="$next=&quot;1&quot;">
+                <xsl:apply-templates select="following-sibling::*[position()=$it_step]">
+                  <xsl:with-param name="fst">
+                    <xsl:text>1</xsl:text>
                   </xsl:with-param>
-                </xsl:call-template>
+                  <xsl:with-param name="beg" select="$beg"/>
+                </xsl:apply-templates>
+              </xsl:when>
+              <xsl:otherwise>
                 <xsl:text> be </xsl:text>
                 <xsl:apply-templates select="Typ"/>
                 <xsl:text>;</xsl:text>
@@ -2773,14 +3175,29 @@
                     <xsl:text>1</xsl:text>
                   </xsl:with-param>
                 </xsl:apply-templates>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:element name="b">
+              <xsl:text>let </xsl:text>
+            </xsl:element>
+            <xsl:choose>
+              <xsl:when test="$next=&quot;1&quot;">
+                <xsl:call-template name="ppconst">
+                  <xsl:with-param name="nr" select="@nr"/>
+                  <xsl:with-param name="vid" select="Typ/@vid"/>
+                </xsl:call-template>
+                <xsl:apply-templates select="following-sibling::*[position()=$it_step]">
+                  <xsl:with-param name="fst">
+                    <xsl:text>1</xsl:text>
+                  </xsl:with-param>
+                  <xsl:with-param name="beg" select="@nr"/>
+                </xsl:apply-templates>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:variable name="j" select="@nr - 1"/>
-                <xsl:element name="b">
-                  <xsl:text>let </xsl:text>
-                </xsl:element>
                 <xsl:call-template name="jtlist">
-                  <xsl:with-param name="j" select="$j"/>
+                  <xsl:with-param name="j" select="@nr - 1"/>
                   <xsl:with-param name="sep2">
                     <xsl:text> be </xsl:text>
                   </xsl:with-param>
@@ -2791,13 +3208,11 @@
                   <xsl:with-param name="el" select="."/>
                 </xsl:call-template>
                 <xsl:element name="br"/>
-                <xsl:if test="following-sibling::*[position()=$it_step][name()=&quot;Let&quot;]">
-                  <xsl:apply-templates select="following-sibling::*[position()=$it_step]">
-                    <xsl:with-param name="fst">
-                      <xsl:text>1</xsl:text>
-                    </xsl:with-param>
-                  </xsl:apply-templates>
-                </xsl:if>
+                <xsl:apply-templates select="following-sibling::*[position()=$it_step][name()=&quot;Let&quot;]">
+                  <xsl:with-param name="fst">
+                    <xsl:text>1</xsl:text>
+                  </xsl:with-param>
+                </xsl:apply-templates>
               </xsl:otherwise>
             </xsl:choose>
           </xsl:otherwise>
@@ -2867,8 +3282,9 @@
     <xsl:element name="b">
       <xsl:text>take </xsl:text>
     </xsl:element>
-    <xsl:call-template name="pconst">
+    <xsl:call-template name="ppconst">
       <xsl:with-param name="nr" select="@nr"/>
+      <xsl:with-param name="vid" select="Typ[1]/@vid"/>
     </xsl:call-template>
     <xsl:text> = </xsl:text>
     <xsl:apply-templates select="*[2]"/>
@@ -2985,18 +3401,22 @@
       </xsl:if>
       <xsl:text>reconsider </xsl:text>
     </xsl:element>
-    <xsl:call-template name="pconst">
-      <xsl:with-param name="nr" select="$j"/>
-    </xsl:call-template>
-    <xsl:text> = </xsl:text>
-    <xsl:call-template name="jlist">
-      <xsl:with-param name="j" select="$j"/>
-      <xsl:with-param name="sep2">
-        <xsl:text> = </xsl:text>
-      </xsl:with-param>
-      <xsl:with-param name="elems" select="*[(position() &gt; 1) 
-                        and (position() &lt; (last() - 1))]"/>
-    </xsl:call-template>
+    <!-- should work both for old and new reconsider -->
+    <xsl:for-each select="*[(not(name() = &quot;Typ&quot;)) and (position() &lt; (last() - 1))]">
+      <xsl:variable name="p1" select="position()"/>
+      <xsl:call-template name="ppconst">
+        <xsl:with-param name="nr" select="$j + position() - 1"/>
+        <xsl:with-param name="vid" select="../Typ[$p1]/@vid"/>
+      </xsl:call-template>
+      <xsl:text> = </xsl:text>
+      <xsl:apply-templates select="."/>
+      <xsl:if test="not($p1=last())">
+        <xsl:text>, </xsl:text>
+      </xsl:if>
+    </xsl:for-each>
+    <!-- ppconst(#nr=$j, #vid = `Typ[1]/@vid`); " = "; -->
+    <!-- jlist(#j=$j, #sep2=" = ", #elems=`*[(not(name() = "Typ")) -->
+    <!-- and (position() < (last() - 1))]`); -->
     <xsl:text> as </xsl:text>
     <xsl:apply-templates select="*[1]"/>
     <xsl:text> </xsl:text>
@@ -3007,8 +3427,9 @@
     <xsl:element name="b">
       <xsl:text>set </xsl:text>
     </xsl:element>
-    <xsl:call-template name="pconst">
+    <xsl:call-template name="ppconst">
       <xsl:with-param name="nr" select="@nr"/>
+      <xsl:with-param name="vid" select="Typ/@vid"/>
     </xsl:call-template>
     <xsl:text> = </xsl:text>
     <xsl:apply-templates select="*[1]"/>
@@ -3996,124 +4417,187 @@
         </xsl:for-each>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:variable name="nl">
-          <xsl:choose>
-            <xsl:when test="@nr">
-              <xsl:text>0</xsl:text>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:text>1</xsl:text>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
-        <!-- Constructor may be missing, if this is a redefinition -->
-        <!-- that does not change its types. In that case, the Constructor needs -->
-        <!-- to be retrieved from the Definiens - see below. -->
-        <xsl:apply-templates select="Constructor">
-          <xsl:with-param name="indef">
-            <xsl:text>1</xsl:text>
-          </xsl:with-param>
-          <xsl:with-param name="nl" select="$nl"/>
-        </xsl:apply-templates>
-        <!-- @nr is present iff Definiens is present; it can be 0 if -->
-        <!-- the deiniens is not labeled, otherwise it is the proposition number -->
-        <!-- of its deftheorem -->
-        <xsl:if test="@nr">
-          <xsl:variable name="nr1" select="@nr"/>
-          <xsl:variable name="cnt1" select="1 + count(preceding-sibling::Definition[@nr])"/>
-          <xsl:variable name="cnstr" select="count(Constructor)"/>
-          <xsl:for-each select="../following-sibling::Definiens[position()=$cnt1]">
-            <xsl:variable name="ckind" select="@constrkind"/>
-            <xsl:variable name="cnr" select="@constrnr"/>
-            <xsl:if test="$cnstr=0">
-              <!-- here the redefined constructor is retrieved from definiens -->
-              <xsl:element name="b">
-                <xsl:text>redefine </xsl:text>
-              </xsl:element>
-              <xsl:choose>
-                <xsl:when test="key($ckind,$cnr)">
-                  <xsl:apply-templates select="key($ckind,$cnr)">
-                    <xsl:with-param name="indef">
-                      <xsl:text>1</xsl:text>
-                    </xsl:with-param>
-                    <xsl:with-param name="nl" select="$nl"/>
-                  </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:for-each select="document($constrs,/)">
-                    <xsl:apply-templates select="key($ckind,$cnr)">
-                      <xsl:with-param name="indef">
-                        <xsl:text>1</xsl:text>
-                      </xsl:with-param>
-                      <xsl:with-param name="nl" select="$nl"/>
-                    </xsl:apply-templates>
-                  </xsl:for-each>
-                </xsl:otherwise>
-              </xsl:choose>
-            </xsl:if>
-            <xsl:element name="b">
-              <xsl:choose>
-                <xsl:when test="DefMeaning/@kind=&apos;e&apos;">
-                  <xsl:text> equals </xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:text> means </xsl:text>
-                </xsl:otherwise>
-              </xsl:choose>
-            </xsl:element>
-            <xsl:if test="$nr1&gt;0">
-              <xsl:text>:</xsl:text>
-              <xsl:choose>
-                <xsl:when test="$proof_links&gt;0">
-                  <xsl:call-template name="plab1">
-                    <xsl:with-param name="nr" select="@defnr"/>
-                    <xsl:with-param name="txt">
-                      <xsl:text>Def</xsl:text>
-                    </xsl:with-param>
-                  </xsl:call-template>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:call-template name="plab">
-                    <xsl:with-param name="nr" select="$nr1"/>
-                  </xsl:call-template>
-                </xsl:otherwise>
-              </xsl:choose>
-              <xsl:text>: </xsl:text>
-            </xsl:if>
-            <xsl:element name="a">
-              <xsl:attribute name="NAME">
-                <xsl:value-of select="concat(&quot;D&quot;,@defnr)"/>
-              </xsl:attribute>
-              <xsl:call-template name="pcomment">
-                <xsl:with-param name="str" select="concat($aname,&quot;:def &quot;,@defnr)"/>
-              </xsl:call-template>
-            </xsl:element>
-            <!-- ":: "; `@aid`; ":def "; `@defnr`; <br; "  "; -->
-            <xsl:for-each select="DefMeaning/PartialDef">
-              <xsl:apply-templates select="*[1]"/>
-              <xsl:element name="b">
-                <xsl:text> if </xsl:text>
-              </xsl:element>
-              <xsl:apply-templates select="*[2]"/>
-              <xsl:element name="br"/>
-            </xsl:for-each>
-            <xsl:if test="(DefMeaning/PartialDef) 
-	    and (DefMeaning/*[(position() = last()) 
-		and not(name()=&quot;PartialDef&quot;)])">
-              <xsl:element name="b">
-                <xsl:text> otherwise </xsl:text>
-              </xsl:element>
-            </xsl:if>
-            <xsl:apply-templates select="DefMeaning/*[(position() = last()) 
-	                     and not(name()=&quot;PartialDef&quot;)]"/>
-            <xsl:text>;</xsl:text>
-            <xsl:element name="br"/>
-          </xsl:for-each>
-        </xsl:if>
+        <xsl:choose>
+          <xsl:when test="@nr and ($generate_items&gt;0)">
+            <xsl:variable name="cnt1" select="1 + count(preceding-sibling::Definition[@nr])"/>
+            <xsl:variable name="defnr" select="../following-sibling::Definiens[position()=$cnt1]/@defnr"/>
+            <xsl:document href="items/{$anamelc}/dfs_{$defnr}" format="html"> 
+            <xsl:call-template name="dfs"/>
+            </xsl:document> 
+            <xsl:variable name="bogus" select="1"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="dfs"/>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
     <xsl:apply-templates select="*[not((name()=&apos;Constructor&apos;) or (name()=&apos;Pattern&apos;) 
                 or (name()=&apos;Registration&apos;))]"/>
+  </xsl:template>
+
+  <xsl:template name="dfs">
+    <xsl:variable name="nl">
+      <xsl:choose>
+        <xsl:when test="@nr">
+          <xsl:text>0</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>1</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <!-- Constructor may be missing, if this is a redefinition -->
+    <!-- that does not change its types. In that case, the Constructor needs -->
+    <!-- to be retrieved from the Definiens - see below. -->
+    <xsl:if test="not(@nr)">
+      <!-- for generate_items, we have to take loci from the constructor here -->
+      <xsl:variable name="indef1">
+        <xsl:choose>
+          <xsl:when test="($generate_items&gt;0)">
+            <xsl:text>0</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>1</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+      <xsl:apply-templates select="Constructor">
+        <xsl:with-param name="indef" select="$indef1"/>
+        <xsl:with-param name="nl" select="$nl"/>
+      </xsl:apply-templates>
+    </xsl:if>
+    <!-- @nr is present iff Definiens is present; it can be 0 if -->
+    <!-- the deiniens is not labeled, otherwise it is the proposition number -->
+    <!-- of its deftheorem -->
+    <xsl:if test="@nr">
+      <xsl:variable name="nr1" select="@nr"/>
+      <xsl:variable name="cnt1" select="1 + count(preceding-sibling::Definition[@nr])"/>
+      <xsl:variable name="cnstr" select="count(Constructor)"/>
+      <xsl:if test="($generate_items&gt;0)">
+        <!-- Definiens is better than Constructor for loci display -->
+        <xsl:for-each select="../following-sibling::Definiens[position()=$cnt1]">
+          <xsl:if test="Typ">
+            <xsl:element name="b">
+              <xsl:text>let </xsl:text>
+            </xsl:element>
+            <xsl:call-template name="ploci">
+              <xsl:with-param name="nr">
+                <xsl:text>1</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text> be </xsl:text>
+            <xsl:call-template name="alist">
+              <xsl:with-param name="j">
+                <xsl:text>1</xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="sep1">
+                <xsl:text>, </xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="sep2">
+                <xsl:text> be </xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="elems" select="Typ"/>
+            </xsl:call-template>
+            <xsl:text>;</xsl:text>
+            <xsl:element name="br"/>
+          </xsl:if>
+        </xsl:for-each>
+      </xsl:if>
+      <xsl:apply-templates select="Constructor">
+        <xsl:with-param name="indef">
+          <xsl:text>1</xsl:text>
+        </xsl:with-param>
+        <xsl:with-param name="nl" select="$nl"/>
+      </xsl:apply-templates>
+      <xsl:for-each select="../following-sibling::Definiens[position()=$cnt1]">
+        <xsl:variable name="ckind" select="@constrkind"/>
+        <xsl:variable name="cnr" select="@constrnr"/>
+        <xsl:if test="$cnstr=0">
+          <!-- here the redefined constructor is retrieved from definiens -->
+          <xsl:element name="b">
+            <xsl:text>redefine </xsl:text>
+          </xsl:element>
+          <xsl:choose>
+            <xsl:when test="key($ckind,$cnr)">
+              <xsl:apply-templates select="key($ckind,$cnr)">
+                <xsl:with-param name="indef">
+                  <xsl:text>1</xsl:text>
+                </xsl:with-param>
+                <xsl:with-param name="nl" select="$nl"/>
+              </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:for-each select="document($constrs,/)">
+                <xsl:apply-templates select="key($ckind,$cnr)">
+                  <xsl:with-param name="indef">
+                    <xsl:text>1</xsl:text>
+                  </xsl:with-param>
+                  <xsl:with-param name="nl" select="$nl"/>
+                </xsl:apply-templates>
+              </xsl:for-each>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:if>
+        <xsl:element name="b">
+          <xsl:choose>
+            <xsl:when test="DefMeaning/@kind=&apos;e&apos;">
+              <xsl:text> equals </xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text> means </xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:element>
+        <xsl:if test="$nr1&gt;0">
+          <xsl:text>:</xsl:text>
+          <xsl:choose>
+            <xsl:when test="$proof_links&gt;0">
+              <xsl:call-template name="plab1">
+                <xsl:with-param name="nr" select="@defnr"/>
+                <xsl:with-param name="txt">
+                  <xsl:text>Def</xsl:text>
+                </xsl:with-param>
+              </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:call-template name="plab">
+                <xsl:with-param name="nr" select="$nr1"/>
+              </xsl:call-template>
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:text>: </xsl:text>
+        </xsl:if>
+        <xsl:element name="a">
+          <xsl:attribute name="NAME">
+            <xsl:value-of select="concat(&quot;D&quot;,@defnr)"/>
+          </xsl:attribute>
+          <xsl:call-template name="pcomment">
+            <xsl:with-param name="str" select="concat($aname,&quot;:def &quot;,@defnr)"/>
+          </xsl:call-template>
+        </xsl:element>
+        <!-- ":: "; `@aid`; ":def "; `@defnr`; <br; "  "; -->
+        <xsl:for-each select="DefMeaning/PartialDef">
+          <xsl:apply-templates select="*[1]"/>
+          <xsl:element name="b">
+            <xsl:text> if </xsl:text>
+          </xsl:element>
+          <xsl:apply-templates select="*[2]"/>
+          <xsl:element name="br"/>
+        </xsl:for-each>
+        <xsl:if test="(DefMeaning/PartialDef) 
+	    and (DefMeaning/*[(position() = last()) 
+		and not(name()=&quot;PartialDef&quot;)])">
+          <xsl:element name="b">
+            <xsl:text> otherwise </xsl:text>
+          </xsl:element>
+        </xsl:if>
+        <xsl:apply-templates select="DefMeaning/*[(position() = last()) 
+	                     and not(name()=&quot;PartialDef&quot;)]"/>
+        <xsl:text>;</xsl:text>
+        <xsl:element name="br"/>
+      </xsl:for-each>
+    </xsl:if>
   </xsl:template>
 
   <!-- ( elLet | elAssume | elGiven | AuxiliaryItem | -->
@@ -4352,13 +4836,16 @@
     </xsl:for-each>
   </xsl:template>
 
+  <!-- this now assumes that all #elems are Typ -->
+  <!-- #sep2 is now either "be " or "being " -->
   <xsl:template name="jtlist">
     <xsl:param name="j"/>
     <xsl:param name="sep2"/>
     <xsl:param name="elems"/>
     <xsl:for-each select="$elems">
-      <xsl:call-template name="pconst">
+      <xsl:call-template name="ppconst">
         <xsl:with-param name="nr" select="$j+position()"/>
+        <xsl:with-param name="vid" select="@vid"/>
       </xsl:call-template>
       <xsl:choose>
         <xsl:when test="position()=last()">
@@ -4367,7 +4854,7 @@
         </xsl:when>
         <xsl:otherwise>
           <xsl:variable name="eq1">
-            <xsl:call-template name="are_equal">
+            <xsl:call-template name="are_equal_vid">
               <xsl:with-param name="el1" select="."/>
               <xsl:with-param name="el2" select="following-sibling::*[1]"/>
             </xsl:call-template>
@@ -4384,22 +4871,11 @@
 
   <!-- if [not(string() = string(following-sibling::*[1]))] -->
   <!-- add numbers starting at #j+1 between #sep1 and #sep2 - now with constants -->
-  <xsl:template name="jlist">
-    <xsl:param name="j"/>
-    <xsl:param name="sep2"/>
-    <xsl:param name="elems"/>
-    <xsl:for-each select="$elems">
-      <xsl:apply-templates select="."/>
-      <xsl:if test="not(position()=last())">
-        <xsl:text>, </xsl:text>
-        <xsl:call-template name="pconst">
-          <xsl:with-param name="nr" select="$j+position()"/>
-        </xsl:call-template>
-        <xsl:value-of select="$sep2"/>
-      </xsl:if>
-    </xsl:for-each>
-  </xsl:template>
-
+  <!-- not used now -->
+  <!-- tpl jlist(#j,#sep2,#elems) { -->
+  <!-- for-each [$elems] { -->
+  <!-- apply[.]; if [not(position()=last())] -->
+  <!-- {  ", "; pconst(#nr=`$j+position()`); $sep2; } }} -->
   <!-- like jlist, but with loci -->
   <xsl:template name="alist">
     <xsl:param name="j"/>
@@ -4436,33 +4912,6 @@
           </xsl:call-template>
           <xsl:value-of select="$sep"/>
           <xsl:call-template name="ft_list">
-            <xsl:with-param name="f" select="$f+1"/>
-            <xsl:with-param name="t" select="$t"/>
-            <xsl:with-param name="sep" select="$sep"/>
-          </xsl:call-template>
-        </xsl:if>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-  <!-- from-to list of consts starting numbering at $f ending at $t -->
-  <xsl:template name="ft_clist">
-    <xsl:param name="f"/>
-    <xsl:param name="t"/>
-    <xsl:param name="sep"/>
-    <xsl:choose>
-      <xsl:when test="$f = $t">
-        <xsl:call-template name="pconst">
-          <xsl:with-param name="nr" select="$f"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:if test="$f &lt; $t">
-          <xsl:call-template name="pconst">
-            <xsl:with-param name="nr" select="$f"/>
-          </xsl:call-template>
-          <xsl:value-of select="$sep"/>
-          <xsl:call-template name="ft_clist">
             <xsl:with-param name="f" select="$f+1"/>
             <xsl:with-param name="t" select="$t"/>
             <xsl:with-param name="sep" select="$sep"/>
@@ -5072,6 +5521,7 @@
   <!-- parenth hints to put the whole expression in parentheses, but this -->
   <!-- is overrriden if the expression uses functor brackets -->
   <!-- #loci tells to print loci instead of arguments -->
+  <!-- #i is the bound var nbr -->
   <xsl:template name="pp">
     <xsl:param name="k"/>
     <xsl:param name="nr"/>
@@ -5079,6 +5529,7 @@
     <xsl:param name="parenth"/>
     <xsl:param name="pid"/>
     <xsl:param name="loci"/>
+    <xsl:param name="i"/>
     <xsl:variable name="pkey" select="concat(&apos;P_&apos;,$k)"/>
     <!-- pattern number given -->
     <xsl:choose>
@@ -5100,6 +5551,7 @@
                 <xsl:with-param name="parenth" select="$parenth"/>
                 <xsl:with-param name="loci" select="$loci"/>
                 <xsl:with-param name="pid" select="$npid"/>
+                <xsl:with-param name="i" select="$i"/>
               </xsl:call-template>
             </xsl:for-each>
           </xsl:when>
@@ -5122,6 +5574,7 @@
                       <xsl:with-param name="parenth" select="$parenth"/>
                       <xsl:with-param name="loci" select="$loci"/>
                       <xsl:with-param name="pid" select="$npid"/>
+                      <xsl:with-param name="i" select="$i"/>
                     </xsl:call-template>
                   </xsl:for-each>
                 </xsl:when>
@@ -5164,6 +5617,7 @@
                 <xsl:with-param name="parenth" select="$parenth"/>
                 <xsl:with-param name="loci" select="$loci"/>
                 <xsl:with-param name="pid" select="$npid"/>
+                <xsl:with-param name="i" select="$i"/>
               </xsl:call-template>
             </xsl:for-each>
           </xsl:when>
@@ -5186,6 +5640,7 @@
                       <xsl:with-param name="parenth" select="$parenth"/>
                       <xsl:with-param name="loci" select="$loci"/>
                       <xsl:with-param name="pid" select="$npid"/>
+                      <xsl:with-param name="i" select="$i"/>
                     </xsl:call-template>
                   </xsl:for-each>
                 </xsl:when>
@@ -5214,6 +5669,7 @@
 
   <!-- it is legal to pass onlt #loci instead of #args here -->
   <!-- #pid is passed to abs, causes linking to patterns -->
+  <!-- #i is the bound var nbr -->
   <xsl:template name="pp1">
     <xsl:param name="k"/>
     <xsl:param name="nr"/>
@@ -5223,6 +5679,7 @@
     <xsl:param name="parenth"/>
     <xsl:param name="loci"/>
     <xsl:param name="pid"/>
+    <xsl:param name="i"/>
     <xsl:variable name="la">
       <xsl:choose>
         <xsl:when test="($k=&apos;M&apos;) or ($k=&apos;G&apos;) or ($k=&apos;L&apos;)">
@@ -5333,6 +5790,7 @@
                   <xsl:otherwise>
                     <xsl:apply-templates select="$args[position() = $x]">
                       <xsl:with-param name="p" select="$np"/>
+                      <xsl:with-param name="i" select="$i"/>
                     </xsl:apply-templates>
                   </xsl:otherwise>
                 </xsl:choose>
@@ -5383,6 +5841,7 @@
                   <xsl:otherwise>
                     <xsl:apply-templates select="$args[position()  = $x]">
                       <xsl:with-param name="p" select="$np"/>
+                      <xsl:with-param name="i" select="$i"/>
                     </xsl:apply-templates>
                   </xsl:otherwise>
                 </xsl:choose>
@@ -5429,6 +5888,7 @@
               <xsl:otherwise>
                 <xsl:apply-templates select="$args[position() = $x]">
                   <xsl:with-param name="p" select="$np"/>
+                  <xsl:with-param name="i" select="$i"/>
                 </xsl:apply-templates>
               </xsl:otherwise>
             </xsl:choose>
@@ -5482,6 +5942,7 @@
               <xsl:otherwise>
                 <xsl:apply-templates select="$args[position()  = $x]">
                   <xsl:with-param name="p" select="$np"/>
+                  <xsl:with-param name="i" select="$i"/>
                 </xsl:apply-templates>
               </xsl:otherwise>
             </xsl:choose>
@@ -5499,6 +5960,45 @@
 
   <!-- apply[.]; if [not(position()=last())] { $sep1; `$j+position()`; $sep2; } }} -->
   <!-- pretty print variables and labels -->
+  <xsl:template name="pqvar">
+    <xsl:param name="nr"/>
+    <xsl:param name="vid"/>
+    <xsl:choose>
+      <xsl:when test="($print_identifiers &gt; 0) and ($vid &gt; 0)">
+        <xsl:variable name="nm">
+          <xsl:for-each select="document($ids, /)">
+            <xsl:for-each select="key(&apos;D_I&apos;, $vid)">
+              <xsl:value-of select="@name"/>
+            </xsl:for-each>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="$colored = &quot;1&quot;">
+            <xsl:element name="font">
+              <xsl:attribute name="color">
+                <xsl:value-of select="$varcolor"/>
+              </xsl:attribute>
+              <xsl:if test="$titles=&quot;1&quot;">
+                <xsl:attribute name="title">
+                  <xsl:value-of select="concat(&quot;b&quot;,$nr)"/>
+                </xsl:attribute>
+              </xsl:if>
+              <xsl:value-of select="$nm"/>
+            </xsl:element>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$nm"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="pvar">
+          <xsl:with-param name="nr" select="$nr"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template name="pvar">
     <xsl:param name="nr"/>
     <xsl:choose>
@@ -5541,6 +6041,67 @@
         <xsl:element name="sub">
           <xsl:value-of select="$nr"/>
         </xsl:element>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="ppconst">
+    <xsl:param name="nr"/>
+    <xsl:param name="vid"/>
+    <xsl:choose>
+      <xsl:when test="($print_identifiers &gt; 0) and ($vid &gt; 0)">
+        <xsl:variable name="nm">
+          <xsl:for-each select="document($ids, /)">
+            <xsl:for-each select="key(&apos;D_I&apos;, $vid)">
+              <xsl:value-of select="@name"/>
+            </xsl:for-each>
+          </xsl:for-each>
+        </xsl:variable>
+        <xsl:choose>
+          <xsl:when test="$colored = &quot;1&quot;">
+            <xsl:element name="font">
+              <xsl:attribute name="color">
+                <xsl:value-of select="$constcolor"/>
+              </xsl:attribute>
+              <xsl:if test="$titles=&quot;1&quot;">
+                <xsl:attribute name="title">
+                  <xsl:value-of select="concat(&quot;c&quot;,$nr)"/>
+                </xsl:attribute>
+              </xsl:if>
+              <xsl:value-of select="$nm"/>
+            </xsl:element>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$nm"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="pconst">
+          <xsl:with-param name="nr" select="$nr"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="pploci">
+    <xsl:param name="nr"/>
+    <xsl:choose>
+      <xsl:when test="($print_identifiers &gt; 0) and ($proof_links&gt;0)">
+        <xsl:variable name="pl">
+          <xsl:call-template name="get_nearest_level">
+            <xsl:with-param name="el" select=".."/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:call-template name="absconst">
+          <xsl:with-param name="nr" select="@nr"/>
+          <xsl:with-param name="pl" select="$pl"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="pconst">
+          <xsl:with-param name="nr" select="@nr"/>
+        </xsl:call-template>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -5974,7 +6535,7 @@
     <xsl:param name="nl"/>
     <xsl:variable name="loci">
       <xsl:choose>
-        <xsl:when test="$mml=&quot;1&quot;">
+        <xsl:when test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
           <xsl:text>1</xsl:text>
         </xsl:when>
         <xsl:otherwise>
@@ -6161,7 +6722,7 @@
     <xsl:choose>
       <xsl:when test="$generate_items = &quot;1&quot;">
         <xsl:apply-templates select="/*/JustifiedTheorem|/*/DefTheorem|/*/SchemeBlock"/>
-        <xsl:apply-templates select="//RCluster|//CCluster|//FCluster"/>
+        <xsl:apply-templates select="//RCluster|//CCluster|//FCluster|//Definition"/>
         <xsl:for-each select="/*/Proposition">
           <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html"> 
           <xsl:apply-templates select="."/>
