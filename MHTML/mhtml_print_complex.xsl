@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_utils.xsl"/>
 
-  <!-- $Revision: 1.2 $ -->
+  <!-- $Revision: 1.3 $ -->
   <!--  -->
   <!-- File: print_complex.xsltxt - html-ization of Mizar XML, more complex printing stuff -->
   <!--  -->
@@ -628,7 +628,7 @@
           <xsl:attribute name="href">
             <xsl:value-of select="concat($alc, &quot;.&quot;, $ext, &quot;#&quot;,$k,$nr)"/>
           </xsl:attribute>
-          <xsl:if test="$c">
+          <xsl:if test="$c = &quot;1&quot;">
             <xsl:attribute name="target">
               <xsl:text>_self</xsl:text>
             </xsl:attribute>
