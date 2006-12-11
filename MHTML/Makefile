@@ -1,4 +1,4 @@
-## $Revision: 1.1 $
+## $Revision: 1.2 $
 
 JAVA = java
 XSLTXT = /home/urban/xsltxt/xsltxt.jar
@@ -24,6 +24,8 @@ miz.xsltxt: $(MIZXSLDEPS) mhtml_main.xsl
 %.xsl: %.xsltxt
 	$(JAVA) -jar $(XSLTXT) toXSL $*.xsltxt | sed -e 's/<!\-\- *\(<\/*xsl:document.*\) *\-\->/\1/g' > $*.xsl
 
+TAGS: $(MIZXSLTXTDEPS)
+	etags   --language=none  --regex='/^tpl *\[? *\([^]({\n]+\) *\]?.*/\1/' $(MIZXSLTXTDEPS)
 
 ## Unrelated stuff, ignore the rest of this file
 
