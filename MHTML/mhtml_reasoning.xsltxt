@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.2 $
+// $Revision: 1.3 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -280,19 +280,36 @@ tpl [ThesisExpansions/Pair] {
             for-each [key('DF',$x)] { 
 	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D"); } }}}
 
-// special block skeleton items
-tpl [Case] { 
-//	   <b { "case "; } 
-	   if [count(*)>1] { <b { "that ";} }
-             andlist(#elems=`*`); ";"; <br; }
-tpl [Suppose] { 
-//	      <b { "suppose "; } 
-	      if [count(*)>1] { <b { "that ";} } 
-             andlist(#elems=`*`); ";"; <br; }
-tpl [PerCases] { 
-// <b { "per cases "; }
-  <a { add_hs_attrs(); <b { "cases "; }}
-  <span { @class="hide"; apply[*[1]]; }  apply[*[position()>1]]; }
 
+//  special block skeleton items 
+//  element Suppose { Proposition+ }
+//  element Case { Proposition+ }
+tpl [Case|Suppose] 
+{
+  if [count(*)>1] 
+  {
+    <b { "that "; }
+  }
+   
+  andlist(#elems = `*`); ";"; <br;
+}
+
+// element PerCases { Proposition, Inference } 
+tpl [PerCases] 
+{
+  <a 
+  {
+     add_hs_attrs();
+     <b { "cases "; }
+  }
+
+  <span 
+  {
+    @class = "hide";
+    apply [*[1]];
+  }
+
+  apply [*[position()>1]];
+}
 
 
