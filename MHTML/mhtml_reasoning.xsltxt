@@ -1,0 +1,298 @@
+stylesheet 1.0;
+
+output method=html;
+
+include frmtrm.xsl;
+
+// $Revision: 1.1 $
+//
+// File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
+
+tpl [Proposition] { 
+    if [$proof_links>0] {<a { @NAME=propname(#n=`@propnr`, #pl=`@plevel`); }}
+    if [following-sibling::*[1][(name()="By") and (@linked="true")]] { 
+      if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
+              or (name(..) = "Conclusion"))] { <b { "then "; } }}
+    if [@nr>0] { if [($proof_links>0) and not(string-length(@plevel)>0)] { 
+		    plab1(#nr=`@nr`,#txt="Lemma"); } 
+                 else { plab(#nr=`@nr`);} ": ";}
+    if [($generate_items>0) and not(string-length(@plevel)>0)] 
+       { pcomment(#str=`concat($aname, ":lemma ", @propnr)`);
+         apply; " ";
+	 if [following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")]] { 	 
+	 apply[`following-sibling::*[1]`]; }
+	}
+    else { apply; " ";} }
+
+// Justifications
+tpl linkbyif(#line,#col,#by) { 
+    if [$linkby>0] { 
+       $byurl = { choose { 
+	      when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
+	      when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } } }
+       <a { @href=$byurl; @class="txt"; @target="byATP"; <b { $by; " "; } }}
+    else { <b { $by; " "; } }}
+  
+tpl [By	](#nbr) { if [(count(*)>0)] { 
+       linkbyif(#line=`@line`,#col=`@col`,#by="by");
+       <i { list(#separ=", ", #elems=`*`); } ";"; }
+    else { 
+	 if [$linkby>0] {  linkbyif(#line=`@line`,#col=`@col`,#by=";"); }
+         else { ";"; }
+    }
+    if [not($nbr="1")] { <br;  } }
+tpl [IterStep/By] { if [(count(*)>0)] { 
+      linkbyif(#line=`@line`,#col=`@col`,#by="by");
+      <i { list(#separ=", ", #elems=`*`); } }}
+tpl [From](#nbr) { <b { "from "; }
+        <i { getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
+             list(#separ=", ", #elems=`*`); ")"; ";"; 
+      if [not($nbr="1")] { <br;  } } }
+tpl [IterStep/From] { <b { "from "; } 
+   <i { getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
+        list(#separ=", ", #elems=`*`); ")"; } }
+
+
+// ##REQUIRE: the following two can be called only if $proof_links>0
+tpl top_propname(#el) { for-each [$el/..] {
+    if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] {
+       $k= { if [@kind='D'] { "Def"; } else { "Th"; }}
+       mkref(#aid=$aname,#nr=`@nr`,#k=`@kind`,#c="1",#nm=`concat($k,@nr)`);
+    }
+    else { $k1 = `concat($el/@nr,":")`;
+           $k2 = `key("E",$k1)/@propnr`;
+	   <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#","E",$k2)`;  
+		plab1(#nr=`$el/@nr`,#txt="Lemma"); }}}}
+
+// tries to cut off what follows last underscore before position #n
+// the string length #ls does not change;
+// $n<10 is there probably as aguard against too much looping - should
+// be fixed
+tpl get_parent_level(#pl,#ls,#n) {
+    $p= { `$ls - $n`; }     $p1= { `$ls -( $n + 1)`; }
+    if [substring($pl,$p,1)='_'] { `substring($pl,1,$p1)`; }
+    else { if [$n<10] { get_parent_level(#pl=$pl,#ls=$ls,#n=`$n+1`); } } }
+
+// name of private reference - name of the proposition
+tpl privname(#nr,#pl) {
+      $k1 = `concat($nr,":",$pl)`;
+      if [key("E",$k1)] { 
+	 if [not(string-length($pl)>0)] { top_propname(#el=`key("E",$k1)`); }
+	 else { 
+	      $txt= { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
+	      <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#",$txt)`; plab(#nr=`@nr`); } } }
+      else { 
+	   $ls = `string-length($pl)`;
+	   if [$ls>0] { 
+	      $pl1 = { get_parent_level(#pl=$pl,#ls=$ls,#n="1"); }
+	      privname(#nr=$nr,#pl=$pl1); } }
+ }
+
+
+// find the constant with #nr on level #pl or higher,
+// print @constnr "_" $pl
+tpl absconst(#nr,#pl) {
+    if [key("C",$pl)[@nr=$nr]] { for-each [key("C",$pl)[@nr = $nr]] {
+       ppconst(#nr = $nr, #vid = `Typ[position() = 1]/@vid`); } }
+    else { if [key("C",$pl)[@nr < $nr]] { 
+      for-each [key("C",$pl)[@nr < $nr]] { if [position() = last()] {
+         $n1 = getcnr(#el=`.`); $lastnr = `@nr + $n1 - 1`; $n2 = `@nr`;
+      if [$lastnr >= $nr] { ppconst(#nr = $nr, #vid = `Typ[position() = ($nr - $n2 + 1)]/@vid`); }
+	 else { $dbgmsg;}}}}
+    else {
+	 $ls = `string-length($pl)`;
+	 if [$ls>0] { 
+	      $pl1 = { get_parent_level(#pl=$pl,#ls=$ls,#n="1"); }
+	      absconst(#nr=$nr,#pl=$pl1); } else { $dbgmsg; }}
+ }}
+
+// count local constants introduced in the current element -
+// this asssumes Let | Given | TakeAsVar | Consider | Set | Reconsider
+tpl getcnr(#el) { for-each [$el] {
+    if [(name() = "Reconsider")] { `count(Var|LocusVar|Const|InfConst|
+		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|ErrorTrm)`; }
+    else { `count(Typ)`; } }}
+
+
+tpl get_nearest_level(#el) { for-each [$el] { 
+    if [@newlevel] { `@newlevel`;} else { get_nearest_level(#el=`..`); } }}
+
+tpl [Ref] { if [not(@articlenr)] {  
+	       if [$proof_links=0] { plab(#nr=`@nr`); }
+	       else { $pl=get_nearest_level(#el=`..`); privname(#nr=`@nr`,#pl=$pl); }
+            }
+            else { getref(#k=`@kind`, #anr=`@articlenr`, #nr=`@nr`);} }
+tpl [ErrorInf](#nbr) { "errorinference;"; if [not($nbr="1")] { <br;  } }
+tpl [IterStep/ErrorInf] { "errorinference"; }
+tpl [SkippedProof](#nbr) { <b { "@proof .. end;"; } 
+			   if [not($nbr="1")] { <br;  } }
+tpl [IterStep/SkippedProof] { <b { "@proof .. end;"; } }
+
+//   Term, elIterStep+
+tpl [IterEquality](#nbr) { if [IterStep[1]/By[@linked="true"]] {
+    if [not(name(..)="Conclusion")] { <b { "then ";}}}
+   if [@nr>0] {  plab(#nr=`@nr`); ": ";}
+   apply[*[1]]; " = ";
+   nlist(#separ=".= ", #elems=`IterStep`); ";"; if [not($nbr="1")] { <br;  } }
+tpl [IterStep] { apply;  }
+
+// Skeleton steps
+//tpl [Let] { $j=`@nr`; <b { "let "; } pconst(#nr=$j);
+//             " be "; 
+//            jlist(#j=$j, #sep2=" be ", #elems=`*`); 
+//	    ";"; try_th_exps(#el=`.`); <br; }
+
+// #fst tells to process in a sequence of Let's
+// #beg is the beginning of const. sequence numbers 
+tpl [Let](#fst,#beg) { 
+  $has_thesis = { if [following-sibling::*[1][name()="Thesis"]] { "1"; }
+		  else { "0"; }  }
+  $it_step = { if [$has_thesis="1"] { "2"; } else { "1"; }} 
+  if // if not first in a sequence, it is already handled - do nothing -
+     // this prevents the default proof traversal of already handled Lets 
+    [not($fst="1") and (preceding-sibling::*[position()=$it_step][name()="Let"])] {}
+  else { // try next Let for the same type - we cannot deal with thesis here 
+  $next = { if [(count(Typ)=1) and 
+     (following-sibling::*[position()=$it_step][name()="Let"][count(Typ)=1]) and
+     (($has_thesis="0") or 
+     ((following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)]) 
+     and
+     (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])))]
+	{  are_equal_vid(#el1=`./Typ`,
+                  #el2=`following-sibling::*[position()=$it_step]/Typ`); }
+	else { "0"; }}
+  if [$beg] // no thesis guaranteed, only one const guaranteed
+	    // this sequence has already been started,
+   {   
+       ", "; ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
+       if [$next="1"] // and does not end here - print the rest
+       {
+          apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=$beg);
+       }
+       else // or ends here - print the type, deal with following
+       { 
+          " be "; apply[Typ]; ";"; <br;
+	  apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1"); 
+       }
+   }
+  else  // start of sequence
+   {
+       <b { "let "; }
+       if [$next="1"] // not ending here; no thesis guaranteed, only one const guaranteed
+       {
+	  ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
+	  apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=`@nr`);
+       }
+       else // print them all
+       {
+          jtlist(#j=`@nr - 1`, #sep2=" be ", #elems=`Typ`);
+	  ";"; try_th_exps(#el=`.`); <br;
+	  apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1");
+       }
+   }
+ }}
+
+tpl [Assume] { <b { "assume "; }  if [count(*)>1] { <b { "that ";} <br; }
+	       andlist(#elems=`*`);
+               ";"; try_th_exps(#el=`.`); <br; } 
+
+tpl [Given] { $j=`@nr - 1`; <b {"given ";} 
+              jtlist(#j=$j, #sep2=" being ", #elems=`Typ`); 
+	      <b {" such that ";}
+              andlist(#elems=`Proposition`); 
+              ";"; try_th_exps(#el=`.`); <br; }
+
+tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(#el=`.`); <br; }
+tpl [TakeAsVar] { <b { "take "; } ppconst(#nr=`@nr`, #vid = `Typ[1]/@vid`); " = ";   apply[*[2]]; 
+		  ";"; try_th_exps(#el=`.`); <br; }
+tpl [Conclusion] { if [(By[@linked="true"]) or 
+		   (IterEquality/IterStep[1]/By[@linked="true"])] 
+		   { <b { "hence "; } apply[*[not(name()="By")]]; 
+		     apply[By](#nbr="1"); try_th_exps(#el=`.`); <br; }
+		else { if [Now] {  
+		     <div { <b {  "hereby "; } try_th_exps(#el=`.`);
+		     apply(#nkw="1");  <b { "end;"; } } }
+		else { <b { "thus "; } 
+		     if [Proof] { apply[Proposition]; try_th_exps(#el=`.`);
+				  apply[Proof]; }
+		     else { apply[Proposition]; 
+			    apply[ IterEquality|By|From|ErrorInf
+				   |SkippedProof](#nbr="1");
+			    try_th_exps(#el=`.`); <br; } } }}
+// Auxiliary items
+tpl [Consider] { $j=`@nr - 1`; <b { if [By[@linked="true"]] { "then "; }
+		 "consider ";}
+                 jtlist(#j=$j,#sep2=" being ", #elems=`Typ`);
+	         if [count(Proposition) > 1] { 
+                   <b {" such that ";} <br; 
+		   andlist(#elems=`Proposition[position() > 1]`); } 
+                 apply[*[2]]; }
+
+tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; } 
+    "reconsider "; } 
+// should work both for old and new reconsider
+    for-each [*[(not(name() = "Typ")) and (position() < (last() - 1))]] {
+	 $p1 = `position()`;
+	 ppconst(#nr=`$j + position() - 1`, #vid = `../Typ[$p1]/@vid`);
+	 " = ";
+	 apply[.];
+	 if [not($p1=last())] { ", "; }}
+
+//  ppconst(#nr=$j, #vid = `Typ[1]/@vid`); " = "; 
+//  jlist(#j=$j, #sep2=" = ", #elems=`*[(not(name() = "Typ")) 
+//                        and (position() < (last() - 1))]`);
+    " as "; apply[*[1]]; " "; 
+    apply[*[last()]]; } 
+
+tpl [Set] { <b { "set ";} ppconst(#nr=`@nr`, #vid=`Typ/@vid`); " = "; apply[*[1]]; ";"; <br; }
+tpl [DefFunc] { <b { "deffunc "; } ppfunc(#nr=`@nr`); "(";  
+                list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
+                apply[*[3]]; " = ";
+	        apply[*[2]]; ";"; <br; }
+tpl [DefPred] { <b { "defpred ";} pppred(#nr=`@nr`); "["; 
+                list(#separ=",", #elems=`ArgTypes/Typ`); "] "; <b { "means "; }
+	        apply[*[2]]; ";"; <br; }
+
+// Thesis after skeleton item, with definiens numbers
+// forbid as default
+tpl [Thesis] { }
+
+tpl try_th_exps(#el) { for-each [$el] {
+    apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; } }
+
+tpl [ThesisExpansions] { if [Pair] {
+    " "; pcomment0(#str="according to "); 
+    list(#separ=",", #elems=`Pair[@x]`); } }
+
+tpl [ThesisExpansions/Pair] { 
+   $x= `@x`;
+   if [key('DF',$x)] { 
+      for-each [key('DF',$x)] { 
+	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D", #c="1"); }}
+   else { 
+      for-each [document($dfs,/)] { 
+            for-each [key('DF',$x)] { 
+	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D"); } }}}
+
+// special block skeleton items
+tpl [Case] { 
+//	   <b { "case "; } 
+	   if [count(*)>1] { <b { "that ";} }
+             andlist(#elems=`*`); ";"; <br; }
+tpl [Suppose] { 
+//	      <b { "suppose "; } 
+	      if [count(*)>1] { <b { "that ";} } 
+             andlist(#elems=`*`); ";"; <br; }
+tpl [PerCases] { 
+// <b { "per cases "; }
+  <a { add_hs_attrs(); <b { "cases "; }}
+  <span { @class="hide"; apply[*[1]]; }  apply[*[position()>1]]; }
+
+
+

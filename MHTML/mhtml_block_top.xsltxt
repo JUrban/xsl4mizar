@@ -1,0 +1,441 @@
+stylesheet 1.0;
+
+output method=html;
+
+include reasoning.xsl;
+
+// $Revision: 1.1 $
+//
+// File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+// Registrations
+tpl [RCluster] { 
+    $nr1 = `1 + count(preceding::RCluster)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/rc_{$nr1}" format="html">
+       rc();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { rc(); } }
+
+tpl rc {
+                 if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
+		 $nr1 = `1 + count(preceding::RCluster)`;
+		 <a { @NAME=`concat("RC",$nr1)`;
+		      <b { "cluster "; } }
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[3]]; " "; apply[*[2]]; }
+                 ";"; <br; if [$mml="1"] { <br; }}
+
+tpl [CCluster] { 
+    $nr1 = `1 + count(preceding::CCluster)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/cc_{$nr1}" format="html">
+       cc();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { cc(); } }
+
+
+tpl cc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
+		 $nr1 = `1 + count(preceding::CCluster)`;
+		 <a { @NAME=`concat("CC",$nr1)`;
+		      <b { "cluster "; } }
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[2]]; <b {" -> ";} apply[*[4]]; " "; 
+                        apply[*[3]]; }
+                 ";"; <br; if [$mml="1"] { <br; }}
+
+tpl [FCluster] { 
+    $nr1 = `1 + count(preceding::FCluster)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/fc_{$nr1}" format="html">
+       fc();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { fc(); } }
+
+tpl fc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
+		 $nr1 = `1 + count(preceding::FCluster)`;
+		 <a { @NAME=`concat("FC",$nr1)`;
+		      <b { "cluster "; } }
+                 if [ErrorCluster] { "errorcluster"; }
+	         else { apply[*[2]]; <b {" -> ";} apply[*[3]]; apply[Typ];}
+                 ";"; <br; if [$mml="1"] { <br; }}
+
+
+
+// ignore them
+tpl [Reservation/Typ] { ""; }
+tpl [Definiens/*] { ""; }
+
+
+// xsltxt cannot use xsl:document yet, so manually insert it 
+// (now done by the perl postproc)
+// the bogus is there to ensure that the ending xsl:doc element
+// is printed by xslxtxt.jar too
+tpl [JustifiedTheorem] { 
+    $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html">
+       jt();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { jt(); } }
+
+// assumes that is inside JustifiedTheorem
+tpl jt {
+    $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
+    <b { "theorem "; } 
+    if [$proof_links>0] { plab1(#nr=$nr1,#txt="Th"); ": "; } 
+    else { for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; } } 
+    <a { @NAME=`concat("T",$nr1)`; 
+	 pcomment(#str=`concat($aname,":",$nr1)`); }
+    if [Proof] { <div { @class="add"; apply[*[1]/*[1]]; } apply[*[2]]; }
+    else { <div { @class="add"; 
+        if [Proposition/Verum] { <b { "canceled; "; } }
+	else { apply[*[1]/*[1]]; " "; apply[*[2]]; } } } }
+
+tpl [DefTheorem] { 
+    $nr1 = `1+count(preceding-sibling::DefTheorem)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/def_{$nr1}" format="html">
+       dt();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { dt(); } }
+
+tpl dt {
+    $nr1 = `1+count(preceding-sibling::DefTheorem)`;
+    ":: "; <b { "deftheorem "; }
+    if [$proof_links>0] { plab1(#nr=$nr1,#txt="Def"); } 
+    else { for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); }} " ";
+//    <a { @NAME=`concat("D",$nr1)`; 
+    if [@constrkind] { "  defines "; 
+		abs(#k=`@constrkind`, #nr=`@constrnr`, 
+                    #sym=abs1(#k=`@constrkind`, #nr=`@constrnr`)); } " ";
+    <a { @onclick="hs(this)"; @href="javascript:()";
+	 `concat($aname,":def ",$nr1)`; " : "; <br; }
+    <span { @class="hide"; <div { @class="add"; 
+         if [Proposition/Verum] { <b { "canceled; "; } }
+	 else { apply[*[1]/*[1]];  ";"; }  } }}
+
+//   Property, elProposition, Justification
+tpl [JustifiedProperty] {
+    $nm = { lc(#s=`name(*[1])`); }
+  <a { add_hs_attrs(); 
+     <b { if [$nm="antisymmetry"] { "asymmetry"; } else { $nm; } " "; }}
+  <span { @class="hide"; <br; apply[*[2]]; }  apply[*[position()>2]]; }
+
+//  Formula | ( elProposition, Justification )
+tpl [UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness] 
+    { <a { add_hs_attrs();
+	 <b { `translate(name(), $ucletters, $lcletters)`; " "; } }
+//           <br; 
+   <span { @class="hide"; <br; apply[*[1]]; }  
+   if [count(*)>1] { apply[*[position()>1]];  } else { ";"; <br; } }
+
+// CorrectnessCondition*, elProposition, Justification
+tpl [Correctness] { 
+<a { add_hs_attrs(); <b { "correctness "; } }
+// apply to subconditions , skip their conjunction
+<span { @class="hide"; <br; apply[*[position()<(last()-1)]]; }
+apply[*[position()=last()]]; }
+
+tpl [Canceled] { <b { "canceled;"; } <br; }
+
+tpl [SchemeFuncDecl] { 
+     pschfvar(#nr=`@nr`); "(";
+     list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
+     apply[*[2]]; }
+
+tpl [SchemePredDecl] { 
+     pschpvar(#nr=`@nr`); "[";
+     list(#separ=",", #elems=`ArgTypes/Typ`); "]"; }
+
+//   ( elSchemeFuncDecl | elSchemePredDecl )*,
+//   element elSchemePremises { elProposition* },
+//   elProposition, Justification, elEndPosition
+tpl [SchemeBlock] {
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/sch_{@schemenr}" format="html">
+       sd();
+// </xsl:document>
+   $bogus=`1`;
+   } 
+   else { sd(); } }
+
+tpl sd {
+    <div { <a { @NAME=`concat("S",@schemenr)`; <b { "scheme  "; }
+    pcomment(#str=`concat($aname,":sch ",@schemenr)`); }
+     "s"; `@schemenr`; "{ ";
+    list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`); 
+    " } :"; <br;
+    <div { @class="add"; apply[Proposition]; } 
+    if [SchemePremises/Proposition] { <b { "provided"; }
+       <div { @class="add"; 
+       andlist(#elems=`SchemePremises/Proposition`); } }
+    apply[*[position() = last() - 1]];  }}
+
+
+//   ( ( CorrectnessCondition*, elCorrectness?,
+//       elJustifiedProperty*, elConstructor?, elPattern? )
+//   | ( elConstructor, elConstructor, elConstructor+,
+//       elRegistration, CorrectnessCondition*, 
+//       elCorrectness?, elPattern+ ))
+// ##TODO: commented registartion and strict attr for defstruct
+tpl [Definition] {     
+    if [@expandable="true"] { 
+       for-each [Pattern] {
+        <a { @NAME=`concat("NM",@nr)`;
+	 <b { "mode ";}  abs1(#k="M",#fnr=`@formatnr`);
+	 if [Visible/Int] { " of "; 
+	    for-each [Visible/Int] { 
+		     ploci(#nr=`@x`); if [not(position()=last())] { ","; } }}
+	 <b { " is "; } } apply[Expansion/Typ]; ";"; <br; }}
+    else 
+    { 
+       if [@nr and ($generate_items>0)]	
+       { 
+          $cnt1 = `1 + count(preceding-sibling::Definition[@nr])`;
+	  $defnr = `../following-sibling::Definiens[position()=$cnt1]/@defnr`;
+// <xsl:document href="items/{$anamelc}/dfs_{$defnr}" format="html">
+          dfs();
+// </xsl:document>
+          $bogus=`1`;
+       }
+       else { dfs(); }
+    }
+    apply[*[not((name()='Constructor') or (name()='Pattern') 
+                or (name()='Registration'))]]; }
+
+tpl dfs() {
+    $nl = { if [@nr] { "0"; } else { "1"; }}
+// Constructor may be missing, if this is a redefinition
+// that does not change its types. In that case, the Constructor needs
+// to be retrieved from the Definiens - see below.
+     if [not(@nr)] { // for generate_items, we have to take loci from the constructor here
+	$indef1 = { if [($generate_items>0)] { "0"; } else { "1"; }}
+	apply[Constructor](#indef=$indef1,#nl=$nl);
+     } 
+
+// @nr is present iff Definiens is present; it can be 0 if
+// the deiniens is not labeled, otherwise it is the proposition number
+// of its deftheorem
+    if [@nr] { $nr1 = `@nr`;
+       $cnt1 = `1 + count(preceding-sibling::Definition[@nr])`;
+       $cnstr = `count(Constructor)`;
+       if [($generate_items>0)]  { // Definiens is better than Constructor for loci display
+       for-each [../following-sibling::Definiens[position()=$cnt1]] {
+       if [Typ] {
+	    <b { "let "; } ploci(#nr="1"); " be "; 
+            alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`Typ`); ";"; <br; 
+         } }
+       }
+       apply[Constructor](#indef="1",#nl=$nl);
+       for-each [../following-sibling::Definiens[position()=$cnt1]] {
+         $ckind = `@constrkind`; $cnr = `@constrnr`;
+         if [$cnstr=0] {
+           // here the redefined constructor is retrieved from definiens 
+	    <b { "redefine "; }
+            if [key($ckind,$cnr)] { apply[key($ckind,$cnr)](#indef="1",#nl=$nl); }
+            else {
+	    for-each [document($constrs,/)] { 
+	      apply[key($ckind,$cnr)](#indef="1",#nl=$nl); } }
+         }
+         <b { if [DefMeaning/@kind='e'] { " equals "; } else { " means "; } }
+	 if [$nr1>0]  { ":"; if [$proof_links>0] { plab1(#nr=`@defnr`,#txt="Def");} 
+			     else { plab(#nr=$nr1); } ": ";} 
+	 <a { @NAME=`concat("D",@defnr)`; 
+	 pcomment(#str=`concat($aname,":def ",@defnr)`); }
+//	 ":: "; `@aid`; ":def "; `@defnr`; <br; "  ";
+	 for-each [DefMeaning/PartialDef] { 
+		  apply[*[1]]; <b { " if "; } apply[*[2]]; <br; }
+	 if [(DefMeaning/PartialDef) 
+	    and (DefMeaning/*[(position() = last()) 
+		and not(name()="PartialDef")])] { <b { " otherwise "; }}
+	 apply[DefMeaning/*[(position() = last()) 
+	                     and not(name()="PartialDef")]]; ";"; <br;
+}
+} 
+}
+
+
+
+//   ( elLet | elAssume | elGiven | AuxiliaryItem |
+//     elCanceled | elDefinition )*, elEndPosition
+tpl [DefinitionBlock] {
+   <div { <b { "definition"; }
+   <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
+   <b { "end;"; } }  } 
+
+//   ( elRCluster | elFCluster | elCCluster ),
+//   CorrectnessCondition*, elCorrectness?
+tpl [Registration] { apply; }
+
+//   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
+tpl [RegistrationBlock] {
+    <div { <b { "registration"; }
+    <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
+    <b { "end;"; } }  } 
+
+tpl [NotationBlock] {
+    <div { <b { "notation"; }
+    <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
+    <b { "end;";  } }  } 
+
+
+// Blocks
+tpl [BlockThesis] { } // "blockthesis: "; apply; ";"; <br; }
+
+//   (  ( elBlockThesis, elCase, elThesis, Reasoning )
+//   |  ( elCase, Reasoning, elBlockThesis ) )
+tpl [CaseBlock] { 
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "case "; } }
+    apply[Case];
+    <div { @class="add"; apply[*[not(name()='Case')]]; }
+    <b { "end;"; } } }
+
+tpl [SupposeBlock] {
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "suppose "; } } 
+    apply[Suppose];
+    <div { @class="add"; apply[*[not(name()='Suppose')]]; }
+    <b { "end;"; } } }
+
+//   (  ( elBlockThesis, ( elCaseBlock+ | elSupposeBlock+ ),
+//        elPerCases, elThesis, elEndPosition  )
+//   |  ( ( elCaseBlock+ | elSupposeBlock+ ),
+//        elPerCases, elEndPosition, elBlockThesis ) )
+tpl [PerCasesReasoning] {
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "per "; } }
+    apply[PerCases];
+    <div { @class="add"; apply[BlockThesis];
+           apply[Thesis];
+           apply[CaseBlock | SupposeBlock]; }
+    <b { "end;"; } } }
+
+//   elBlockThesis, Reasoning 
+// the Proof is done in two parts, as a preparation for printing
+// top proofs into separate documents, and their loading via AJAX
+// this is a non-top-level proof
+tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock/Proof] {
+    <div { <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "proof "; } }
+    <div { @class="add"; apply; }
+    <b { "end;"; } } }
+
+// hence the rest is a top-level proof
+// xsltxt cannot use xsl:document yet, so manually insert
+// (now done as perl postproc)
+// if you want ajax_proofs
+tpl [Proof] {
+    $nm = `concat("proofs/",$anamelc,"/",@newlevel)`;
+    <div { 
+	 <a { 
+	    if [$ajax_proofs>0]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
+	    if [$proof_links>0] { @title=`@newlevel`; } 
+	    <b { "proof "; } 
+	    }
+         if [$ajax_proofs>0]	{ <span; 
+// <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html">
+	    <div { @class="add"; apply; }
+// </xsl:document>
+   $bogus=`1`;
+ }
+	 else { <div { @class="add"; apply; } }
+	 <b { "end;"; } 
+	 } 
+     }
+
+
+//   Reasoning, elBlockThesis 
+// #nkw tells not to print the keword (used if hereby was printed above)
+tpl [Now](#nkw) {
+    if [not($nkw="1")] { 
+       <div { if [@nr>0] { plab(#nr=`@nr`); ": ";}
+	    <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b {  "now "; } }
+	    <div { @class="add"; apply[BlockThesis];
+	    apply[*[not(name()='BlockThesis')]]; } 
+	    <b { "end;"; } } }
+    else { 
+    <div { @class="add"; apply[BlockThesis];
+	    apply[*[not(name()='BlockThesis')]]; } }}
+
+
+// tpl [Now](#nkw) {
+//     <div { <b { if [not($nkw="1")] { "now ";} }
+//     <div { @class="add"; apply[BlockThesis];
+//            apply[*[not(name()='BlockThesis')]]; } 
+//     <b { "end;"; } } } 
+
+// separate top-level items by additional newline
+tpl [Article] { 
+    pcomment(#str=`concat($aname, "  semantic presentation")`); <br;
+    for-each [*] { apply[.]; 
+      if [(not(name()='Definiens')) and (not(name()='Reservation'))] 
+         { <br;} } }
+
+// processing of imported documents
+tpl [Theorem] { <b { "theorem "; } 
+    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br; 
+    if [Verum] { <b { "canceled; "; } } else { apply; } <br; <br; }
+
+// now used only when #mml=1 - in article the block has them
+tpl [ArgTypes] { if [*] { <b { "let "; } ploci(#nr="1");
+             " be "; 
+            alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`*`); ";"; <br; }}
+
+// #indef tells not to use Argtypes (we are inside Definition)
+tpl [Constructor](#indef,#nl) { 
+    $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
+    if [not($indef="1")] { apply[ArgTypes]; }
+    if [@redefnr>0] { <b { "redefine "; } }
+    <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
+    if [@redefnr>0] { 
+         abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
+         " as "; }
+    if [@kind="G"] { 
+       abs(#k=`@kind`,#nr=`@relnr`,#sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
+       "(# "; 
+       for-each [Fields/Field] { 
+		   abs(#k="U",#nr=`@nr`,#sym=abs1(#k="U", #nr=`@nr`)); 
+		   if [not(position()=last())] { ", "; } }
+       " #)"; }
+    else { if [@kind='V'] {
+	   ploci(#nr=`count(ArgTypes/Typ)`); " is ";  
+	  abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); }
+    else { pp(#k=`@kind`,#nr=`@relnr`,#args=`ArgTypes/Typ`, #loci=$loci); }
+// "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
+}
+    if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
+        or (@kind= 'U') or (@kind= 'L')] { <b {" -> ";}
+	   list(#separ=",",#elems=`Typ`); } 
+      if [not($indef="1")]  {  ";"; <br;  <br; }
+      else { if [$nl="1"] { ";"; <br;} }
+}
+
+// display synonym and antonym definiiotns
+tpl [NotationBlock/Pattern] {
+// pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
+// #fnr=`@formatnr`, #loci="1"); <br;
+$loci = { if [$mml="1"] { "1"; } else { "2"; }}
+<a { @NAME=`concat("N",@kind,@nr)`;
+<b { if [@antonymic] { "antonym "; } else { "synonym "; }}
+pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
+#fnr=`@formatnr`, #loci=$loci); } <b { " for "; } 
+
+pp(#k=`@constrkind`,#nr=`@constrnr`,
+#pid=`@redefnr`, #loci=$loci); ";"; <br;
+
+}
+
+// ignore normal Patterns now
+tpl [Pattern] {}

@@ -1,0 +1,144 @@
+stylesheet 1.0;
+
+output method=html;
+
+// $Revision: 1.1 $
+//
+// File: params.xsltxt - html-ization of Mizar XML, top-level parameters
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
+
+// The following are user-customizable 
+
+// mmlquery address
+#mmlq= { "http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry="; }
+//#mmlq= {"";}
+
+// linking methods:
+// "q" - query, everything is linked to mmlquery
+// "s" - self, everything is linked to these xml/html files
+// "m" - mizaring, current article's constructs are linked to self,
+//       the rest is linked to mmlquery
+#linking = { "s"; }
+
+// extension for linking - either xml or html
+#ext = { "html"; }
+
+// put titles to links or not
+#titles = { "0"; }
+
+// coloured output or not
+#colored = { "0"; }
+
+
+// print identifiers (like in JFM) instead of normalized names
+$print_identifiers = { "1"; }
+
+
+// tells whether relative or absolute names are shown
+#relnames= { "1"; }
+
+// link by inferences to ATP solutions rendered by MMLQuery; experimental - off
+// 1 - static linking (to pre-generated html)
+// 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor)
+#linkby= { "0"; }
+
+// directory with by ATP solutions in HTML; each article in its own subdir
+#lbydir= { "_by/"; }
+
+// directory with by ATP solutions in DLI; each article in its own subdir
+// now whole url for the CGI script
+#lbydliurl= { "http://lipa.ms.mff.cuni.cz/~urban/xmlmml/html.930/_by_dli/"; }
+
+// URL of the DLI-processor CGI
+#lbydlicgi= { "http://mmlquery.mizar.org/cgi-bin/mmlquery/dli"; }
+
+// complete prefix of the DLI-processor CGI request
+$lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
+
+
+// tells if linkage of proof elements is done; default is off
+#proof_links = { "0"; }
+
+// tells if proofs are fetched through AJAX; default is off
+#ajax_proofs = { "0"; }
+
+// tells if only selected items are generated to subdirs; default is off
+#generate_items = { "0"; }
+
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+// name of current article (upper case)
+#aname= { `string(/*/@aid)`; }
+
+// name of current article (lower case)
+#anamelc= { `translate($aname, $ucletters, $lcletters)`; }
+
+// this needs to be set to 1 for processing MML files
+#mml = { if [/Article] { "0"; } else { "1"; } }
+
+// nr. of clusters in Typ
+// this is set to 1 for processing MML files
+#cluster_nr = { if [$mml = "0"] { "2"; } else { "1"; }}
+
+// .atr file with imported constructors
+#constrs=  { `concat($anamelc, '.atr')`; }
+
+// .eth file with imported theorems
+#thms=  { `concat($anamelc, '.eth')`; }
+
+// .esh file with imported schemes
+#schms=  { `concat($anamelc, '.esh')`; }
+
+// .eno file with imported patterns
+#patts=  { `concat($anamelc, '.eno')`; }
+
+// .frx file with all (both imported and article's) formats
+#formats=  { `concat($anamelc, '.frx')`; }
+
+// .dcx file with vocabulary
+#vocs=  { `concat($anamelc, '.dcx')`; }
+
+// .idx file with identifier names
+#ids=  { `concat($anamelc, '.idx')`; }
+
+// .dfs file with imported definientia
+#dfs=  { `concat($anamelc, '.dfs')`; }
+
+#varcolor = { "Olive"; }
+
+#constcolor = { "Maroon"; }
+
+#locicolor = { "Maroon"; }
+
+#schpcolor = { "Maroon"; }
+
+#schfcolor = { "Maroon"; }
+
+#ppcolor = { "Maroon"; }
+
+#pfcolor = { "Maroon"; }
+
+#labcolor = { "Green"; }
+
+#commentcolor = { "Red"; }
+
+// number of parenthesis colors (see the stylesheet in the bottom)
+#pcolors_nr = { "6"; }
+
+// top level element instead of top-level document, which is hard to
+// know
+#top = `/`;
+
+// debugging message
+#dbgmsg = { "zzzzzzzzz"; }
+
+// relative nr of the first expandable mode
+// #first_exp = { `//Pattern[(@constrkind='M') and (@constrnr=0)][1]/@relnr`; }
+

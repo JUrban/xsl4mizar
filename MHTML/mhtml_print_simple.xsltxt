@@ -1,0 +1,100 @@
+stylesheet 1.0;
+
+output method=html;
+
+include params.xsl;
+include keys.xsl;
+
+// $Revision: 1.1 $
+//
+// File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
+
+// pretty print variables and labels
+tpl pqvar(#nr, #vid) { 
+    if [($print_identifiers > 0) and ($vid > 0)] 
+    {
+       $nm = { for-each [document($ids, /)] {
+		  for-each [key('D_I', $vid)] { `@name`; } } }
+
+       if [$colored = "1"] { 
+	  <font { @color = $varcolor; 
+	  if [$titles="1"] { @title=`concat("b",$nr)`; } $nm; } } 
+       else { $nm;} 
+    }
+    else { pvar(#nr = $nr); }
+}
+
+
+tpl pvar(#nr) { if [$colored="1"] { <font { @color=$varcolor; 
+    "b"; <sub { $nr;} } } else { "b"; <sub { $nr;} } }
+
+tpl pconst(#nr) {  if [$colored="1"] { <font { @color=$constcolor; 
+    "c"; <sub { $nr;} } } else { "c"; <sub { $nr;} } }
+
+tpl ppconst(#nr, #vid) { 
+    if [($print_identifiers > 0) and ($vid > 0)] 
+    {
+       $nm = { for-each [document($ids, /)] {
+		  for-each [key('D_I', $vid)] { `@name`; } } }
+
+       if [$colored = "1"] { 
+	  <font { @color = $constcolor; 
+	  if [$titles="1"] { @title=`concat("c",$nr)`; } $nm; } } 
+       else { $nm;} 
+    }
+    else { pconst(#nr = $nr); }
+}
+
+tpl pploci(#nr) { 
+    if [($print_identifiers > 0) and ($proof_links>0)]
+    {
+      $pl=get_nearest_level(#el=`..`); absconst(#nr=`@nr`,#pl=$pl);
+    }
+    else { pconst(#nr=`@nr`); }
+}
+
+tpl ploci(#nr) {  if [$colored="1"] { <font { @color=$locicolor; 
+    "a"; <sub { $nr;} } } else { "a"; <sub { $nr;} } }
+
+tpl pschpvar(#nr) {  if [$colored="1"] { <font { @color=$schpcolor; 
+    "P"; <sub { $nr;} } } else { "P"; <sub { $nr;} } }
+
+tpl pschfvar(#nr) {  if [$colored="1"] { <font { @color=$schfcolor; 
+    "F"; <sub { $nr;} } } else { "F"; <sub { $nr;} } }
+
+tpl pppred(#nr) {  if [$colored="1"] { <font { @color=$ppcolor; 
+    "S"; <sub { $nr;} } } else { "S"; <sub { $nr;} } }
+
+tpl ppfunc(#nr) {  if [$colored="1"] { <font { @color=$pfcolor; 
+    "H"; <sub { $nr;} } } else { "H"; <sub { $nr;} } }
+
+tpl plab(#nr) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
+    "E"; $nr;} }  else { "E"; $nr;} } }
+
+tpl plab1(#nr,#txt) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
+    $txt; $nr;} }  else { $txt; $nr;} } }
+
+tpl pcomment0(#str) { <i { if [$colored="1"] {
+<font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}
+
+tpl pcomment(#str) { pcomment0(#str=$str); <br;}
+
+// argument list
+tpl arglist(#separ,#elems) { 
+ for-each [$elems] {
+  ploci(#nr=`position()`); if [not(position()=last())] { $separ; } }
+}
+
+
+// like jlist, but with loci
+tpl alist(#j,#sep1,#sep2,#elems) { 
+for-each [$elems] {
+  apply[.]; if [not(position()=last())] 
+  {  $sep1; ploci(#nr=`$j+position()`); $sep2; } }}
+

@@ -1,0 +1,394 @@
+stylesheet 1.0;
+
+output method=html;
+
+include print_simple.xsl;
+
+
+// $Revision: 1.1 $
+//
+// File: utils.xsltxt - html-ization of Mizar XML, various utility functions
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
+#pid_Ex 		= { "-1"; } // usually NegFrmPtr
+#pid_Ex_Univ 		= { "-2"; } // usually UnivFrmPtr
+#pid_Ex_InnerNot 	= { "-3"; } // usually NegFrmPtr
+#pid_Impl 		= { "-4"; } // usually NegFrmPtr
+#pid_Impl_And 		= { "-5"; } // usually ConjFrmPtr       
+#pid_Impl_RightNot 	= { "-6"; } // usually NegFrmPtr
+#pid_Iff 		= { "-7"; } // usually ConjFrmPtr
+#pid_Or 		= { "-8"; } // usually NegFrmPtr
+#pid_Or_And 		= { "-9"; } // usually ConjFrmPtr
+#pid_Or_LeftNot 	= { "-10"; } // usually NegFrmPtr
+#pid_Or_RightNot 	= { "-11"; } // usually NegFrmPtr
+
+// means that "not" will not be used
+tpl is_positive(#el) { for-each [$el] {
+    if [(name()="Not")] { 
+       if [Pred[(@kind='V') or (@kind='R')]] { 
+	  $pi = { patt_info(#k=`*[1]/@kind`, #nr=`*[1]/@nr`, #pid =`*[1]/@pid`); }
+	  $antonym = cadr(#l=$pi);
+	  `$antonym mod 2`; }
+       else { "0"; }
+    }
+    else { 
+	 if [(name()="Pred") and ((@kind='V') or (@kind='R'))] {
+	    $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
+	    $antonym = cadr(#l=$pi);
+	    `($antonym + 1) mod 2`;
+	 }
+	 else { "1"; }}}}
+
+tpl is_negative(#el) { $pos = { is_positive(#el=$el); } `1 - $pos`;}
+
+tpl count_positive(#els,#nr) {  
+    if [$nr > 0] {
+       $el1=`$els[position()=$nr]`;
+       $res1 = { is_positive(#el=`$els[position()=$nr]`); }
+       $res2 = { count_positive(#els=$els,#nr=`$nr - 1`); }
+//DEBUG       `concat($res1,":",$res2)`;
+       `$res1 + $res2`;
+    }
+    else { "0"; }}
+
+// if $neg, then put negative, striping the negation
+tpl put_positive(#separ,#els,#nr,#neg,#i) { if [$nr > 0] {
+    $el1=`$els[position()=1]`;
+    $pos = is_positive(#el=$el1);
+    $pos1 = { if [$neg="1"] { `($neg + $pos) mod 2`; } else { $pos; }}
+    if [$pos1="1"] { 
+       $nm = `name($el1)`;
+       if [$neg="1"] { // change this if is_positive changes!
+	  choose {
+	  when [$nm="Not"]  { apply[$el1/*[1]](#i=$i); }
+	  when [$nm="Pred"]  { apply[$el1](#i=$i,#not="1"); }
+	  otherwise { $dbgmsg; $nm; } }
+       }
+       else { if [$nm="Not"]  { apply[$el1/*[1]](#i=$i,#not="1"); }
+	      else { apply[$el1](#i=$i); }} 
+       if [$nr > 1] { $separ; } }
+    put_positive(#separ=$separ,#els=`$els[position() > 1]`,#nr=`$nr - $pos1`,#neg=$neg); } }
+
+tpl is_or(#el) { for-each [$el] { if [(@pid=$pid_Or) 
+        and (*[1][@pid=$pid_Or_And]) and (count(*[1]/*)=2)
+	and (*[1]/*[1][@pid=$pid_Or_LeftNot])
+	and (*[1]/*[2][@pid=$pid_Or_RightNot])]
+ { "1"; } else { "0"; }}}
+
+// now also used when included "or" ate the implicant
+tpl is_or1(#el) { for-each [$el] { if [((@pid=$pid_Or) or (@pid=$pid_Impl)) 
+        and (*[1][@pid=$pid_Or_And]) and (count(*[1]/*)>=2)]
+    { "1"; } else { "0"; }}}
+
+
+// used when is_or failed
+tpl is_or3(#el) { for-each [$el] { if [(@pid=$pid_Or) 
+        and (*[1][@pid=$pid_Or_And]) and (count(*[1]/*)=2)]
+	{ $neg1 = { is_negative(#el=`*[1]/*[1]`); }
+          $neg2 = { is_negative(#el=`*[1]/*[2]`); }
+	  `$neg1 * $neg2`; }
+    else { "0"; }}}
+
+// used when is_or3 failed
+tpl is_or4(#el) { for-each [$el] { if [(@pid=$pid_Or) 
+        and (*[1][@pid=$pid_Or_And]) and (count(*[1]/*)=2)]
+    { "1"; } else { "0"; }}}
+
+tpl is_impl(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)=2)
+	and (*[1]/*[2][@pid=$pid_Impl_RightNot])]
+ { "1"; } else { "0"; }}}
+
+
+tpl is_impl1(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>=2)] {
+	choose {
+	when [*[1]/*[@pid=$pid_Impl_RightNot]] { "2"; }
+	when [name(*[1]/*[position()=last()]) = "For"] { "4"; }
+	otherwise {
+	  $neg1 = { is_negative(#el=`*[1]/*[position()=last()]`); }
+	  if [$neg1 = "1"] { "3"; }
+	  else { "5"; } }
+        } } else { "0"; }}}
+	  
+
+tpl is_impl2(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>=2)
+	and ((*[1]/*[@pid=$pid_Impl_RightNot]))]
+ { "1"; } else { "0"; }}}
+
+// used when is_impl2 failed
+tpl is_impl3(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>=2)]
+	{ is_negative(#el=`*[1]/*[position()=last()]`); }
+	else { "0"; }}}
+
+// used when is_impl3 failed
+tpl is_impl4(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>=2)
+	and (name(*[1]/*[position()=last()]) = "For")]
+	{ "1"; } else { "0"; }}}
+
+// used when is_impl4 failed
+tpl is_impl5(#el) { for-each [$el] { if [(@pid=$pid_Impl) 
+        and (*[1][@pid=$pid_Impl_And]) and (count(*[1]/*)>=2)]
+	{ "1"; } else { "0"; }}}
+
+
+
+tpl is_equiv(#el) { for-each [$el] {
+       $e1 = { if [(@pid=$pid_Iff) and (count(*)=2)] {
+		  $i1 = { is_impl(#el=`$el/*[1]`); } 
+		  if [$i1="1"] { is_impl(#el=`*[2]`); }
+		  else { "0"; }}
+	       else { "0"; } }
+       if [$e1="1"] { 
+	  $res1 = { are_equal( #el1=`*[1]/*[1]/*[1]`, 
+			       #el2=`*[2]/*[1]/*[2]/*[1]`); }
+	  $res2 = { are_equal( #el1=`*[2]/*[1]/*[1]`, 
+			       #el2=`*[1]/*[1]/*[2]/*[1]`); }
+	  if [($res1="1") and ($res2="1")] { "1"; }
+          else { "0"; }}
+       else  { $e1; }}}
+
+//  recursive equality on subnodes and attributes
+tpl are_equal(#el1,#el2) { 
+    if[ not(name($el1)=name($el2)) or not(count($el1/*)=count($el2/*))
+	or not(count($el1/@*)=count($el2/@*))] { "0"; }
+    else { 
+	 $s1 = { for-each [$el1/@*] { `string()`;} }
+	 $s2 = { for-each [$el2/@*] { `string()`;} }
+	 if [not($s1=$s2)] { "0"; }
+    else 
+     { are_equal_many(#els1=`$el1/*`,#els2=`$el2/*`,#nr=`count($el1/*)`); }}}
+
+tpl are_equal_many(#els1,#els2,#nr) { if [$nr > 0] {
+    $el1=`$els1[position()=$nr]`;
+    $el2=`$els2[position()=$nr]`; 
+    $res1 = { are_equal(#el1=$el1, #el2=$el2); }
+    if [$res1="1"] { are_equal_many(#els1=$els1, #els2=$els2, #nr=`$nr - 1`);}
+    else { "0"; }} else { "1"; }}
+
+//  recursive equality on subnodes and attributes upto the @vid attribute
+tpl are_equal_vid(#el1,#el2) { 
+    if[ not(name($el1)=name($el2)) or not(count($el1/*)=count($el2/*))
+	or not(count($el1/@*)=count($el2/@*))] { "0"; }
+    else { 
+	 $s1 = { for-each [$el1/@*] { if[not(name()="div")] { `string()`;}} }
+	 $s2 = { for-each [$el2/@*] { if[not(name()="div")] { `string()`;}} }
+	 if [not($s1=$s2)] { "0"; }
+    else 
+     { are_equal_many_vid(#els1=`$el1/*`,#els2=`$el2/*`,#nr=`count($el1/*)`); }}}
+
+tpl are_equal_many_vid(#els1,#els2,#nr) { if [$nr > 0] {
+    $el1=`$els1[position()=$nr]`;
+    $el2=`$els2[position()=$nr]`; 
+    $res1 = { are_equal_vid(#el1=$el1, #el2=$el2); }
+    if [$res1="1"] { are_equal_many_vid(#els1=$els1, #els2=$els2, #nr=`$nr - 1`);}
+    else { "0"; }} else { "1"; }}
+
+
+
+
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+
+// utilities for adding lemma names
+tpl addp(#pl) { if [string-length($pl)>0] { ":"; $pl; }}
+tpl propname(#n,#pl) { "E"; $n; addp(#pl=$pl); }
+
+// poor man's data structure, aka "colon-list"
+#nil = { ""; }
+tpl cons(#h,#t) { `concat($h,":",$t)`; }
+tpl car(#l) { `substring-before($l,":")`;}
+tpl cdr(#l) { `substring-after($l,":")`;}
+tpl cadr(#l) { car(#l=cdr(#l=$l));}
+tpl cddr(#l) { cdr(#l=cdr(#l=$l));}
+tpl third(#l) { car(#l=cddr(#l=$l)); }
+tpl cdddr(#l) { cdr(#l=cddr(#l=$l));}
+
+// List utilities
+
+tpl list(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $separ; } }
+}
+
+// List utility with additional arg - now only used for formula lists
+tpl ilist(#separ,#elems,#i,#pr) { 
+ for-each [$elems] {
+  apply[.](#i=$i,#pr=$pr); if [not(position()=last())] { $separ; } }
+}
+
+// newlined list
+tpl nlist(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { <br; $separ; } }
+}
+
+// newlined andlist
+tpl andlist(#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { <b { "and "; } <br; } }
+}
+
+
+tpl dlist(#separ,#elems) { 
+ for-each [$elems] {
+  <div { apply[.]; if [not(position()=last())] { $separ; } } }
+}
+
+
+// this now assumes that all #elems are Typ
+// #sep2 is now either "be " or "being "
+tpl jtlist(#j,#sep2,#elems) { 
+    for-each [$elems] { ppconst(#nr=`$j+position()`, #vid = `@vid`);
+        if [position()=last()] { $sep2; apply[.]; }
+	   else { 
+		$eq1 = { are_equal_vid(#el1=`.`,#el2=`following-sibling::*[1]`); }
+		if [$eq1="0"] { $sep2; apply[.]; } ", "; }} }
+//if [not(string() = string(following-sibling::*[1]))]
+
+
+// add numbers starting at #j+1 between #sep1 and #sep2 - now with constants
+// not used now
+// tpl jlist(#j,#sep2,#elems) { 
+// for-each [$elems] {
+//   apply[.]; if [not(position()=last())] 
+//   {  ", "; pconst(#nr=`$j+position()`); $sep2; } }}
+
+
+// from-to list of variables starting numbering at $f ending at $t
+tpl ft_list(#f,#t,#sep) {
+  if [$f = $t] {  pvar(#nr=$f); }
+  else { if [$f < $t] { pvar(#nr=$f); $sep; 
+            ft_list(#f=`$f+1`,#t=$t,#sep=$sep); } }}
+
+
+// translate constructor (notation) kinds to their mizar/mmlquery names
+tpl mkind(#kind,#notat) {
+   choose { 
+      when [$kind = 'M'] { "mode";}
+      when [$kind = 'V'] { "attr";}
+      when [$kind = 'R'] { "pred";}
+      when [$kind = 'K'] { "func";}
+      when [$kind = 'G'] { "aggr";}
+      when [$kind = 'L'] { "struct";}
+      when [$kind = 'U'] { "sel";}
+ }}
+
+// translate reference kinds to their mizar/mmlquery names
+tpl refkind(#kind) {
+  choose { 
+      when [$kind = 'T'] { "th";}
+      when [$kind = 'D'] { "def";}
+      when [$kind = 'S'] { "sch";}
+  }}
+
+
+// return first symbol corresponding to constructor;
+// if nothing found, just concat #k and #nr; #r says to look for
+// right bracket instead of left or fail if the format is not bracket
+tpl abs1(#k,#nr,#r,#fnr,#pid) {
+//DEBUG    "abs1:"; $k; ":"; $fnr; ":";
+   $fnr1= { if [$fnr] { $fnr;} else { formt_nr(#k=$k,#nr=$nr,#pid=$pid);}}
+   for-each [document($formats,/)] {
+     if [not(key('F',$fnr1))] { `concat($k,$nr)`; }
+     else {
+       for-each [key('F',$fnr1)] {
+          $snr=`@symbolnr`; $sk1=`@kind`; 
+	  $sk = { if [$sk1="L"] { "G";} else { $sk1; } }
+	  $dkey=`concat('D_',$sk)`;
+          $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } } 
+        if [not($r='1') or ($sk='K')] {
+         for-each [document($vocs,/)] {
+          if [key($dkey,$snr)] {
+	   for-each [key($dkey,$snr)] { 
+             if [($sk='K') and ($r='1')] { 
+               for-each [key('D_L',$rsnr)] { `@name`; } }
+	     else {  `@name`; }
+             } } 
+          else { choose { 
+           when [($snr='1') and ($sk='M')] { "set"; }
+           when [($snr='1') and ($sk='R')] { "="; }
+           when [($snr='1') and ($sk='K')] { if [$r='1'] { "]";} else {"[";} } 
+           when [($snr='2') and ($sk='K')] { if [$r='1'] { "}";} else {"{";} }
+	  otherwise { `concat($k,$nr)`; } } } } } } } } }
+
+tpl formt_nr(#k,#nr,#pid) { $j = { patt_info(#k=$k,#nr=$nr,#pid=$pid); }
+			    car(#l=$j);
+//			    `string(floor($j div 2))`; 
+}
+
+tpl mk_vis_list(#els) { 
+//    $t = mk_vis_list(#els=`$els[position()>1]`);
+    for-each [$els] { `@x`; ":"; }}
+
+// returns 2 * formatnr + 1 if antonymic or expandable;
+// this is a small hack to minimize chasing patterns
+tpl patt_info(#k,#nr,#pid) {
+     $k1= { if [$k="L"] { "G"; } else { $k; }}
+     $md = `($k1 = "G") or ($k1="M")`;
+     $pkey=`concat('P_',$k1)`;
+     if [$pid>0] {
+     if [$md and key('EXP',$pid)] { 
+	for-each [key('EXP',$pid)] { 
+		 $vis = mk_vis_list(#els=`Visible/Int`);
+		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=cons(#h="0",#t=$vis)));} }
+     else { if [key($pkey,$nr)[$pid=@relnr]] { 
+        for-each [key($pkey,$nr)[$pid=@relnr]] {
+		 $shift0 = { if [@antonymic] {"1";} else {"0";}}
+		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
+			    else { $shift0; } }
+                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
+		 $vis = mk_vis_list(#els=`Visible/Int`);
+		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));} }
+     else { for-each [document($patts,/)] {
+     if [$md and key('EXP',$pid)] { 
+	for-each [key('EXP',$pid)] { 
+		 $vis = mk_vis_list(#els=`Visible/Int`);
+		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=cons(#h="0",#t=$vis)));} }
+     else { if [key($pkey,$nr)[$pid=@relnr]] {
+                for-each [key($pkey,$nr)[$pid=@relnr]] {
+		 $shift0 = { if [@antonymic] {"1";} else {"0";}}
+		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
+			    else { $shift0; } }
+                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
+		 $vis = mk_vis_list(#els=`Visible/Int`);
+		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));
+//		 `(@formatnr + @formatnr) + $shift`; 
+} }
+else { "failedpid:"; $k1;":";$nr;":"; $pid;":";}
+}}}}}
+     else { 
+     if [key($pkey,$nr)] { 
+        for-each [key($pkey,$nr)[position()=1]] {
+	         $shift0 = { if [Expansion or @antonymic] {"1";} else {"0";}}
+		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
+			    else { $shift0; } }
+                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
+		 $vis = mk_vis_list(#els=`Visible/Int`);
+		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));} }
+     else { for-each [document($patts,/)] {
+                for-each [key($pkey,$nr)[position()=1]] {
+	        $shift0 = { if [Expansion or @antonymic] {"1";} else {"0";}}
+		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
+			    else { $shift0; } }
+                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
+		 $vis = mk_vis_list(#els=`Visible/Int`);
+		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));}}} } }
+
+
+tpl add_hs_attrs { @class="txt"; @onclick="hs(this)"; @href="javascript:()"; }
+
+tpl add_hs2_attrs { @class="txt"; @onclick="hs2(this)"; @href="javascript:()"; }
+
+tpl add_hsNdiv_attrs { @class="txt"; @onclick="hsNdiv(this)"; @href="javascript:()"; }
+
+tpl add_ajax_attrs(#u) { @class="txt"; @onclick=`concat("makeRequest(this,'",$u,"')")`; @href="javascript:()"; }

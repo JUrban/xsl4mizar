@@ -1,0 +1,169 @@
+
+stylesheet 1.0;
+
+output method=html;
+
+
+// $Revision: 1.1 $
+//
+// File: miz.xsltxt - html-ization of Mizar XML, main file
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// XML terms, formulas and types to less verbose format.
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL miz.xsltxt | sed -e 's/<!\-\- *\(<\/*xsl:document.*\) *\-\->/\1/g' >miz.xsl
+// (the sed hack is there because xsl:document is not yet supported by xsltxtx)
+
+// Then e.g.: xsltproc miz.xsl ordinal2.pre >ordinal2.pre1
+
+
+// TODO: number B vars in fraenkel - done since 1.72
+//       handle F and H parenthesis as K parenthesis
+//       article numbering in Ref?
+//       absolute definiens numbers for thesisExpansions? - done
+//       do not display BlockThesis for Proof? - done, should but should be optional for Now
+//       add @nr to canceled
+//       Constructor should know its serial number! - needed in defs
+//       possibly also article?
+//       change globally 'G' to 'L' for types? -> then change the
+//       hacks here and in emacs.el
+//       display definiens? - done
+
+// NOTES: constructor disambiguation is done using the absolute numbers
+//        (attribute 'nr' and 'aid' of the Constructor element.
+//        This info for Constructors not defined in the article is
+//        taken from the .atr file (see variable $constrs)
+
+
+include block_top.xsl;  // ##INCLUDE HERE
+
+// Default
+tpl [/] { if [$generate_items = "1"] { 
+    apply[/*/JustifiedTheorem|/*/DefTheorem|/*/SchemeBlock];
+    apply[//RCluster|//CCluster|//FCluster|//Definition];
+   for-each [/*/Proposition] {
+// <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html">
+apply[`.`];
+// </xsl:document>
+   $bogus=`1`;
+} }
+
+else { <html { 
+
+// output the css defaults for div and p (for indenting)
+        <style { @type="text/css";  "
+div { padding: 0 0 0 0; margin: 0 0 0 0; } 
+div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
+p { margin: 0 0 0 0; } 
+a {text-decoration:none} a:hover { color: red; } 
+a.ref { font-size:x-small; }
+a.ref:link { color:green; } 
+a.ref:hover { color: red; } 
+a.txt:link { color:black; } 
+a.txt:hover { color: red; } 
+span.hide { display: none; }
+span.p1:hover { color : inherit; background-color : #BAFFFF; } 
+span.p2:hover { color : inherit; background-color : #FFCACA; }
+span.p3:hover { color : inherit; background-color : #FFFFBA; }
+span.p4:hover { color : inherit; background-color : #CACAFF; }
+span.p5:hover { color : inherit; background-color : #CAFFCA; }
+span.p0:hover { color : inherit; background-color : #FFBAFF; }
+.default { background-color: white; color: black; } 
+.default:hover { background-color: white; color: black; }
+";
+	                } 
+        <head {  
+<script { @type="text/javascript";
+"
+<!-- 
+function hs(obj)
+{
+// document.getElementById('myimage').nextSibling.style.display = 'block';
+if (obj.nextSibling.style.display == 'inline')
+ { obj.nextSibling.style.display = 'none'; }
+else { if (obj.nextSibling.style.display == 'none')
+ { obj.nextSibling.style.display = 'inline'; }
+ else { obj.nextSibling.style.display = 'inline';  }}
+return false;
+}
+
+function hs2(obj)
+{
+if (obj.nextSibling.style.display == 'block')
+ { obj.nextSibling.style.display = 'none'; }
+else { if (obj.nextSibling.style.display == 'none')
+ { obj.nextSibling.style.display = 'block'; }
+ else { obj.nextSibling.style.display = 'none';  }}
+return false;
+}
+function hsNdiv(obj)
+{
+var ndiv = obj;
+while (ndiv.nextSibling.nodeName != 'DIV') { ndiv = ndiv.nextSibling; }
+return hs2(ndiv);
+}
+function makeRequest(obj,url) {
+        var http_request = false;
+        if (window.XMLHttpRequest) { // Mozilla, Safari,...
+            http_request = new XMLHttpRequest();
+            if (http_request.overrideMimeType) {
+                http_request.overrideMimeType('text/xml');
+            }
+        } else if (window.ActiveXObject) { // IE
+            try {
+                http_request = new ActiveXObject('Msxml2.XMLHTTP');
+            } catch (e) {
+                try {
+                    http_request = new ActiveXObject('Microsoft.XMLHTTP');
+                } catch (e) {}
+            }
+        }
+        if (!http_request) {
+            alert('Giving up :( Cannot create an XMLHTTP instance');
+            return false;
+        }
+        http_request.onreadystatechange = function() { insertRequest(obj,http_request); };
+        http_request.open('GET', url, true);
+        http_request.send(null);
+    }
+function insertRequest(obj,http_request) {
+        if (http_request.readyState == 4) {
+            if (http_request.status == 200) {
+	    var ndiv = obj;
+	    while (ndiv.nodeName != 'SPAN') { ndiv = ndiv.nextSibling; }
+	    ndiv.innerHTML = http_request.responseText;
+	    obj.onclick = function(){ return hs2(obj) };
+            } else {
+                alert('There was a problem with the request.');
+		alert(http_request.status);
+            }}}
+// End -->
+"; }
+<base { 
+if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} } 
+// <!-- 
+// var browse_url = \"http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry=\"
+// function l1(c) { location = browse_url + c }
+// // End -->
+// "; }
+}
+        <body {  
+
+// first read the keys for imported stuff
+//          apply[document($constrs,/)/Constructors/Constructor]; 
+//          apply[document($thms,/)/Theorems/Theorem]; 
+//          apply[document($schms,/)/Schemes/Scheme];
+ 
+// then process the whole document
+          apply; }} }}
+  
+// tpl [*] { copy { apply [@*]; apply; } }
+// tpl [@*] { copy-of `.`; }
+

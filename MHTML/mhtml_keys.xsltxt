@@ -1,0 +1,77 @@
+stylesheet 1.0;
+
+output method=html;
+
+// $Revision: 1.1 $
+//
+// File: keys.xsltxt - html-ization of Mizar XML, definition of keys (indexes)
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
+
+// keys for fast constructor and reference lookup
+key "M" [Constructor[@kind='M']] `@relnr` ;
+key "L" [Constructor[@kind='L']] `@relnr` ;
+key "V" [Constructor[@kind='V']] `@relnr` ;
+key "R" [Constructor[@kind='R']] `@relnr` ;
+key "K" [Constructor[@kind='K']] `@relnr` ;
+key "U" [Constructor[@kind='U']] `@relnr` ;
+key "G" [Constructor[@kind='G']] `@relnr` ;
+
+key "T" [/Theorems/Theorem[@kind='T']] `concat(@articlenr,':',@nr)`;
+key "D" [/Theorems/Theorem[@kind='D']] `concat(@articlenr,':',@nr)`;
+key "S" [/Schemes/Scheme] `concat(@articlenr,':',@nr)`;
+key "DF" [Definiens] `@relnr` ;
+
+// patterns are slightly tricky, since a predicate pattern
+// may be linked to an attribute constructor; hence the
+// indexing is done according to @constrkind and not @kind
+// TODO: the attribute<->predicate change should propagate to usage
+//       of "is"
+// Expandable modes have all @constrkind='M' and @constrnr=0,
+// they are indexed separately only on their @relnr (@pid)
+key "P_M" [Pattern[(@constrkind='M') and (@constrnr>0)]] `@constrnr` ;
+key "P_L" [Pattern[@constrkind='L']] `@constrnr` ;
+key "P_V" [Pattern[@constrkind='V']] `@constrnr` ;
+key "P_R" [Pattern[@constrkind='R']] `@constrnr` ;
+key "P_K" [Pattern[@constrkind='K']] `@constrnr` ;
+key "P_U" [Pattern[@constrkind='U']] `@constrnr` ;
+key "P_G" [Pattern[@constrkind='G']] `@constrnr` ;
+key "EXP" [Pattern[(@constrkind='M') and (@constrnr=0)]] `@relnr` ;
+
+key "F" [Format] `@nr`;
+
+key "D_G" [Symbol[@kind='G']] `@nr`;
+key "D_K" [Symbol[@kind='K']] `@nr`;
+key "D_J" [Symbol[@kind='J']] `@nr`;
+key "D_L" [Symbol[@kind='L']] `@nr`;
+key "D_M" [Symbol[@kind='M']] `@nr`;
+key "D_O" [Symbol[@kind='O']] `@nr`;
+key "D_R" [Symbol[@kind='R']] `@nr`;
+key "D_U" [Symbol[@kind='U']] `@nr`;
+key "D_V" [Symbol[@kind='V']] `@nr`;
+
+// identifiers
+key "D_I" [Symbol[@kind='I']] `@nr`;
+
+// keys for absolute linkage inside proofs; 
+// requires preprocessing by addabsrefs, otherwise wrong results,
+// so commented now (could be uncommented using conditional include probably)
+
+// lookup for local constants
+key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
+
+// lookup for propositions
+key "E" [Proposition|IterEquality|Now] `concat(@nr,":",@plevel)` ;
+
+// lookup for scheme functors and predicates
+key "f" [SchemeFuncDecl] `concat(@nr,":",@plevel)` ;
+key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
+
+// lookup for private functors and predicates
+key "pf" [DefFunc] `concat(@nr,":",@plevel)` ;
+key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
+
