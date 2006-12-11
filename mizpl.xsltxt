@@ -15,6 +15,8 @@ xmlns xt "http://www.jclark.com/xt";
 //   TPTP 'theorem', and there are various Mizar items
 //   exported as TPTP 'definition'. Use the 'mptp_info' slot
 //   to determine the Mizar item kind.
+//
+// ##TODO: try to replace the exsl stuff by get_parent_level like in miz.xsltxt
 
 output method=text;
 
@@ -533,13 +535,15 @@ tpl [Let|Given|TakeAsVar|Consider|Set] { $cnr = `@constnr`; $pl=`@plevel`;
 //    apply[Proposition];
 }
 
+// new reconsider has the same type for each term now - this is
+// hopefully a compatible way for both new and old
 tpl [Reconsider] { $cnr = `@constnr`; $pl=`@plevel`; 
     for-each [Var|LocusVar|Const|InfConst|Num|Func|PrivFunc|Fraenkel|
 	      QuaTrm|It|ErrorTrm] {
       $nr = `$cnr + position() - 1`; $nm =  { "c"; $nr; addp(#pl=$pl); }
       $levl = { ",["; `translate($pl,"_",",")`; "],";}
       "fof(dt_";  $nm; ",sort,"; $srt_s; "("; $nm; ",";
-      apply[../Typ](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
+      apply[../Typ[position() = 1]](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
       "),[mptp_info("; $nr; $levl; 
       "constant,position(0,0),[reconsider,type])]).\n";
       "fof(de_";  $nm; ",definition,"; "( "; $nm; $eq_s; 
