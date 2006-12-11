@@ -3,6 +3,16 @@ extension-element-prefixes = "exsl exsl-str xt";
 xmlns exsl "http://exslt.org/common"; 
 xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
+output method=text;
+
+// $Revision: 1.33 $
+//
+// File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
+//                      formulas and types to Prolog TSTP-like format.
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
 
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // Mizar XML terms, formulas and types to Prolog TSTP-like format.
@@ -17,8 +27,6 @@ xmlns xt "http://www.jclark.com/xt";
 //   to determine the Mizar item kind.
 //
 // ##TODO: try to replace the exsl stuff by get_parent_level like in miz.xsltxt
-
-output method=text;
 
 strip-space "*";
 

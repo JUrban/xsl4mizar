@@ -1,13 +1,23 @@
 stylesheet "1.0";
 
+output method=text;
+
+
+// $Revision: 1.5 $
+//
+// File: mizpl.xsltxt - stylesheet translating TSTP XML solutions to MML Query DLI syntax
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // TSTP XML solutions to MML Query DLI syntax
 
 // To produce standard XSLT from this do e.g.: 
 // java -jar xsltxt.jar toXSL tstp2dli.xsltxt >tstp2dli.xsl
 
-
-output method=text;
 
 strip-space "*";
 
