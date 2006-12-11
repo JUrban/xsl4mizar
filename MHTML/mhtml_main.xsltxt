@@ -4,9 +4,9 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
-// File: miz.xsltxt - html-ization of Mizar XML, main file
+// File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
 // Author: Josef Urban
 //
@@ -42,7 +42,7 @@ output method=html;
 //        taken from the .atr file (see variable $constrs)
 
 
-include block_top.xsl;  // ##INCLUDE HERE
+include mhtml_block_top.xsl;  // ##INCLUDE HERE
 
 // Default
 tpl [/] { if [$generate_items = "1"] { 

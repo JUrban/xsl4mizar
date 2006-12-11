@@ -2,10 +2,10 @@ stylesheet 1.0;
 
 output method=html;
 
-include print_complex.xsl;
+include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //

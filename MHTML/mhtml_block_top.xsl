@@ -2,9 +2,9 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <xsl:include href="reasoning.xsl"/>
+  <xsl:include href="mhtml_reasoning.xsl"/>
 
-  <!-- $Revision: 1.1 $ -->
+  <!-- $Revision: 1.2 $ -->
   <!--  -->
   <!-- File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements -->
   <!--  -->

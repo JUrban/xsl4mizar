@@ -2,9 +2,9 @@ stylesheet 1.0;
 
 output method=html;
 
-include frmtrm.xsl;
+include mhtml_frmtrm.xsl;
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -51,11 +51,11 @@ tpl [IterStep/By] { if [(count(*)>0)] {
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
       <i { list(#separ=", ", #elems=`*`); } }}
 tpl [From](#nbr) { <b { "from "; }
-        <i { getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
+        <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
              list(#separ=", ", #elems=`*`); ")"; ";"; 
       if [not($nbr="1")] { <br;  } } }
 tpl [IterStep/From] { <b { "from "; } 
-   <i { getschref(#anr=`@articlenr`, #nr=`@nr`); "(";
+   <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
         list(#separ=", ", #elems=`*`); ")"; } }
 
 

@@ -2,10 +2,10 @@ stylesheet 1.0;
 
 output method=html;
 
-include utils.xsl;
+include mhtml_utils.xsl;
 
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
 // File: print_complex.xsltxt - html-ization of Mizar XML, more complex printing stuff
 //
@@ -169,7 +169,7 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i) {
 
 // theorem, definition and scheme references
 // add the reference's href, $c tells if it is from current article
-// $nm passes theexplicit text to be displayed
+// $nm passes the explicit text to be displayed
 tpl mkref(#aid, #nr, #k, #c, #nm) 
 {
   $mk  =  { refkind(#kind = $k); }
@@ -212,31 +212,15 @@ tpl mkref(#aid, #nr, #k, #c, #nm)
     }
 }
 
-tpl getschref(#anr, #nr) 
-{
-  if [$anr>0] 
-  {
-    for-each [document($schms,/)] 
-    {
-      for-each [key('S',concat($anr,':',$nr))] 
-      {
-         mkref(#aid = `@aid`, #nr = $nr, #k = "S");
-      }
-    }
-  }
-  else 
-  {
-     mkref(#aid = $aname, #nr = $nr, #k = "S", #c = "1");
-  }
-}
 
-
-
+// theorem, definition and scheme references
 tpl getref(#k, #anr, #nr) 
 {
   if [$anr>0] 
   {
-    for-each [document($thms,/)] 
+    $refdoc = { if [$k="S"] { $schms; } else { $thms; } }
+
+    for-each [document($refdoc,/)] 
     {
       for-each [key($k,concat($anr,':',$nr))[position()=1]] 
       {

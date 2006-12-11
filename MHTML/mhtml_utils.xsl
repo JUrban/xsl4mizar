@@ -2,8 +2,8 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <xsl:include href="print_simple.xsl"/>
-  <!-- $Revision: 1.1 $ -->
+  <xsl:include href="mhtml_print_simple.xsl"/>
+  <!-- $Revision: 1.2 $ -->
   <!--  -->
   <!-- File: utils.xsltxt - html-ization of Mizar XML, various utility functions -->
   <!--  -->

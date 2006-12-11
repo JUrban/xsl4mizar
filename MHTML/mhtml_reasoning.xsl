@@ -2,9 +2,9 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <xsl:include href="frmtrm.xsl"/>
+  <xsl:include href="mhtml_frmtrm.xsl"/>
 
-  <!-- $Revision: 1.1 $ -->
+  <!-- $Revision: 1.2 $ -->
   <!--  -->
   <!-- File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items -->
   <!--  -->
@@ -177,7 +177,10 @@
       <xsl:text>from </xsl:text>
     </xsl:element>
     <xsl:element name="i">
-      <xsl:call-template name="getschref">
+      <xsl:call-template name="getref">
+        <xsl:with-param name="k">
+          <xsl:text>S</xsl:text>
+        </xsl:with-param>
         <xsl:with-param name="anr" select="@articlenr"/>
         <xsl:with-param name="nr" select="@nr"/>
       </xsl:call-template>
@@ -201,7 +204,10 @@
       <xsl:text>from </xsl:text>
     </xsl:element>
     <xsl:element name="i">
-      <xsl:call-template name="getschref">
+      <xsl:call-template name="getref">
+        <xsl:with-param name="k">
+          <xsl:text>S</xsl:text>
+        </xsl:with-param>
         <xsl:with-param name="anr" select="@articlenr"/>
         <xsl:with-param name="nr" select="@nr"/>
       </xsl:call-template>

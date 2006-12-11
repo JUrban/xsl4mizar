@@ -2,9 +2,9 @@ stylesheet 1.0;
 
 output method=html;
 
-include reasoning.xsl;
+include mhtml_reasoning.xsl;
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //

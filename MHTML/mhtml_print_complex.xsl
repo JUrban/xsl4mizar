@@ -2,9 +2,9 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <xsl:include href="utils.xsl"/>
+  <xsl:include href="mhtml_utils.xsl"/>
 
-  <!-- $Revision: 1.1 $ -->
+  <!-- $Revision: 1.2 $ -->
   <!--  -->
   <!-- File: print_complex.xsltxt - html-ization of Mizar XML, more complex printing stuff -->
   <!--  -->
@@ -597,7 +597,7 @@
   <!-- apply[.]; if [not(position()=last())] { $sep1; `$j+position()`; $sep2; } }} -->
   <!-- theorem, definition and scheme references -->
   <!-- add the reference's href, $c tells if it is from current article -->
-  <!-- $nm passes theexplicit text to be displayed -->
+  <!-- $nm passes the explicit text to be displayed -->
   <xsl:template name="mkref">
     <xsl:param name="aid"/>
     <xsl:param name="nr"/>
@@ -657,45 +657,24 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template name="getschref">
-    <xsl:param name="anr"/>
-    <xsl:param name="nr"/>
-    <xsl:choose>
-      <xsl:when test="$anr&gt;0">
-        <xsl:for-each select="document($schms,/)">
-          <xsl:for-each select="key(&apos;S&apos;,concat($anr,&apos;:&apos;,$nr))">
-            <xsl:call-template name="mkref">
-              <xsl:with-param name="aid" select="@aid"/>
-              <xsl:with-param name="nr" select="$nr"/>
-              <xsl:with-param name="k">
-                <xsl:text>S</xsl:text>
-              </xsl:with-param>
-            </xsl:call-template>
-          </xsl:for-each>
-        </xsl:for-each>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:call-template name="mkref">
-          <xsl:with-param name="aid" select="$aname"/>
-          <xsl:with-param name="nr" select="$nr"/>
-          <xsl:with-param name="k">
-            <xsl:text>S</xsl:text>
-          </xsl:with-param>
-          <xsl:with-param name="c">
-            <xsl:text>1</xsl:text>
-          </xsl:with-param>
-        </xsl:call-template>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
+  <!-- theorem, definition and scheme references -->
   <xsl:template name="getref">
     <xsl:param name="k"/>
     <xsl:param name="anr"/>
     <xsl:param name="nr"/>
     <xsl:choose>
       <xsl:when test="$anr&gt;0">
-        <xsl:for-each select="document($thms,/)">
+        <xsl:variable name="refdoc">
+          <xsl:choose>
+            <xsl:when test="$k=&quot;S&quot;">
+              <xsl:value-of select="$schms"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$thms"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:for-each select="document($refdoc,/)">
           <xsl:for-each select="key($k,concat($anr,&apos;:&apos;,$nr))[position()=1]">
             <xsl:call-template name="mkref">
               <xsl:with-param name="aid" select="@aid"/>

@@ -2,10 +2,10 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <xsl:include href="params.xsl"/>
-  <xsl:include href="keys.xsl"/>
+  <xsl:include href="mhtml_params.xsl"/>
+  <xsl:include href="mhtml_keys.xsl"/>
 
-  <!-- $Revision: 1.1 $ -->
+  <!-- $Revision: 1.2 $ -->
   <!--  -->
   <!-- File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs -->
   <!--  -->

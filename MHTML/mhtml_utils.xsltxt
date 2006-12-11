@@ -2,10 +2,10 @@ stylesheet 1.0;
 
 output method=html;
 
-include print_simple.xsl;
+include mhtml_print_simple.xsl;
 
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
 // File: utils.xsltxt - html-ization of Mizar XML, various utility functions
 //

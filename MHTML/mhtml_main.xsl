@@ -2,9 +2,9 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.1 $ -->
+  <!-- $Revision: 1.2 $ -->
   <!--  -->
-  <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
+  <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
   <!-- Author: Josef Urban -->
   <!--  -->
@@ -30,7 +30,7 @@
   <!-- (attribute 'nr' and 'aid' of the Constructor element. -->
   <!-- This info for Constructors not defined in the article is -->
   <!-- taken from the .atr file (see variable $constrs) -->
-  <xsl:include href="block_top.xsl"/>
+  <xsl:include href="mhtml_block_top.xsl"/>
 
   <!-- ##INCLUDE HERE -->
   <!-- Default -->
