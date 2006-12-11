@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.3 $
+// $Revision: 1.4 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -270,15 +270,23 @@ tpl [ThesisExpansions] { if [Pair] {
     " "; pcomment0(#str="according to "); 
     list(#separ=",", #elems=`Pair[@x]`); } }
 
-tpl [ThesisExpansions/Pair] { 
-   $x= `@x`;
-   if [key('DF',$x)] { 
-      for-each [key('DF',$x)] { 
-	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D", #c="1"); }}
-   else { 
-      for-each [document($dfs,/)] { 
-            for-each [key('DF',$x)] { 
-	       mkref(#aid=`@aid`, #nr=`@defnr`, #k="D"); } }}}
+
+tpl [ThesisExpansions/Pair] 
+{
+  $x       = `@x`;
+  $doc     = { if [key('DF',$x)] { ""; } else { $dfs; } }
+
+  $current = { if [$doc=""] { "1"; } else { "0"; } }
+
+  for-each [document($doc,/)] 
+  {
+     for-each [key('DF',$x)] 
+     {
+        mkref(#aid = `@aid`, #nr = `@defnr`, #k = "D", #c = $current);
+     }
+  }
+}
+
 
 
 //  special block skeleton items 

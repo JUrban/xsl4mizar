@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_frmtrm.xsl"/>
 
-  <!-- $Revision: 1.2 $ -->
+  <!-- $Revision: 1.3 $ -->
   <!--  -->
   <!-- File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items -->
   <!--  -->
@@ -968,40 +968,44 @@
 
   <xsl:template match="ThesisExpansions/Pair">
     <xsl:variable name="x" select="@x"/>
-    <xsl:choose>
-      <xsl:when test="key(&apos;DF&apos;,$x)">
-        <xsl:for-each select="key(&apos;DF&apos;,$x)">
-          <xsl:call-template name="mkref">
-            <xsl:with-param name="aid" select="@aid"/>
-            <xsl:with-param name="nr" select="@defnr"/>
-            <xsl:with-param name="k">
-              <xsl:text>D</xsl:text>
-            </xsl:with-param>
-            <xsl:with-param name="c">
-              <xsl:text>1</xsl:text>
-            </xsl:with-param>
-          </xsl:call-template>
-        </xsl:for-each>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:for-each select="document($dfs,/)">
-          <xsl:for-each select="key(&apos;DF&apos;,$x)">
-            <xsl:call-template name="mkref">
-              <xsl:with-param name="aid" select="@aid"/>
-              <xsl:with-param name="nr" select="@defnr"/>
-              <xsl:with-param name="k">
-                <xsl:text>D</xsl:text>
-              </xsl:with-param>
-            </xsl:call-template>
-          </xsl:for-each>
-        </xsl:for-each>
-      </xsl:otherwise>
-    </xsl:choose>
+    <xsl:variable name="doc">
+      <xsl:choose>
+        <xsl:when test="key(&apos;DF&apos;,$x)">
+          <xsl:text/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$dfs"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="current">
+      <xsl:choose>
+        <xsl:when test="$doc=&quot;&quot;">
+          <xsl:text>1</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>0</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:for-each select="document($doc,/)">
+      <xsl:for-each select="key(&apos;DF&apos;,$x)">
+        <xsl:call-template name="mkref">
+          <xsl:with-param name="aid" select="@aid"/>
+          <xsl:with-param name="nr" select="@defnr"/>
+          <xsl:with-param name="k">
+            <xsl:text>D</xsl:text>
+          </xsl:with-param>
+          <xsl:with-param name="c" select="$current"/>
+        </xsl:call-template>
+      </xsl:for-each>
+    </xsl:for-each>
   </xsl:template>
 
   <!-- special block skeleton items -->
-  <xsl:template match="Case">
-    <!-- <b { "case "; } -->
+  <!-- element Suppose { Proposition+ } -->
+  <!-- element Case { Proposition+ } -->
+  <xsl:template match="Case|Suppose">
     <xsl:if test="count(*)&gt;1">
       <xsl:element name="b">
         <xsl:text>that </xsl:text>
@@ -1014,22 +1018,8 @@
     <xsl:element name="br"/>
   </xsl:template>
 
-  <xsl:template match="Suppose">
-    <!-- <b { "suppose "; } -->
-    <xsl:if test="count(*)&gt;1">
-      <xsl:element name="b">
-        <xsl:text>that </xsl:text>
-      </xsl:element>
-    </xsl:if>
-    <xsl:call-template name="andlist">
-      <xsl:with-param name="elems" select="*"/>
-    </xsl:call-template>
-    <xsl:text>;</xsl:text>
-    <xsl:element name="br"/>
-  </xsl:template>
-
+  <!-- element PerCases { Proposition, Inference } -->
   <xsl:template match="PerCases">
-    <!-- <b { "per cases "; } -->
     <xsl:element name="a">
       <xsl:call-template name="add_hs_attrs"/>
       <xsl:element name="b">
