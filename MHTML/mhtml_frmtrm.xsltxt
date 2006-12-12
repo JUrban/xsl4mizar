@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.2 $
+// $Revision: 1.3 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -350,6 +350,15 @@ tpl [Fraenkel](#p,#i) {
  }
 
 // Types
+// element Typ {
+//    attribute kind { "M" | "G" | "L" | "errortyp" },
+//    attribute nr { xsd:integer }?,
+//    ( attribute absnr { xsd:integer },
+//      attribute aid { xsd:string } )?,
+//    attribute pid { xsd:integer }?,
+//    Cluster*,
+//    Term*
+//  }
 tpl [Typ](#i) { 
    " ";
    if [count(*)>0] { apply[*[1]](#i = $i); }
@@ -442,15 +451,33 @@ tpl descent_many(#patts,#fixs,#lnr,#nr,#i) { if [$nr > 0] {
 tpl [Cluster](#i) { list(#separ=" ", #elems=`*[@pid]`); " "; }
 
 // Adjective
-tpl [Adjective](#i) { 
-     $pi = { patt_info(#k="V", #nr=`@nr`, #pid =`@pid`); }
-     $fnr = car(#l=$pi);
-     $anto = cadr(#l=$pi);
-     $plink = third(#l=$pi);
-     $pid = { if [$plink="1"] { `@pid`; } else { "0";} }
-     $neg = { if [@value="false"] { `($anto + 1) mod 2`; } else { `$anto mod 2`; }}
-     if [$neg="1"] { "non ";}
-     abs(#k="V", #nr=`@nr`, #sym=abs1(#k="V", #nr=`@nr`, #fnr=$fnr, #pid=$pid)); }
-//	         if [count(*)>0] { "("; list(#separ=",", #elems=`*`); ")"; }}
+//  element Adjective {
+//    attribute nr { xsd:integer },
+//    attribute value { xsd:boolean }?,
+//    ( attribute absnr { xsd:integer },
+//      attribute aid { xsd:string } )?,
+//    attribute kind { "V" }?,
+//    attribute pid { xsd:integer }?,
+//    Term*
+//  }
+tpl [Adjective](#i) 
+{ 
+     $pi    = { patt_info(#k="V", #nr=`@nr`, #pid =`@pid`); }
+     $fnr   = car(#l = $pi);
+     $anto  = cadr(#l = $pi);
+     $plink = third(#l = $pi);
+
+     $pid   = { if [$plink="1"] { `@pid`; } else { "0";} }
+     $neg   = { if [@value="false"] { `($anto + 1) mod 2`; } else { `$anto mod 2`; }}
+
+     if [$neg="1"] 
+     { 
+        "non ";
+     }
+
+     abs(#k="V", #nr=`@nr`, 
+         #sym=abs1(#k="V", #nr=`@nr`, #fnr=$fnr, #pid=$pid), #pid = $pid); 
+}
+
 
 
