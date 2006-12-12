@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_simple.xsl;
 
 
-// $Revision: 1.4 $
+// $Revision: 1.5 $
 //
 // File: utils.xsltxt - html-ization of Mizar XML, various utility functions
 //
@@ -292,127 +292,158 @@ tpl refkind(#kind) {
   }}
 
 
-// return first symbol corresponding to constructor;
+// return first symbol corresponding to a constructor ($,$nr);
+// sometimes we know the $pid or even the formatnr ($fnr) precisely;
 // if nothing found, just concat #k and #nr; #r says to look for
 // right bracket instead of left or fail if the format is not bracket
-tpl abs1(#k,#nr,#r,#fnr,#pid) {
+tpl abs1(#k, #nr, #r, #fnr, #pid) 
+{
 //DEBUG    "abs1:"; $k; ":"; $fnr; ":";
-   $fnr1= { if [$fnr] { $fnr;} else { formt_nr(#k=$k,#nr=$nr,#pid=$pid);}}
-   for-each [document($formats,/)] {
-     if [not(key('F',$fnr1))] { `concat($k,$nr)`; }
-     else {
-       for-each [key('F',$fnr1)] {
-          $snr=`@symbolnr`; $sk1=`@kind`; 
-	  $sk = { if [$sk1="L"] { "G";} else { $sk1; } }
-	  $dkey=`concat('D_',$sk)`;
-          $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } } 
-        if [not($r='1') or ($sk='K')] {
-         for-each [document($vocs,/)] {
-          if [key($dkey,$snr)] {
-	   for-each [key($dkey,$snr)] { 
-             if [($sk='K') and ($r='1')] { 
-               for-each [key('D_L',$rsnr)] { `@name`; } }
-	     else {  `@name`; }
-             } } 
-          else { choose { 
-           when [($snr='1') and ($sk='M')] { "set"; }
-           when [($snr='1') and ($sk='R')] { "="; }
-           when [($snr='1') and ($sk='K')] { if [$r='1'] { "]";} else {"[";} } 
-           when [($snr='2') and ($sk='K')] { if [$r='1'] { "}";} else {"{";} }
-	  otherwise { `concat($k,$nr)`; } } } } } } } } }
+  $fnr1 = { if [$fnr] { $fnr;} else { formt_nr(#k=$k,#nr=$nr,#pid=$pid);} }
 
-tpl formt_nr(#k,#nr,#pid) { $j = { patt_info(#k=$k,#nr=$nr,#pid=$pid); }
-			    car(#l=$j);
-//			    `string(floor($j div 2))`; 
+  for-each [document($formats,/)] 
+  {
+     if [not(key('F',$fnr1))] 
+     { 
+        `concat($k,$nr)`; 
+     }
+     else 
+     {
+        for-each [key('F',$fnr1)] 
+	{
+          $snr  = `@symbolnr`; 
+	  $sk1  = `@kind`; 
+	  $sk   = { if [$sk1="L"] { "G";} else { $sk1; } }
+	  $dkey = `concat('D_',$sk)`;
+          $rsnr = { if [$sk='K'] { `@rightsymbolnr`; } } 
+
+	  // return nothing if right bracket of nonbracket symbol is asked
+	  // shouldn't it be an error?
+	  if [not($r='1') or ($sk='K')] 
+	  {
+	     for-each [document($vocs,/)] 
+	     {
+	        if [key($dkey,$snr)] 
+		{
+		   for-each [key($dkey,$snr)] 
+		   { 
+		      if [($sk='K') and ($r='1')] 
+		      { 
+		         for-each [key('D_L',$rsnr)] { `@name`; } 
+		      }
+		      else 
+		      {  
+		         `@name`; 
+		      }
+                   } 
+                } 
+		else 
+		{ 
+		   choose 
+		   { 
+		      when [($snr='1') and ($sk='M')] { "set"; }
+		      when [($snr='1') and ($sk='R')] { "="; }
+		      when [($snr='1') and ($sk='K')] 
+		      { 
+		         if [$r='1'] { "]"; } else { "["; } 
+                      } 
+		      when [($snr='2') and ($sk='K')] 
+		      { 
+		         if [$r='1'] { "}"; } else { "{"; } 
+		      }
+		      otherwise { `concat($k,$nr)`; } 
+		   } 
+		} 
+	     } 
+	  } 
+        } 
+     } 
+  } 
 }
 
-tpl mk_vis_list(#els) { 
-//    $t = mk_vis_list(#els=`$els[position()>1]`);
-    for-each [$els] { `@x`; ":"; }}
+// private for abs1
+tpl formt_nr(#k, #nr, #pid) 
+{ 
+   $j = { patt_info(#k = $k, #nr = $nr, #pid = $pid); }
+   car(#l = $j);
+// `string(floor($j div 2))`; 
+}
+
+
+// private for patt_info
+tpl mk_vis_list(#els) 
+{ 
+   for-each [$els] { `@x`; ":"; }
+}
+
+// private for patt_info - 
+// assumes we already are inside the right pattern
+tpl encode_std_pattern(#k)
+{
+   $shift0 = { if [@antonymic] {"1";} else {"0";}}
+   $shift  = { if [($k="V") and (@kind="R")] { `2 + $shift0`; } 
+               else { $shift0; } 
+             }
+   $plink  = { if [@redefnr>0] { "1"; } else { "0"; } }
+   $vis    = mk_vis_list(#els=`Visible/Int`); 
+   cons(#h = `@formatnr`,
+        #t = cons(#h = $shift, #t = cons(#h = $plink, #t = $vis)));
+}
 
 // returns 2 * formatnr + 1 if antonymic or expandable;
 // this is a small hack to minimize chasing patterns
-tpl patt_info(#k,#nr,#pid) {
-     $k1   = { if [$k="L"] { "G"; } else { $k; }}
-     $md   = `($k1 = "G") or ($k1="M")`;
-     $pkey = `concat('P_',$k1)`;
-     if [$pid>0] 
-     {
-        if [$md and key('EXP',$pid)] 
-	{ 
-	   for-each [key('EXP',$pid)] 
+tpl patt_info(#k, #nr, #pid) 
+{
+   $k1     = { if [$k="L"] { "G"; } else { $k; } }
+   $typ    = `($k1 = "G") or ($k1="M")`;
+   $pkey   = `concat('P_',$k1)`;
+
+   if [$pid>0] 
+   {
+      $doc = { if [($typ and key('EXP',$pid)) 
+		     or (key($pkey,$nr)[$pid=@relnr])]  { ""; } else { $patts; }
+             }
+
+      for-each [document($doc,/)] 
+      {
+	   if [$typ and key('EXP',$pid)] 
 	   { 
-		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h="1",#t=cons(#h="0",#t=$vis)));
-           } 
-	}
-	else 
-	{ 
-	   if [key($pkey,$nr)[$pid=@relnr]] 
-	   { 
-	      for-each [key($pkey,$nr)[$pid=@relnr]] 
-	      {
-		 $shift0 = { if [@antonymic] {"1";} else {"0";}}
-		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
-			    else { $shift0; } }
-                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
-		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));
+	      for-each [key('EXP',$pid)] 
+	      { 
+	         $vis = mk_vis_list(#els = `Visible/Int`);
+		 cons(#h = `@formatnr`, 
+		      #t = cons(#h ="1",#t = cons(#h = "0",#t = $vis)));
 	      } 
 	   }
 	   else 
 	   { 
-	      for-each [document($patts,/)] 
+	      if [key($pkey,$nr)[$pid=@relnr]] 
 	      {
-		 if [$md and key('EXP',$pid)] 
-		 { 
-		    for-each [key('EXP',$pid)] 
-		    { 
-		       $vis = mk_vis_list(#els=`Visible/Int`);
-		       cons(#h=`@formatnr`,#t=cons(#h="1",#t=cons(#h="0",#t=$vis)));
-		    } 
-		 }
-		 else 
-		 { 
-		    if [key($pkey,$nr)[$pid=@relnr]] 
-		    {
-		       for-each [key($pkey,$nr)[$pid=@relnr]] 
-		       {
-			  $shift0 = { if [@antonymic] {"1";} else {"0";}}
-			  $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
-			    else { $shift0; } }
-			  $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
-			  $vis = mk_vis_list(#els=`Visible/Int`);
-			  cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));
-			  // `(@formatnr + @formatnr) + $shift`; 
-                       } 
-		    }
-		    else 
-		    { 
-		       "failedpid:"; $k1;":";$nr;":"; $pid;":";
-		    }
-		 }
-	      }
+	         for-each [key($pkey,$nr)[$pid=@relnr]] 
+		 {
+		    encode_std_pattern(#k = $k);
+              } 
 	   }
-	}
-     }
-     else { 
-     if [key($pkey,$nr)] { 
-        for-each [key($pkey,$nr)[position()=1]] {
-	         $shift0 = { if [Expansion or @antonymic] {"1";} else {"0";}}
-		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
-			    else { $shift0; } }
-                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
-		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));} }
-     else { for-each [document($patts,/)] {
-                for-each [key($pkey,$nr)[position()=1]] {
-	        $shift0 = { if [Expansion or @antonymic] {"1";} else {"0";}}
-		 $shift = { if [($k="V") and (@kind="R")] { `2 + $shift0`; }
-			    else { $shift0; } }
-                 $plink = { if [@redefnr>0] { "1"; } else { "0"; } }
-		 $vis = mk_vis_list(#els=`Visible/Int`);
-		 cons(#h=`@formatnr`,#t=cons(#h=$shift,#t=cons(#h=$plink,#t=$vis)));}}} } }
+	      else 
+	      { 
+	         "failedpid:"; $k1;":";$nr;":"; $pid;":";
+	      }
+           }
+       }
+   }
+   else 
+   { 
+      $doc = { if [key($pkey,$nr)] { ""; } else { $patts; } }
+
+      for-each [document($doc,/)] 
+      {
+         for-each [key($pkey,$nr)[position()=1]] 
+	 {
+	    encode_std_pattern(#k = $k);
+	 }
+      }
+   }
+}
 
 
 tpl add_hs_attrs { @class="txt"; @onclick="hs(this)"; @href="javascript:()"; }
