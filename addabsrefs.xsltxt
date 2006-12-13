@@ -417,9 +417,20 @@ tpl prevprops(#el) { for-each [$el] {
 // Each Definition and Registration inside such blocks create
 // their own block to properly number correctness conditions. 
 tpl [Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration](#s)
-{ $s0 =  prevblocks(#el=`.`); $s1 = `1 + $s0`;
-  $s2 = { if [$s] { `concat($s,"_",$s1)`; } else { $s1; } }
-  copy { copy-of `@*`; @plevel=$s; @newlevel=$s2; apply(#s=$s2); }}
+{ 
+   $s0 =  prevblocks(#el=`.`); 
+   $s1 = `1 + $s0`;
+   $s2 = { if [$s] { `concat($s,"_",$s1)`; } else { $s1; } }
+
+   copy 
+   { 
+      copy-of `@*`; 
+      @plevel = $s; 
+      @newlevel = $s2; 
+      apply(#s = $s2); 
+   }
+}
+
 
 tpl [*](#s,#e) { copy { apply [@*](#s=$s,#e=$e); apply(#s=$s,#e=$e); } }
 tpl [@*] { copy-of `.`; }
