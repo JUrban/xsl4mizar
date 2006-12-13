@@ -373,12 +373,24 @@ tpl [ Proposition](#s) {
     $s0 =  prevprops(#el=`.`); $s1 = `1 + $s0`;
     copy { copy-of `@*`; @plevel=$s;  @propnr=$s1; apply(#s=$s); }}
 
-tpl [ Now | IterEquality] { 
-    $p0 =  prevprops(#el=`.`); $p1 = `1 + $p0`;
-    $s0 =  prevblocks(#el=`.`); $s1 = `1 + $s0`;
-    $s2 = { if [$s] { `concat($s,"_",$s1)`; } else { $s1; } }
-    copy { copy-of `@*`; @plevel=$s; @newlevel=$s2; @propnr=$p1; 
-	   apply(#s=$s2); }}
+tpl [ Now | IterEquality](#s) 
+{ 
+    $p0 =  prevprops(#el = `.`); 
+    $p1 = `1 + $p0`;
+    $s0 =  prevblocks(#el = `.`); 
+    $s1 = `1 + $s0`;
+    $s2 = { if [$s] { `concat($s, "_", $s1)`; } else { $s1; } }
+
+    copy 
+    { 
+       copy-of `@*`; 
+       @plevel   = $s; 
+       @newlevel = $s2; 
+       @propnr   = $p1; 
+
+       apply(#s = $s2); 
+    }
+}
 
 tpl [ IterStep](#s) {
     $s1 =  `1 + count(preceding-sibling::IterStep)`; //in this IterEquality
