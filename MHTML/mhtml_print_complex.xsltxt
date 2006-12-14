@@ -5,7 +5,7 @@ output method=html;
 include mhtml_utils.xsl;
 
 
-// $Revision: 1.4 $
+// $Revision: 1.5 $
 //
 // File: print_complex.xsltxt - html-ization of Mizar XML, more complex printing stuff
 //
@@ -296,3 +296,55 @@ tpl getref(#k, #anr, #nr)
   }
 }
 
+// find the constant with #nr on level #pl or higher,
+// and pretty print it
+// now assumes that proof levels are available, which is only through
+// addabsrefs preprocessing
+tpl absconst(#nr,#pl) 
+{
+   if [key("C",$pl)[@nr = $nr]] 
+   { 
+      for-each [key("C",$pl)[@nr = $nr]] 
+      {
+         ppconst(#nr = $nr, #vid = `Typ[position() = 1]/@vid`); 
+      }
+   }
+   else 
+   { 
+      if [key("C",$pl)[@nr < $nr]] 
+      { 
+         for-each [key("C",$pl)[@nr < $nr]] 
+         { 
+            if [position() = last()] 
+	    {
+      	       $n1     = getcnr(#el = `.`); 
+	       $lastnr = `@nr + $n1 - 1`; 
+	       $n2     = `@nr`;
+
+	       if [$lastnr >= $nr] 
+	       { 
+      	          ppconst(#nr = $nr, #vid = `Typ[position() = ($nr - $n2 + 1)]/@vid`); 
+      	       }
+	       else 
+	       { 
+      	          $dbgmsg;
+	       }
+      	    }
+         }
+      }
+      else 
+      {
+         $ls = `string-length($pl)`;
+
+         if [$ls>0] 
+         { 
+            $pl1 = { get_parent_level(#pl = $pl, #ls = $ls, #n = "1"); }
+	    absconst(#nr = $nr, #pl = $pl1); 
+         } 
+         else 
+         { 
+	    $dbgmsg; 
+         }
+      }
+   }
+}

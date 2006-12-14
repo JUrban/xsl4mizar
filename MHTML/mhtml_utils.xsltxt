@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_simple.xsl;
 
 
-// $Revision: 1.5 $
+// $Revision: 1.6 $
 //
 // File: utils.xsltxt - html-ization of Mizar XML, various utility functions
 //
@@ -245,35 +245,39 @@ tpl dlist(#separ,#elems) {
 }
 
 
-// this now assumes that all #elems are Typ
-// #sep2 is now either "be " or "being "
-tpl jtlist(#j,#sep2,#elems) { 
-    for-each [$elems] { ppconst(#nr=`$j+position()`, #vid = `@vid`);
-        if [position()=last()] { $sep2; apply[.]; }
-	   else { 
-		$eq1 = { are_equal_vid(#el1=`.`,#el2=`following-sibling::*[1]`); }
-		if [$eq1="0"] { $sep2; apply[.]; } ", "; }} }
-//if [not(string() = string(following-sibling::*[1]))]
+// Pretty print constants with their types.
+// This now assumes that all #elems are Typ.
+// For subseries of consts with the same Typ, 
+// the Typ is printed only once.
+// #sep2 is now either "be " or "being ", 
+// comma is added automatically.
+tpl jtlist(#j,#sep2,#elems) 
+{ 
+   for-each [$elems] 
+   { 
+      ppconst(#nr = `$j+position()`, #vid = `@vid`);
 
+      if [position()=last()] 
+      { 
+         $sep2; apply[.]; 
+      }
+      else 
+      { 
+         $eq1 = { are_equal_vid(#el1=`.`,#el2=`following-sibling::*[1]`); }
 
-// add numbers starting at #j+1 between #sep1 and #sep2 - now with constants
-// not used now
-// tpl jlist(#j,#sep2,#elems) { 
-// for-each [$elems] {
-//   apply[.]; if [not(position()=last())] 
-//   {  ", "; pconst(#nr=`$j+position()`); $sep2; } }}
+	 if [$eq1="0"] { $sep2; apply[.]; } 
 
-
-// from-to list of variables starting numbering at $f ending at $t
-tpl ft_list(#f,#t,#sep) {
-  if [$f = $t] {  pvar(#nr=$f); }
-  else { if [$f < $t] { pvar(#nr=$f); $sep; 
-            ft_list(#f=`$f+1`,#t=$t,#sep=$sep); } }}
+	 ", "; 
+      }
+   } 
+}
 
 
 // translate constructor (notation) kinds to their mizar/mmlquery names
-tpl mkind(#kind) {
-   choose { 
+tpl mkind(#kind) 
+{
+   choose 
+   { 
       when [$kind = 'M'] { "mode";}
       when [$kind = 'V'] { "attr";}
       when [$kind = 'R'] { "pred";}
@@ -281,15 +285,19 @@ tpl mkind(#kind) {
       when [$kind = 'G'] { "aggr";}
       when [$kind = 'L'] { "struct";}
       when [$kind = 'U'] { "sel";}
- }}
+   }
+}
 
 // translate reference kinds to their mizar/mmlquery names
-tpl refkind(#kind) {
-  choose { 
+tpl refkind(#kind) 
+{
+  choose 
+  { 
       when [$kind = 'T'] { "th";}
       when [$kind = 'D'] { "def";}
       when [$kind = 'S'] { "sch";}
-  }}
+  }
+}
 
 
 // return first symbol corresponding to a constructor ($,$nr);
@@ -337,6 +345,7 @@ tpl abs1(#k, #nr, #r, #fnr, #pid)
 		      }
                    } 
                 } 
+		// try the built-in symbols
 		else 
 		{ 
 		   choose 
@@ -364,9 +373,7 @@ tpl abs1(#k, #nr, #r, #fnr, #pid)
 // private for abs1
 tpl formt_nr(#k, #nr, #pid) 
 { 
-   $j = { patt_info(#k = $k, #nr = $nr, #pid = $pid); }
-   car(#l = $j);
-// `string(floor($j div 2))`; 
+   car(#l = patt_info(#k = $k, #nr = $nr, #pid = $pid));
 }
 
 
@@ -390,8 +397,9 @@ tpl encode_std_pattern(#k)
         #t = cons(#h = $shift, #t = cons(#h = $plink, #t = $vis)));
 }
 
-// returns 2 * formatnr + 1 if antonymic or expandable;
 // this is a small hack to minimize chasing patterns
+// returns list [formatnr, antonymic or expandable (+2 if attrpred),
+//               redefinition | visiblelist]
 tpl patt_info(#k, #nr, #pid) 
 {
    $k1     = { if [$k="L"] { "G"; } else { $k; } }
@@ -444,6 +452,30 @@ tpl patt_info(#k, #nr, #pid)
       }
    }
 }
+
+
+// the string length #ls does not change;
+// test if the #n-th position in #pl from back is underscore,
+// if so, cut it and what follows it,
+// otherwise try with n+1
+// called externally with #n=1;
+// $n<10 is probably needed to guard the recursion - limits us
+// to nine digit numbers of previous blocks - seems safe now
+tpl get_parent_level(#pl, #ls, #n) 
+{
+    $p  = { `$ls - $n`; }     
+    $p1 = { `$ls - ($n + 1)`; }
+
+    if [substring($pl, $p, 1) = '_']
+    { 
+       `substring($pl, 1, $p1)`; 
+    }
+    else 
+    { 
+       if [$n < 10] { get_parent_level(#pl = $pl, #ls = $ls, #n = `$n+1`); }
+    } 
+}
+
 
 
 tpl add_hs_attrs { @class="txt"; @onclick="hs(this)"; @href="javascript:()"; }

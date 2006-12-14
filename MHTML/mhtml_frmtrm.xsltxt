@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.3 $
+// $Revision: 1.4 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -271,7 +271,8 @@ tpl get_vid(#up) {
     else { for-each [..] { get_vid(#up = $up); } } } } 
 }
 
-tpl [LocusVar](#p,#i) { 
+tpl [LocusVar](#p, #i) 
+{ 
     // try definienda possibly containing "it"
     if [(ancestor::DefMeaning) and ($mml="0") and ($proof_links>0)]
     {
@@ -279,30 +280,48 @@ tpl [LocusVar](#p,#i) {
 		        { "1"; }
 			else { "0"; } }
 
-       $maxnr = { for-each [ancestor::Definiens] { `count(Typ)`;}}
+       $maxnr = { for-each [ancestor::Definiens] { `count(Typ)`;} }
+
        if [(@nr = $maxnr) and ($it_possible="1")] 
        { 
           <b { "it"; } 
        }
-       else {
-       if [@nr <= $maxnr] {
-	  $nr = `@nr`;
-	  for-each [ancestor::Definiens] {
-	     // preceding-sibling written this way selects in reverse document order
-	     $pl=get_nearest_level(#el=`preceding-sibling::DefinitionBlock[1]`);
-	     absconst(#nr=$nr,#pl=$pl);
+       else 
+       {
+          if [@nr <= $maxnr] 
+	  {
+	     $nr = `@nr`;
+	     for-each [ancestor::Definiens] 
+	     {
+	        // preceding-sibling written this way selects in reverse document order
+		$pl = get_nearest_level(#el = `preceding-sibling::DefinitionBlock[1]`);
+		absconst(#nr = $nr, #pl = $pl);
+	     }
+	  }
+	  else 
+	  { 
+	     ploci(#nr = `@nr`); 
 	  }
        }
-       else { ploci(#nr=`@nr`); } }
     }
-    else { ploci(#nr=`@nr`); } }
+    else 
+    { 
+       ploci(#nr = `@nr`); 
+    }
+}
+
 tpl [FreeVar](#p,#i) { "X"; `@nr`; }
-tpl [Const](#p,#i) { 
+tpl [Const](#p,#i) 
+{ 
     if [($print_identifiers > 0) and ($proof_links>0)]
     {
-      $pl=get_nearest_level(#el=`..`); absconst(#nr=`@nr`,#pl=$pl);
+       $pl = get_nearest_level(#el = `..`); 
+       absconst(#nr = `@nr`, #pl = $pl);
     }
-    else { pconst(#nr=`@nr`); }
+    else 
+    { 
+       pconst(#nr = `@nr`); 
+    }
 }
 tpl [InfConst](#p,#i) { "D"; `@nr`; }
 tpl [Num](#p,#i) {  `@nr`; }

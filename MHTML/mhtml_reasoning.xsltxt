@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.4 $
+// $Revision: 1.5 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -70,14 +70,6 @@ tpl top_propname(#el) { for-each [$el/..] {
 	   <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#","E",$k2)`;  
 		plab1(#nr=`$el/@nr`,#txt="Lemma"); }}}}
 
-// tries to cut off what follows last underscore before position #n
-// the string length #ls does not change;
-// $n<10 is there probably as aguard against too much looping - should
-// be fixed
-tpl get_parent_level(#pl,#ls,#n) {
-    $p= { `$ls - $n`; }     $p1= { `$ls -( $n + 1)`; }
-    if [substring($pl,$p,1)='_'] { `substring($pl,1,$p1)`; }
-    else { if [$n<10] { get_parent_level(#pl=$pl,#ls=$ls,#n=`$n+1`); } } }
 
 // name of private reference - name of the proposition
 tpl privname(#nr,#pl) {
@@ -95,39 +87,49 @@ tpl privname(#nr,#pl) {
  }
 
 
-// find the constant with #nr on level #pl or higher,
-// print @constnr "_" $pl
-tpl absconst(#nr,#pl) {
-    if [key("C",$pl)[@nr=$nr]] { for-each [key("C",$pl)[@nr = $nr]] {
-       ppconst(#nr = $nr, #vid = `Typ[position() = 1]/@vid`); } }
-    else { if [key("C",$pl)[@nr < $nr]] { 
-      for-each [key("C",$pl)[@nr < $nr]] { if [position() = last()] {
-         $n1 = getcnr(#el=`.`); $lastnr = `@nr + $n1 - 1`; $n2 = `@nr`;
-      if [$lastnr >= $nr] { ppconst(#nr = $nr, #vid = `Typ[position() = ($nr - $n2 + 1)]/@vid`); }
-	 else { $dbgmsg;}}}}
-    else {
-	 $ls = `string-length($pl)`;
-	 if [$ls>0] { 
-	      $pl1 = { get_parent_level(#pl=$pl,#ls=$ls,#n="1"); }
-	      absconst(#nr=$nr,#pl=$pl1); } else { $dbgmsg; }}
- }}
-
 // count local constants introduced in the current element -
 // this asssumes Let | Given | TakeAsVar | Consider | Set | Reconsider
-tpl getcnr(#el) { for-each [$el] {
-    if [(name() = "Reconsider")] { `count(Var|LocusVar|Const|InfConst|
-		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|ErrorTrm)`; }
-    else { `count(Typ)`; } }}
+tpl getcnr(#el) 
+{ 
+   `count($el/Typ)`; 
+}
 
+// relies on addabsrefs preprocessing
+tpl get_nearest_level(#el) 
+{ 
+   for-each [$el] 
+   { 
+      if [@newlevel] 
+      { 
+         `@newlevel`;
+      } 
+      else 
+      { 
+         get_nearest_level(#el=`..`); 
+      }
+   }
+}
 
-tpl get_nearest_level(#el) { for-each [$el] { 
-    if [@newlevel] { `@newlevel`;} else { get_nearest_level(#el=`..`); } }}
+tpl [Ref] 
+{ 
+   if [not(@articlenr)] 
+   {  
+      if [$proof_links = 0] 
+      { 
+         plab(#nr = `@nr`); 
+      }
+      else 
+      { 
+         $pl = get_nearest_level(#el = `..`); 
+	 privname(#nr = `@nr`, #pl = $pl); 
+      }
+   }
+   else 
+   { 
+      getref(#k = `@kind`, #anr = `@articlenr`, #nr = `@nr`);
+   }
+}
 
-tpl [Ref] { if [not(@articlenr)] {  
-	       if [$proof_links=0] { plab(#nr=`@nr`); }
-	       else { $pl=get_nearest_level(#el=`..`); privname(#nr=`@nr`,#pl=$pl); }
-            }
-            else { getref(#k=`@kind`, #anr=`@articlenr`, #nr=`@nr`);} }
 tpl [ErrorInf](#nbr) { "errorinference;"; if [not($nbr="1")] { <br;  } }
 tpl [IterStep/ErrorInf] { "errorinference"; }
 tpl [SkippedProof](#nbr) { <b { "@proof .. end;"; } 
@@ -226,14 +228,54 @@ tpl [Conclusion] { if [(By[@linked="true"]) or
 				   |SkippedProof](#nbr="1");
 			    try_th_exps(#el=`.`); <br; } } }}
 // Auxiliary items
-tpl [Consider] { $j=`@nr - 1`; <b { if [By[@linked="true"]] { "then "; }
-		 "consider ";}
-                 jtlist(#j=$j,#sep2=" being ", #elems=`Typ`);
-	         if [count(Proposition) > 1] { 
-                   <b {" such that ";} <br; 
-		   andlist(#elems=`Proposition[position() > 1]`); } 
-                 apply[*[2]]; }
 
+// First comes the reconstructed existential statement 
+// and its justification, then the new local constants
+// and zero or more propositions about them.
+// For easier presentation, nr optionally contains the number   
+// of the first local constant created here.      
+//
+//  element Consider { 
+//    attribute nr { xsd:integer }?,
+//    Proposition, Justification,
+//    Typ+, Proposition*
+//  }
+tpl [Consider] 
+{ 
+   $j=`@nr - 1`; 
+
+   <b 
+   { 
+      if [By[@linked="true"]] { "then "; }
+
+      "consider ";
+   }
+
+   jtlist(#j = $j, #sep2 = " being ", #elems = `Typ`);
+
+   if [count(Proposition) > 1] 
+   { 
+      <b {" such that "; } 
+      <br; 
+      andlist(#elems = `Proposition[position() > 1]`); 
+   } 
+
+   apply[*[2]]; 
+}
+
+// First comes the series of target types and reconsidered terms.
+// For all these terms a new local variable with its target type
+// is created, and its equality to the corresponding term is remembered.
+// Finally the proposition about the typing is given and justified.
+// For easier presentation, atNr optionally contains the number
+// of the first local constant created here.
+// Each type may optionally have presentational info about
+// the variable (atVid) inside.
+//  element elReconsider {
+//    attribute atNr { xsd:integer }?,
+//    (elTyp, Term)+,
+//    elProposition, Justification
+//  }
 tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; } 
     "reconsider "; } 
 // should work both for old and new reconsider
