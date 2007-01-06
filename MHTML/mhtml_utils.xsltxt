@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_simple.xsl;
 
 
-// $Revision: 1.6 $
+// $Revision: 1.7 $
 //
 // File: utils.xsltxt - html-ization of Mizar XML, various utility functions
 //
@@ -212,6 +212,64 @@ tpl cadr(#l) { car(#l=cdr(#l=$l));}
 tpl cddr(#l) { cdr(#l=cdr(#l=$l));}
 tpl third(#l) { car(#l=cddr(#l=$l)); }
 tpl cdddr(#l) { cdr(#l=cddr(#l=$l));}
+
+
+// poor man's 0-based integer arrays (integer is non-negative and four digits long now)
+// the biggest identifier number is 1061 for jordan7 in MML 758
+#int_size = { "4"; }
+
+
+// #index must be 0-based
+tpl arr_ref(#array,#index) 
+{ 
+  $beg     = `$int_size * $index`;
+
+  `number(substring($array, $beg, $beg + $int_size))`;
+}
+
+
+tpl apush(#array,#obj) 
+{
+   $obj1 = { arr_pad_obj(#obj); }
+
+   `concat($array, $obj1)`;
+}
+
+
+tpl arr_set(#array,#index,#obj) 
+{ 
+  $obj1    = { arr_pad_obj(#obj); }
+  $beg     = `$int_size * $index`;
+  $end     = `$beg + $int_size`;
+  $prefix  = `substring($array, 0, $beg)`;
+  $postfix = `substring($array, $end)`;
+
+  `concat($prefix, $obj1, $postfix)`;
+}
+
+// explicit for speed
+tpl arr_zeros(#l) 
+{
+  choose 
+  { 
+      when [$l = 0] { "";}
+      when [$l = 1] { "0";}
+      when [$l = 2] { "00";}
+      when [$l = 3] { "000";}
+      when [$l = 4] { "0000";}
+      when [$l = 5] { "00000";}
+  }
+}
+
+
+tpl arr_pad_obj(#obj)
+{
+   $length  = `$int_size - string-length($obj)`;
+   $padding = { arr_zeros(#l = $length); }
+
+   `concat($padding, $obj)`; 
+}
+
 
 // List utilities
 
