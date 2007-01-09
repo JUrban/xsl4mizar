@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.4 $
+// $Revision: 1.5 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -313,10 +313,17 @@ tpl [LocusVar](#p, #i)
 tpl [FreeVar](#p,#i) { "X"; `@nr`; }
 tpl [Const](#p,#i) 
 { 
-    if [($print_identifiers > 0) and ($proof_links>0)]
+    if [($print_identifiers > 0)  and ((@vid>0) or ($proof_links>0))]
     {
-       $pl = get_nearest_level(#el = `..`); 
-       absconst(#nr = `@nr`, #pl = $pl);
+       if [@vid > 0]
+       {
+          ppconst(#nr = `@nr`, #vid = `@vid`);
+       } 
+       else    
+       {
+          $pl = get_nearest_level(#el = `..`); 
+	  absconst(#nr = `@nr`, #pl = $pl);
+       }
     }
     else 
     { 
