@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.5 $
+// $Revision: 1.6 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -148,7 +148,7 @@ tpl [IterStep] { apply;  }
 //tpl [Let] { $j=`@nr`; <b { "let "; } pconst(#nr=$j);
 //             " be "; 
 //            jlist(#j=$j, #sep2=" be ", #elems=`*`); 
-//	    ";"; try_th_exps(#el=`.`); <br; }
+//	    ";"; try_th_exps(); <br; }
 
 // #fst tells to process in a sequence of Let's
 // #beg is the beginning of const. sequence numbers 
@@ -194,7 +194,7 @@ tpl [Let](#fst,#beg) {
        else // print them all
        {
           jtlist(#j=`@nr - 1`, #sep2=" be ", #elems=`Typ`);
-	  ";"; try_th_exps(#el=`.`); <br;
+	  ";"; try_th_exps(); <br;
 	  apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1");
        }
    }
@@ -202,31 +202,37 @@ tpl [Let](#fst,#beg) {
 
 tpl [Assume] { <b { "assume "; }  if [count(*)>1] { <b { "that ";} <br; }
 	       andlist(#elems=`*`);
-               ";"; try_th_exps(#el=`.`); <br; } 
+               ";"; try_th_exps(); <br; } 
 
 tpl [Given] { $j=`@nr - 1`; <b {"given ";} 
               jtlist(#j=$j, #sep2=" being ", #elems=`Typ`); 
 	      <b {" such that ";}
               andlist(#elems=`Proposition`); 
-              ";"; try_th_exps(#el=`.`); <br; }
+              ";"; try_th_exps(); <br; }
 
-tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(#el=`.`); <br; }
-tpl [TakeAsVar] { <b { "take "; } ppconst(#nr=`@nr`, #vid = `Typ[1]/@vid`); " = ";   apply[*[2]]; 
-		  ";"; try_th_exps(#el=`.`); <br; }
-tpl [Conclusion] { if [(By[@linked="true"]) or 
+tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(); <br; }
+tpl [TakeAsVar] 
+{ 
+   <b { "take "; } ppconst(#nr=`@nr`, #vid = `Typ[1]/@vid`); " = ";   apply[*[2]]; 
+		  ";"; try_th_exps(); <br; 
+}
+tpl [Conclusion] 
+{ 
+   if [(By[@linked="true"]) or 
 		   (IterEquality/IterStep[1]/By[@linked="true"])] 
 		   { <b { "hence "; } apply[*[not(name()="By")]]; 
-		     apply[By](#nbr="1"); try_th_exps(#el=`.`); <br; }
+		     apply[By](#nbr="1"); try_th_exps(); <br; }
 		else { if [Now] {  
-		     <div { <b {  "hereby "; } try_th_exps(#el=`.`);
+		     <div { <b {  "hereby "; } try_th_exps();
 		     apply(#nkw="1");  <b { "end;"; } } }
 		else { <b { "thus "; } 
-		     if [Proof] { apply[Proposition]; try_th_exps(#el=`.`);
+		     if [Proof] { apply[Proposition]; try_th_exps();
 				  apply[Proof]; }
 		     else { apply[Proposition]; 
 			    apply[ IterEquality|By|From|ErrorInf
 				   |SkippedProof](#nbr="1");
-			    try_th_exps(#el=`.`); <br; } } }}
+			    try_th_exps(); <br; } } }
+}
 // Auxiliary items
 
 // First comes the reconstructed existential statement 
@@ -305,8 +311,10 @@ tpl [DefPred] { <b { "defpred ";} pppred(#nr=`@nr`); "[";
 // forbid as default
 tpl [Thesis] { }
 
-tpl try_th_exps(#el) { for-each [$el] {
-    apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; } }
+tpl try_th_exps
+{ 
+    apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; 
+}
 
 tpl [ThesisExpansions] { if [Pair] {
     " "; pcomment0(#str="according to "); 
