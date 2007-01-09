@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.3 $
+// $Revision: 1.4 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -464,15 +464,19 @@ tpl [DefinitionBlock]
 tpl [Registration] { apply; }
 
 //   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
-tpl [RegistrationBlock] {
+tpl [RegistrationBlock] 
+{
     <div { <b { "registration"; }
     <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
-    <b { "end;"; } }  } 
+    <b { "end;"; } }  
+} 
 
-tpl [NotationBlock] {
+tpl [NotationBlock] 
+{
     <div { <b { "notation"; }
     <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
-    <b { "end;";  } }  } 
+    <b { "end;";  } }  
+} 
 
 
 // Blocks
@@ -480,38 +484,69 @@ tpl [BlockThesis] { } // "blockthesis: "; apply; ";"; <br; }
 
 //   (  ( elBlockThesis, elCase, elThesis, Reasoning )
 //   |  ( elCase, Reasoning, elBlockThesis ) )
-tpl [CaseBlock] { 
+tpl [CaseBlock] 
+{ 
     <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "case "; } }
     apply[Case];
     <div { @class="add"; apply[*[not(name()='Case')]]; }
-    <b { "end;"; } } }
+    <b { "end;"; } } 
+}
 
-tpl [SupposeBlock] {
+tpl [SupposeBlock] 
+{
     <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "suppose "; } } 
     apply[Suppose];
     <div { @class="add"; apply[*[not(name()='Suppose')]]; }
-    <b { "end;"; } } }
+    <b { "end;"; } } 
+}
 
 //   (  ( elBlockThesis, ( elCaseBlock+ | elSupposeBlock+ ),
 //        elPerCases, elThesis, elEndPosition  )
 //   |  ( ( elCaseBlock+ | elSupposeBlock+ ),
 //        elPerCases, elEndPosition, elBlockThesis ) )
-tpl [PerCasesReasoning] {
-    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "per "; } }
-    apply[PerCases];
-    <div { @class="add"; apply[BlockThesis];
-           apply[Thesis];
-           apply[CaseBlock | SupposeBlock]; }
-    <b { "end;"; } } }
+tpl [PerCasesReasoning] 
+{
+    <div 
+    { 
+       <a 
+       { 
+          add_hsNdiv_attrs(); 
+	  if [$proof_links>0] { @title=`@newlevel`; } 
+	  <b { "per "; } 
+       }
+
+       apply[PerCases];
+
+       <div 
+       { 
+          @class="add"; apply[BlockThesis];
+	  apply[Thesis];
+	  apply[CaseBlock | SupposeBlock]; 
+       }
+
+       <b { "end;"; } 
+    } 
+}
 
 //   elBlockThesis, Reasoning 
 // the Proof is done in two parts, as a preparation for printing
 // top proofs into separate documents, and their loading via AJAX
 // this is a non-top-level proof
-tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock/Proof] {
-    <div { <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "proof "; } }
-    <div { @class="add"; apply; }
-    <b { "end;"; } } }
+tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock/Proof]
+{
+    <div 
+    { 
+       <a 
+       { 
+          add_hs2_attrs(); 
+	  if [$proof_links>0] { @title=`@newlevel`; } 
+	  <b { "proof "; } 
+       }
+
+       <div { @class="add"; apply; }
+       <b { "end;"; } 
+    } 
+}
 
 // hence the rest is a top-level proof
 // xsltxt cannot use xsl:document yet, so manually insert
@@ -539,16 +574,39 @@ tpl [Proof] {
 
 //   Reasoning, elBlockThesis 
 // #nkw tells not to print the keword (used if hereby was printed above)
-tpl [Now](#nkw) {
-    if [not($nkw="1")] { 
-       <div { if [@nr>0] { plab(#nr=`@nr`); ": ";}
-	    <a { add_hs2_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b {  "now "; } }
-	    <div { @class="add"; apply[BlockThesis];
-	    apply[*[not(name()='BlockThesis')]]; } 
-	    <b { "end;"; } } }
-    else { 
-    <div { @class="add"; apply[BlockThesis];
-	    apply[*[not(name()='BlockThesis')]]; } }}
+tpl [Now](#nkw) 
+{
+    if [not($nkw="1")] 
+    { 
+       <div 
+       { 
+          if [@nr>0] { plab(#nr=`@nr`); ": ";}
+
+	  <a 
+	  { 
+	     add_hs2_attrs(); 
+	     if [$proof_links>0] { @title=`@newlevel`; } 
+	     <b {  "now "; } 
+          }
+
+          now_body();
+
+	  <b { "end;"; } 
+       }
+    }
+    else {  now_body(); }
+}
+
+
+tpl now_body
+{
+   <div 
+   { 
+      @class="add"; 
+      apply[BlockThesis];
+      apply[*[not(name()='BlockThesis')]]; 
+   } 
+}
 
 
 // tpl [Now](#nkw) {
@@ -558,21 +616,39 @@ tpl [Now](#nkw) {
 //     <b { "end;"; } } } 
 
 // separate top-level items by additional newline
-tpl [Article] { 
-    pcomment(#str=`concat($aname, "  semantic presentation")`); <br;
-    for-each [*] { apply[.]; 
-      if [(not(name()='Definiens')) and (not(name()='Reservation'))] 
-         { <br;} } }
+tpl [Article] 
+{ 
+    pcomment(#str=`concat($aname, "  semantic presentation")`); 
+    <br;
+
+    for-each [*] 
+    { 
+      apply[.]; 
+      if [(not(name()='Definiens')) and (not(name()='Reservation'))] { <br;} 
+    } 
+}
 
 // processing of imported documents
-tpl [Theorem] { <b { "theorem "; } 
-    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br; 
-    if [Verum] { <b { "canceled; "; } } else { apply; } <br; <br; }
+tpl [Theorem] 
+{ 
+   <b { "theorem "; } 
+   mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br; 
+   if [Verum] { <b { "canceled; "; } } else { apply; } 
+   <br; <br; 
+}
 
 // now used only when #mml=1 - in article the block has them
-tpl [ArgTypes] { if [*] { <b { "let "; } ploci(#nr="1");
-             " be "; 
-            alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`*`); ";"; <br; }}
+tpl [ArgTypes] 
+{ 
+   if [*] 
+   { 
+      <b { "let "; } 
+      ploci(#nr="1");
+      " be "; 
+      alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`*`); 
+      ";"; <br; 
+   }
+}
 
 // #indef tells not to use Argtypes (we are inside Definition)
 tpl [Constructor](#indef,#nl) { 
