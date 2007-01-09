@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_reasoning.xsl"/>
 
-  <!-- $Revision: 1.2 $ -->
+  <!-- $Revision: 1.3 $ -->
   <!--  -->
   <!-- File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements -->
   <!--  -->
@@ -182,7 +182,7 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- assumes that is inside JustifiedTheorem -->
+  <!-- private - assumes that is inside JustifiedTheorem -->
   <xsl:template name="jt">
     <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:element name="b">
@@ -209,10 +209,10 @@
     </xsl:choose>
     <xsl:element name="a">
       <xsl:attribute name="NAME">
-        <xsl:value-of select="concat(&quot;T&quot;,$nr1)"/>
+        <xsl:value-of select="concat(&quot;T&quot;, $nr1)"/>
       </xsl:attribute>
       <xsl:call-template name="pcomment">
-        <xsl:with-param name="str" select="concat($aname,&quot;:&quot;,$nr1)"/>
+        <xsl:with-param name="str" select="concat($aname,&quot;:&quot;, $nr1)"/>
       </xsl:call-template>
     </xsl:element>
     <xsl:choose>
@@ -262,6 +262,7 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- private - assumes that is inside DefTheorem -->
   <xsl:template name="dt">
     <xsl:variable name="nr1" select="1+count(preceding-sibling::DefTheorem)"/>
     <xsl:text>:: </xsl:text>
@@ -308,7 +309,7 @@
       <xsl:attribute name="href">
         <xsl:text>javascript:()</xsl:text>
       </xsl:attribute>
-      <xsl:value-of select="concat($aname,&quot;:def &quot;,$nr1)"/>
+      <xsl:value-of select="concat($aname, &quot;:def &quot;, $nr1)"/>
       <xsl:text> : </xsl:text>
       <xsl:element name="br"/>
     </xsl:element>
@@ -346,7 +347,7 @@
       <xsl:call-template name="add_hs_attrs"/>
       <xsl:element name="b">
         <xsl:choose>
-          <xsl:when test="$nm=&quot;antisymmetry&quot;">
+          <xsl:when test="$nm = &quot;antisymmetry&quot;">
             <xsl:text>asymmetry</xsl:text>
           </xsl:when>
           <xsl:otherwise>
@@ -371,11 +372,12 @@
     <xsl:element name="a">
       <xsl:call-template name="add_hs_attrs"/>
       <xsl:element name="b">
-        <xsl:value-of select="translate(name(), $ucletters, $lcletters)"/>
+        <xsl:call-template name="lc">
+          <xsl:with-param name="s" select="name()"/>
+        </xsl:call-template>
         <xsl:text> </xsl:text>
       </xsl:element>
     </xsl:element>
-    <!-- <br; -->
     <xsl:element name="span">
       <xsl:attribute name="class">
         <xsl:text>hide</xsl:text>
@@ -521,14 +523,14 @@
   <!-- | ( elConstructor, elConstructor, elConstructor+, -->
   <!-- elRegistration, CorrectnessCondition*, -->
   <!-- elCorrectness?, elPattern+ )) -->
-  <!-- ##TODO: commented registartion and strict attr for defstruct -->
+  <!-- ##TODO: commented registration and strict attr for defstruct -->
   <xsl:template match="Definition">
     <xsl:choose>
-      <xsl:when test="@expandable=&quot;true&quot;">
+      <xsl:when test="@expandable = &quot;true&quot;">
         <xsl:for-each select="Pattern">
           <xsl:element name="a">
             <xsl:attribute name="NAME">
-              <xsl:value-of select="concat(&quot;NM&quot;,@nr)"/>
+              <xsl:value-of select="concat(&quot;NM&quot;, @nr)"/>
             </xsl:attribute>
             <xsl:element name="b">
               <xsl:text>mode </xsl:text>
@@ -560,10 +562,13 @@
         </xsl:for-each>
       </xsl:when>
       <xsl:otherwise>
+        <!-- @nr is present iff Definiens is present; it can be 0 if -->
+        <!-- the definiens is not labeled, otherwise it is the proposition number -->
+        <!-- of its deftheorem -->
         <xsl:choose>
           <xsl:when test="@nr and ($generate_items&gt;0)">
             <xsl:variable name="cnt1" select="1 + count(preceding-sibling::Definition[@nr])"/>
-            <xsl:variable name="defnr" select="../following-sibling::Definiens[position()=$cnt1]/@defnr"/>
+            <xsl:variable name="defnr" select="../following-sibling::Definiens[position() = $cnt1]/@defnr"/>
             <xsl:document href="items/{$anamelc}/dfs_{$defnr}" format="html"> 
             <xsl:call-template name="dfs"/>
             </xsl:document> 
@@ -597,7 +602,7 @@
       <!-- for generate_items, we have to take loci from the constructor here -->
       <xsl:variable name="indef1">
         <xsl:choose>
-          <xsl:when test="($generate_items&gt;0)">
+          <xsl:when test="($generate_items &gt; 0)">
             <xsl:text>0</xsl:text>
           </xsl:when>
           <xsl:otherwise>
@@ -617,9 +622,11 @@
       <xsl:variable name="nr1" select="@nr"/>
       <xsl:variable name="cnt1" select="1 + count(preceding-sibling::Definition[@nr])"/>
       <xsl:variable name="cnstr" select="count(Constructor)"/>
-      <xsl:if test="($generate_items&gt;0)">
-        <!-- Definiens is better than Constructor for loci display -->
-        <xsl:for-each select="../following-sibling::Definiens[position()=$cnt1]">
+      <xsl:if test="($generate_items &gt; 0)">
+        <!-- Definiens is better than Constructor for loci display, -->
+        <!-- since Constructor may be missing for redefinitions. -->
+        <!-- ##TODO: #vid for Definiens in analyzer.pas -->
+        <xsl:for-each select="../following-sibling::Definiens[position() = $cnt1]">
           <xsl:if test="Typ">
             <xsl:element name="b">
               <xsl:text>let </xsl:text>
@@ -653,38 +660,36 @@
         </xsl:with-param>
         <xsl:with-param name="nl" select="$nl"/>
       </xsl:apply-templates>
-      <xsl:for-each select="../following-sibling::Definiens[position()=$cnt1]">
+      <xsl:for-each select="../following-sibling::Definiens[position() = $cnt1]">
         <xsl:variable name="ckind" select="@constrkind"/>
         <xsl:variable name="cnr" select="@constrnr"/>
-        <xsl:if test="$cnstr=0">
+        <xsl:if test="$cnstr = 0">
           <!-- here the redefined constructor is retrieved from definiens -->
           <xsl:element name="b">
             <xsl:text>redefine </xsl:text>
           </xsl:element>
-          <xsl:choose>
-            <xsl:when test="key($ckind,$cnr)">
-              <xsl:apply-templates select="key($ckind,$cnr)">
-                <xsl:with-param name="indef">
-                  <xsl:text>1</xsl:text>
-                </xsl:with-param>
-                <xsl:with-param name="nl" select="$nl"/>
-              </xsl:apply-templates>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:for-each select="document($constrs,/)">
-                <xsl:apply-templates select="key($ckind,$cnr)">
-                  <xsl:with-param name="indef">
-                    <xsl:text>1</xsl:text>
-                  </xsl:with-param>
-                  <xsl:with-param name="nl" select="$nl"/>
-                </xsl:apply-templates>
-              </xsl:for-each>
-            </xsl:otherwise>
-          </xsl:choose>
+          <xsl:variable name="doc">
+            <xsl:choose>
+              <xsl:when test="key($ckind, $cnr)">
+                <xsl:text/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="$constrs"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
+          <xsl:for-each select="document($doc, /)">
+            <xsl:apply-templates select="key($ckind, $cnr)">
+              <xsl:with-param name="indef">
+                <xsl:text>1</xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="nl" select="$nl"/>
+            </xsl:apply-templates>
+          </xsl:for-each>
         </xsl:if>
         <xsl:element name="b">
           <xsl:choose>
-            <xsl:when test="DefMeaning/@kind=&apos;e&apos;">
+            <xsl:when test="DefMeaning/@kind = &apos;e&apos;">
               <xsl:text> equals </xsl:text>
             </xsl:when>
             <xsl:otherwise>
@@ -692,10 +697,10 @@
             </xsl:otherwise>
           </xsl:choose>
         </xsl:element>
-        <xsl:if test="$nr1&gt;0">
+        <xsl:if test="$nr1 &gt; 0">
           <xsl:text>:</xsl:text>
           <xsl:choose>
-            <xsl:when test="$proof_links&gt;0">
+            <xsl:when test="$proof_links &gt; 0">
               <xsl:call-template name="plab1">
                 <xsl:with-param name="nr" select="@defnr"/>
                 <xsl:with-param name="txt">
@@ -713,13 +718,12 @@
         </xsl:if>
         <xsl:element name="a">
           <xsl:attribute name="NAME">
-            <xsl:value-of select="concat(&quot;D&quot;,@defnr)"/>
+            <xsl:value-of select="concat(&quot;D&quot;, @defnr)"/>
           </xsl:attribute>
           <xsl:call-template name="pcomment">
-            <xsl:with-param name="str" select="concat($aname,&quot;:def &quot;,@defnr)"/>
+            <xsl:with-param name="str" select="concat($aname, &quot;:def &quot;, @defnr)"/>
           </xsl:call-template>
         </xsl:element>
-        <!-- ":: "; `@aid`; ":def "; `@defnr`; <br; "  "; -->
         <xsl:for-each select="DefMeaning/PartialDef">
           <xsl:apply-templates select="*[1]"/>
           <xsl:element name="b">
@@ -735,8 +739,7 @@
             <xsl:text> otherwise </xsl:text>
           </xsl:element>
         </xsl:if>
-        <xsl:apply-templates select="DefMeaning/*[(position() = last()) 
-	                     and not(name()=&quot;PartialDef&quot;)]"/>
+        <xsl:apply-templates select="DefMeaning/*[(position() = last()) and not(name()=&quot;PartialDef&quot;)]"/>
         <xsl:text>;</xsl:text>
         <xsl:element name="br"/>
       </xsl:for-each>
@@ -1001,28 +1004,26 @@
               <xsl:text>now </xsl:text>
             </xsl:element>
           </xsl:element>
-          <xsl:element name="div">
-            <xsl:attribute name="class">
-              <xsl:text>add</xsl:text>
-            </xsl:attribute>
-            <xsl:apply-templates select="BlockThesis"/>
-            <xsl:apply-templates select="*[not(name()=&apos;BlockThesis&apos;)]"/>
-          </xsl:element>
+          <xsl:call-template name="now_body"/>
           <xsl:element name="b">
             <xsl:text>end;</xsl:text>
           </xsl:element>
         </xsl:element>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:element name="div">
-          <xsl:attribute name="class">
-            <xsl:text>add</xsl:text>
-          </xsl:attribute>
-          <xsl:apply-templates select="BlockThesis"/>
-          <xsl:apply-templates select="*[not(name()=&apos;BlockThesis&apos;)]"/>
-        </xsl:element>
+        <xsl:call-template name="now_body"/>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="now_body">
+    <xsl:element name="div">
+      <xsl:attribute name="class">
+        <xsl:text>add</xsl:text>
+      </xsl:attribute>
+      <xsl:apply-templates select="BlockThesis"/>
+      <xsl:apply-templates select="*[not(name()=&apos;BlockThesis&apos;)]"/>
+    </xsl:element>
   </xsl:template>
 
   <!-- tpl [Now](#nkw) { -->

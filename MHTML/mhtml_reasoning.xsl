@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_frmtrm.xsl"/>
 
-  <!-- $Revision: 1.3 $ -->
+  <!-- $Revision: 1.4 $ -->
   <!--  -->
   <!-- File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items -->
   <!--  -->
@@ -270,36 +270,6 @@
     </xsl:for-each>
   </xsl:template>
 
-  <!-- tries to cut off what follows last underscore before position #n -->
-  <!-- the string length #ls does not change; -->
-  <!-- $n<10 is there probably as aguard against too much looping - should -->
-  <!-- be fixed -->
-  <xsl:template name="get_parent_level">
-    <xsl:param name="pl"/>
-    <xsl:param name="ls"/>
-    <xsl:param name="n"/>
-    <xsl:variable name="p">
-      <xsl:value-of select="$ls - $n"/>
-    </xsl:variable>
-    <xsl:variable name="p1">
-      <xsl:value-of select="$ls -( $n + 1)"/>
-    </xsl:variable>
-    <xsl:choose>
-      <xsl:when test="substring($pl,$p,1)=&apos;_&apos;">
-        <xsl:value-of select="substring($pl,1,$p1)"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:if test="$n&lt;10">
-          <xsl:call-template name="get_parent_level">
-            <xsl:with-param name="pl" select="$pl"/>
-            <xsl:with-param name="ls" select="$ls"/>
-            <xsl:with-param name="n" select="$n+1"/>
-          </xsl:call-template>
-        </xsl:if>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
   <!-- name of private reference - name of the proposition -->
   <xsl:template name="privname">
     <xsl:param name="nr"/>
@@ -355,91 +325,14 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- find the constant with #nr on level #pl or higher, -->
-  <!-- print @constnr "_" $pl -->
-  <xsl:template name="absconst">
-    <xsl:param name="nr"/>
-    <xsl:param name="pl"/>
-    <xsl:choose>
-      <xsl:when test="key(&quot;C&quot;,$pl)[@nr=$nr]">
-        <xsl:for-each select="key(&quot;C&quot;,$pl)[@nr = $nr]">
-          <xsl:call-template name="ppconst">
-            <xsl:with-param name="nr" select="$nr"/>
-            <xsl:with-param name="vid" select="Typ[position() = 1]/@vid"/>
-          </xsl:call-template>
-        </xsl:for-each>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:choose>
-          <xsl:when test="key(&quot;C&quot;,$pl)[@nr &lt; $nr]">
-            <xsl:for-each select="key(&quot;C&quot;,$pl)[@nr &lt; $nr]">
-              <xsl:if test="position() = last()">
-                <xsl:variable name="n1">
-                  <xsl:call-template name="getcnr">
-                    <xsl:with-param name="el" select="."/>
-                  </xsl:call-template>
-                </xsl:variable>
-                <xsl:variable name="lastnr" select="@nr + $n1 - 1"/>
-                <xsl:variable name="n2" select="@nr"/>
-                <xsl:choose>
-                  <xsl:when test="$lastnr &gt;= $nr">
-                    <xsl:call-template name="ppconst">
-                      <xsl:with-param name="nr" select="$nr"/>
-                      <xsl:with-param name="vid" select="Typ[position() = ($nr - $n2 + 1)]/@vid"/>
-                    </xsl:call-template>
-                  </xsl:when>
-                  <xsl:otherwise>
-                    <xsl:value-of select="$dbgmsg"/>
-                  </xsl:otherwise>
-                </xsl:choose>
-              </xsl:if>
-            </xsl:for-each>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:variable name="ls" select="string-length($pl)"/>
-            <xsl:choose>
-              <xsl:when test="$ls&gt;0">
-                <xsl:variable name="pl1">
-                  <xsl:call-template name="get_parent_level">
-                    <xsl:with-param name="pl" select="$pl"/>
-                    <xsl:with-param name="ls" select="$ls"/>
-                    <xsl:with-param name="n">
-                      <xsl:text>1</xsl:text>
-                    </xsl:with-param>
-                  </xsl:call-template>
-                </xsl:variable>
-                <xsl:call-template name="absconst">
-                  <xsl:with-param name="nr" select="$nr"/>
-                  <xsl:with-param name="pl" select="$pl1"/>
-                </xsl:call-template>
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:value-of select="$dbgmsg"/>
-              </xsl:otherwise>
-            </xsl:choose>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
   <!-- count local constants introduced in the current element - -->
   <!-- this asssumes Let | Given | TakeAsVar | Consider | Set | Reconsider -->
   <xsl:template name="getcnr">
     <xsl:param name="el"/>
-    <xsl:for-each select="$el">
-      <xsl:choose>
-        <xsl:when test="(name() = &quot;Reconsider&quot;)">
-          <xsl:value-of select="count(Var|LocusVar|Const|InfConst|
-		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|ErrorTrm)"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="count(Typ)"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:for-each>
+    <xsl:value-of select="count($el/Typ)"/>
   </xsl:template>
 
+  <!-- relies on addabsrefs preprocessing -->
   <xsl:template name="get_nearest_level">
     <xsl:param name="el"/>
     <xsl:for-each select="$el">
@@ -460,7 +353,7 @@
     <xsl:choose>
       <xsl:when test="not(@articlenr)">
         <xsl:choose>
-          <xsl:when test="$proof_links=0">
+          <xsl:when test="$proof_links = 0">
             <xsl:call-template name="plab">
               <xsl:with-param name="nr" select="@nr"/>
             </xsl:call-template>
@@ -554,7 +447,7 @@
   <!-- tpl [Let] { $j=`@nr`; <b { "let "; } pconst(#nr=$j); -->
   <!-- " be "; -->
   <!-- jlist(#j=$j, #sep2=" be ", #elems=`*`); -->
-  <!-- ";"; try_th_exps(#el=`.`); <br; } -->
+  <!-- ";"; try_th_exps(); <br; } -->
   <!-- #fst tells to process in a sequence of Let's -->
   <!-- #beg is the beginning of const. sequence numbers -->
   <xsl:template match="Let">
@@ -657,9 +550,7 @@
                   <xsl:with-param name="elems" select="Typ"/>
                 </xsl:call-template>
                 <xsl:text>;</xsl:text>
-                <xsl:call-template name="try_th_exps">
-                  <xsl:with-param name="el" select="."/>
-                </xsl:call-template>
+                <xsl:call-template name="try_th_exps"/>
                 <xsl:element name="br"/>
                 <xsl:apply-templates select="following-sibling::*[position()=$it_step][name()=&quot;Let&quot;]">
                   <xsl:with-param name="fst">
@@ -688,9 +579,7 @@
       <xsl:with-param name="elems" select="*"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
-    <xsl:call-template name="try_th_exps">
-      <xsl:with-param name="el" select="."/>
-    </xsl:call-template>
+    <xsl:call-template name="try_th_exps"/>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -713,9 +602,7 @@
       <xsl:with-param name="elems" select="Proposition"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
-    <xsl:call-template name="try_th_exps">
-      <xsl:with-param name="el" select="."/>
-    </xsl:call-template>
+    <xsl:call-template name="try_th_exps"/>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -725,9 +612,7 @@
     </xsl:element>
     <xsl:apply-templates/>
     <xsl:text>;</xsl:text>
-    <xsl:call-template name="try_th_exps">
-      <xsl:with-param name="el" select="."/>
-    </xsl:call-template>
+    <xsl:call-template name="try_th_exps"/>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -742,9 +627,7 @@
     <xsl:text> = </xsl:text>
     <xsl:apply-templates select="*[2]"/>
     <xsl:text>;</xsl:text>
-    <xsl:call-template name="try_th_exps">
-      <xsl:with-param name="el" select="."/>
-    </xsl:call-template>
+    <xsl:call-template name="try_th_exps"/>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -761,9 +644,7 @@
             <xsl:text>1</xsl:text>
           </xsl:with-param>
         </xsl:apply-templates>
-        <xsl:call-template name="try_th_exps">
-          <xsl:with-param name="el" select="."/>
-        </xsl:call-template>
+        <xsl:call-template name="try_th_exps"/>
         <xsl:element name="br"/>
       </xsl:when>
       <xsl:otherwise>
@@ -773,9 +654,7 @@
               <xsl:element name="b">
                 <xsl:text>hereby </xsl:text>
               </xsl:element>
-              <xsl:call-template name="try_th_exps">
-                <xsl:with-param name="el" select="."/>
-              </xsl:call-template>
+              <xsl:call-template name="try_th_exps"/>
               <xsl:apply-templates>
                 <xsl:with-param name="nkw">
                   <xsl:text>1</xsl:text>
@@ -793,9 +672,7 @@
             <xsl:choose>
               <xsl:when test="Proof">
                 <xsl:apply-templates select="Proposition"/>
-                <xsl:call-template name="try_th_exps">
-                  <xsl:with-param name="el" select="."/>
-                </xsl:call-template>
+                <xsl:call-template name="try_th_exps"/>
                 <xsl:apply-templates select="Proof"/>
               </xsl:when>
               <xsl:otherwise>
@@ -806,9 +683,7 @@
                     <xsl:text>1</xsl:text>
                   </xsl:with-param>
                 </xsl:apply-templates>
-                <xsl:call-template name="try_th_exps">
-                  <xsl:with-param name="el" select="."/>
-                </xsl:call-template>
+                <xsl:call-template name="try_th_exps"/>
                 <xsl:element name="br"/>
               </xsl:otherwise>
             </xsl:choose>
@@ -819,6 +694,17 @@
   </xsl:template>
 
   <!-- Auxiliary items -->
+  <!-- First comes the reconstructed existential statement -->
+  <!-- and its justification, then the new local constants -->
+  <!-- and zero or more propositions about them. -->
+  <!-- For easier presentation, nr optionally contains the number -->
+  <!-- of the first local constant created here. -->
+  <!--  -->
+  <!-- element Consider { -->
+  <!-- attribute nr { xsd:integer }?, -->
+  <!-- Proposition, Justification, -->
+  <!-- Typ+, Proposition* -->
+  <!-- } -->
   <xsl:template match="Consider">
     <xsl:variable name="j" select="@nr - 1"/>
     <xsl:element name="b">
@@ -846,6 +732,19 @@
     <xsl:apply-templates select="*[2]"/>
   </xsl:template>
 
+  <!-- First comes the series of target types and reconsidered terms. -->
+  <!-- For all these terms a new local variable with its target type -->
+  <!-- is created, and its equality to the corresponding term is remembered. -->
+  <!-- Finally the proposition about the typing is given and justified. -->
+  <!-- For easier presentation, atNr optionally contains the number -->
+  <!-- of the first local constant created here. -->
+  <!-- Each type may optionally have presentational info about -->
+  <!-- the variable (atVid) inside. -->
+  <!-- element elReconsider { -->
+  <!-- attribute atNr { xsd:integer }?, -->
+  <!-- (elTyp, Term)+, -->
+  <!-- elProposition, Justification -->
+  <!-- } -->
   <xsl:template match="Reconsider">
     <xsl:variable name="j" select="@nr"/>
     <xsl:element name="b">
@@ -943,10 +842,7 @@
   <xsl:template match="Thesis"/>
 
   <xsl:template name="try_th_exps">
-    <xsl:param name="el"/>
-    <xsl:for-each select="$el">
-      <xsl:apply-templates select="./following-sibling::*[1][name()=&quot;Thesis&quot;]/ThesisExpansions"/>
-    </xsl:for-each>
+    <xsl:apply-templates select="./following-sibling::*[1][name()=&quot;Thesis&quot;]/ThesisExpansions"/>
   </xsl:template>
 
   <xsl:template match="ThesisExpansions">

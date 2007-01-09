@@ -5,7 +5,7 @@
   <xsl:include href="mhtml_params.xsl"/>
   <xsl:include href="mhtml_keys.xsl"/>
 
-  <!-- $Revision: 1.2 $ -->
+  <!-- $Revision: 1.3 $ -->
   <!--  -->
   <!-- File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs -->
   <!--  -->
@@ -13,17 +13,26 @@
   <!--  -->
   <!-- License: GPL (GNU GENERAL PUBLIC LICENSE) -->
   <!-- pretty print variables and labels -->
+  <!-- ##TODO: link variables and consts to their introduction? -->
+  <!-- private - look up the name of id -->
+  <xsl:template name="get_vid_name">
+    <xsl:param name="vid"/>
+    <xsl:for-each select="document($ids, /)">
+      <xsl:for-each select="key(&apos;D_I&apos;, $vid)">
+        <xsl:value-of select="@name"/>
+      </xsl:for-each>
+    </xsl:for-each>
+  </xsl:template>
+
   <xsl:template name="pqvar">
     <xsl:param name="nr"/>
     <xsl:param name="vid"/>
     <xsl:choose>
       <xsl:when test="($print_identifiers &gt; 0) and ($vid &gt; 0)">
         <xsl:variable name="nm">
-          <xsl:for-each select="document($ids, /)">
-            <xsl:for-each select="key(&apos;D_I&apos;, $vid)">
-              <xsl:value-of select="@name"/>
-            </xsl:for-each>
-          </xsl:for-each>
+          <xsl:call-template name="get_vid_name">
+            <xsl:with-param name="vid" select="$vid"/>
+          </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
           <xsl:when test="$colored = &quot;1&quot;">
@@ -104,11 +113,9 @@
     <xsl:choose>
       <xsl:when test="($print_identifiers &gt; 0) and ($vid &gt; 0)">
         <xsl:variable name="nm">
-          <xsl:for-each select="document($ids, /)">
-            <xsl:for-each select="key(&apos;D_I&apos;, $vid)">
-              <xsl:value-of select="@name"/>
-            </xsl:for-each>
-          </xsl:for-each>
+          <xsl:call-template name="get_vid_name">
+            <xsl:with-param name="vid" select="$vid"/>
+          </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
           <xsl:when test="$colored = &quot;1&quot;">
@@ -354,7 +361,7 @@
       <xsl:call-template name="ploci">
         <xsl:with-param name="nr" select="position()"/>
       </xsl:call-template>
-      <xsl:if test="not(position()=last())">
+      <xsl:if test="not(position() = last())">
         <xsl:value-of select="$separ"/>
       </xsl:if>
     </xsl:for-each>
@@ -368,7 +375,7 @@
     <xsl:param name="elems"/>
     <xsl:for-each select="$elems">
       <xsl:apply-templates select="."/>
-      <xsl:if test="not(position()=last())">
+      <xsl:if test="not(position() = last())">
         <xsl:value-of select="$sep1"/>
         <xsl:call-template name="ploci">
           <xsl:with-param name="nr" select="$j+position()"/>

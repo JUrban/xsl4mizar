@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_print_complex.xsl"/>
 
-  <!-- $Revision: 1.2 $ -->
+  <!-- $Revision: 1.3 $ -->
   <!--  -->
   <!-- File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types -->
   <!--  -->
@@ -1136,16 +1136,26 @@
     <xsl:param name="p"/>
     <xsl:param name="i"/>
     <xsl:choose>
-      <xsl:when test="($print_identifiers &gt; 0) and ($proof_links&gt;0)">
-        <xsl:variable name="pl">
-          <xsl:call-template name="get_nearest_level">
-            <xsl:with-param name="el" select=".."/>
-          </xsl:call-template>
-        </xsl:variable>
-        <xsl:call-template name="absconst">
-          <xsl:with-param name="nr" select="@nr"/>
-          <xsl:with-param name="pl" select="$pl"/>
-        </xsl:call-template>
+      <xsl:when test="($print_identifiers &gt; 0)  and ((@vid&gt;0) or ($proof_links&gt;0))">
+        <xsl:choose>
+          <xsl:when test="@vid &gt; 0">
+            <xsl:call-template name="ppconst">
+              <xsl:with-param name="nr" select="@nr"/>
+              <xsl:with-param name="vid" select="@vid"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:variable name="pl">
+              <xsl:call-template name="get_nearest_level">
+                <xsl:with-param name="el" select=".."/>
+              </xsl:call-template>
+            </xsl:variable>
+            <xsl:call-template name="absconst">
+              <xsl:with-param name="nr" select="@nr"/>
+              <xsl:with-param name="pl" select="$pl"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
         <xsl:call-template name="pconst">
@@ -1345,6 +1355,15 @@
   </xsl:template>
 
   <!-- Types -->
+  <!-- element Typ { -->
+  <!-- attribute kind { "M" | "G" | "L" | "errortyp" }, -->
+  <!-- attribute nr { xsd:integer }?, -->
+  <!-- ( attribute absnr { xsd:integer }, -->
+  <!-- attribute aid { xsd:string } )?, -->
+  <!-- attribute pid { xsd:integer }?, -->
+  <!-- Cluster*, -->
+  <!-- Term* -->
+  <!-- } -->
   <xsl:template match="Typ">
     <xsl:param name="i"/>
     <xsl:text> </xsl:text>
@@ -1645,6 +1664,15 @@
   </xsl:template>
 
   <!-- Adjective -->
+  <!-- element Adjective { -->
+  <!-- attribute nr { xsd:integer }, -->
+  <!-- attribute value { xsd:boolean }?, -->
+  <!-- ( attribute absnr { xsd:integer }, -->
+  <!-- attribute aid { xsd:string } )?, -->
+  <!-- attribute kind { "V" }?, -->
+  <!-- attribute pid { xsd:integer }?, -->
+  <!-- Term* -->
+  <!-- } -->
   <xsl:template match="Adjective">
     <xsl:param name="i"/>
     <xsl:variable name="pi">
@@ -1709,6 +1737,7 @@
           <xsl:with-param name="pid" select="$pid"/>
         </xsl:call-template>
       </xsl:with-param>
+      <xsl:with-param name="pid" select="$pid"/>
     </xsl:call-template>
   </xsl:template>
 </xsl:stylesheet>
