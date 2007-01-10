@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.5 $
+// $Revision: 1.6 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -385,54 +385,50 @@ tpl [Fraenkel](#p,#i) {
 //    Cluster*,
 //    Term*
 //  }
-tpl [Typ](#i) { 
+tpl [Typ](#i) 
+{ 
    " ";
    if [count(*)>0] { apply[*[1]](#i = $i); }
-   if [(@kind="M") or (@kind="G") or (@kind="L")] { 
-      $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
+   if [(@kind="M") or (@kind="G") or (@kind="L")] 
+   { 
+      $pi     = { patt_info(#k = `@kind`, #nr = `@nr`, #pid = `@pid`); }
 //DEBUG ":"; `@pid`; ":"; $pi; ":";
-      $fnr = car(#l=$pi);
-      $expand = cadr(#l=$pi);
-      $plink = third(#l=$pi);
-      $k1= { if [@kind="M"] { "M"; } else { "L";} }
-      if [($expand="0") or not(@pid)] {
-        pp(#k=$k1,#nr=`@nr`,#args=`*[not(name()="Cluster")]`,#pid=`@pid`,#i=$i);}
-//	 abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr)); 
-//         if [count(*)>2] { " of "; list(#separ=",", 
-//				   #elems=`*[position()>$cluster_nr]`); } }
-      else {
-//      abs(#k=$k1, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr));
-      $sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr);
-      $vis= cdddr(#l=$pi); $el =`.`;  //DEBUG ":"; `@pid`; ":"; $pi; ":";
-      $pid=`@pid`;
-//      apply[$el/*];
-//      if [not(@pid)] 
-       if [key('EXP',$pid)] { 
-        for-each [key('EXP',$pid)] {
+      $fnr    = car(#l = $pi);
+      $expand = cadr(#l = $pi);
+      $plink  = third(#l = $pi);
+      $k1     = { if [@kind = "M"] { "M"; } else { "L";} }
 
-	$alc=lc(#s=`@aid`);
-      <a { @href=`concat($alc, ".", $ext, "#","NM",@nr)`; 
-       if [$titles="1"] { @title=`concat(@aid,":","NM",".",@nr)`; }
-       if [$sym] { $sym; }
-       else { if [$relnames>0] { `@kind`; `@relnr`; }
-         else { `@kind`; `@nr`; "_"; `@aid`;  } } }
+      if [($expand="0") or not(@pid)] 
+      {
+         pp(#k = $k1, #nr = `@nr`, #args = `*[not(name()="Cluster")]`,
+            #pid = `@pid`, #i = $i);
+      }
+      else 
+      {
+         $sym = abs1(#k = `@kind`, #nr = `@nr`, #fnr = $fnr);
+	 $vis = cdddr(#l = $pi); 
+	 $el  = `.`;  //DEBUG ":"; `@pid`; ":"; $pi; ":";
+	 $pid = `@pid`;
+	 $doc = { if [key('EXP',$pid)] { ""; } else { $patts; } }
+	 $c1  = { if [($doc = "") and ($mml = "0")] { "1"; } else { "0"; } }
 
-      if [not($vis="")] { " of ";
-	  descent_many_vis(#patt=`Expansion/Typ`,#fix=$el,#vis=`Visible/Int`, #i = $i); }}}
-     else { for-each [document($patts,/)] {
-       if [key('EXP',$pid)] { 
-        for-each [key('EXP',$pid)] {
-	$alc=lc(#s=`@aid`);
-      <a { @href=`concat($alc, ".", $ext, "#","NM",@nr)`; 
-       if [$titles="1"] { @title=`concat(@aid,":","NM",".",@nr)`; }
-       if [$sym] { $sym; }
-       else { if [$relnames>0] { `@kind`; `@relnr`; }
-         else { `@kind`; `@nr`; "_"; `@aid`;  } } }
-
-      if [not($vis="")] { " of ";
-	     descent_many_vis(#patt=`Expansion/Typ`,#fix=$el,#vis=`Visible/Int`, #i = $i); 
-}}}}}}}
-     else { `@kind`; }}
+	 for-each [document($doc,/)] 
+	 { 
+	    absref(#elems = `key('EXP',$pid)`, #c = $c1, #sym = $sym, #pid = $pid);
+	    if [not($vis = "")] 
+	    { 
+	       " of ";
+	       for-each [key('EXP',$pid)] 
+	       {
+	          descent_many_vis(#patt = `Expansion/Typ`, #fix = $el, 
+			           #vis = `Visible/Int`, #i = $i); 
+               }
+            }
+         }
+      }
+   }
+   else { `@kind`; }
+}
 
 // gets two Typ, and list of Visible/Int;
 // tries to find and print the terms in #fix corresponding
@@ -473,8 +469,22 @@ tpl descent_many(#patts,#fixs,#lnr,#nr,#i) { if [$nr > 0] {
 
 // Clusters
 // only attributes with pid are now printed, others are results of 
-// cluster mechanisms
-tpl [Cluster](#i) { list(#separ=" ", #elems=`*[@pid]`); " "; }
+// cluster mechanisms - this holds in the current article 
+// (.xml file) only, environmental files do not have the @pid 
+// info (yet), so we print everything for them
+tpl [Cluster](#i) 
+{ 
+   if [$print_all_attrs = 1]
+   {
+      list(#separ=" ", #elems=`*`);
+   }
+   else
+   {
+      list(#separ=" ", #elems=`*[@pid]`);
+   }
+
+   " "; 
+}
 
 // Adjective
 //  element Adjective {
