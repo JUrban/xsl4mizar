@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.4 $
+// $Revision: 1.5 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -692,6 +692,58 @@ pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
 pp(#k=`@constrkind`,#nr=`@constrnr`,
 #pid=`@redefnr`, #loci=$loci); ";"; <br;
 
+}
+
+// ignore forgetful functors - unhandled yet
+tpl [Notations/Pattern] {
+// pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
+// #fnr=`@formatnr`, #loci="1"); <br;
+   if [not(@kind = "J")]
+   {
+      apply[ArgTypes];
+
+      if[Expansion]
+      {
+
+	     $alc=lc(#s=`@aid`);
+	     <b { "mode ";}  
+
+	     <a 
+	     { 
+	        @href=`concat($alc, ".", $ext, "#","NM",@nr)`; 
+		if [$titles="1"] { @title=`concat(@aid,":","NM",".",@nr)`; }
+		abs1(#k = "M", #fnr = `@formatnr`);
+	     }
+
+	     if [Visible/Int] 
+	     { 
+	        " of "; 
+		for-each [Visible/Int] 
+		{ 
+		   ploci(#nr=`@x`); 
+		   if [not(position()=last())] { ","; } 
+                }
+             }
+
+	     <b { " is "; } 
+          
+ 
+	  apply[Expansion/Typ]; ";"; 
+	  <br; 
+      }
+      else 
+      {
+         $loci = { if [$mml="1"] { "1"; } else { "2"; }}
+	 <b { mkind(#kind=`@kind`); }  " ";
+	 pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
+	     #fnr=`@formatnr`, #loci=$loci); 
+
+	 <br;
+
+      }
+
+      <br;
+}
 }
 
 // ignore normal Patterns now
