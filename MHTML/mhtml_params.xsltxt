@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.3 $
+// $Revision: 1.4 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -147,6 +147,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 #labcolor = { "Green"; }
 
 #commentcolor = { "Red"; }
+
+// use spans for brackets
+#parenspans = { "1"; }
 
 // number of parenthesis colors (see the stylesheet in the bottom)
 #pcolors_nr = { "6"; }
