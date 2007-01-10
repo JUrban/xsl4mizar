@@ -5,7 +5,7 @@ output method=html;
 include mhtml_utils.xsl;
 
 
-// $Revision: 1.6 $
+// $Revision: 1.7 $
 //
 // File: print_complex.xsltxt - html-ization of Mizar XML, more complex printing stuff
 //
@@ -89,7 +89,7 @@ tpl absref(#elems, #c, #sym, #pid)
 	 { 
             @href=`concat($alc, ".", $ext, "#", $n, @kind, @nr)`; 
 	    // this is probably needed if $mml = 1
-	    if [$c = "1"] { @target="_self"; } 
+	    if [($c = "1") and not($linking = "s")] { @target="_self"; } 
          }
 
 	 if [$titles="1"] 
