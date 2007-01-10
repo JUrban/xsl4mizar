@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -21,12 +21,27 @@ output method=html;
 // linking methods:
 // "q" - query, everything is linked to mmlquery
 // "s" - self, everything is linked to these xml/html files
-// "m" - mizaring, current article's constructs are linked to self,
+// "m" - mizaring and mmlquery, current article's constructs are linked to self,
 //       the rest is linked to mmlquery
+// "l" - local mizaring, current article's constructs are linked to self,
+//       the rest to $MIZFILES/html
 #linking = { "s"; }
 
-// extension for linking - either xml or html
+// extension for linking to other articles - either xml or html
 #ext = { "html"; }
+
+// extension for linking to other articles - either xml or html
+#selfext = 
+{ 
+   choose 
+   { 
+      when [$linking = "l"] { "xml";  }
+      when [$linking = "s"] { $ext;   }
+      when [$linking = "m"] { "xml";  }
+      when [$linking = "q"] { "html"; }
+   }
+}
+
 
 // put titles to links or not
 #titles = { "0"; }
