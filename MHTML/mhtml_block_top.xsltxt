@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.5 $
+// $Revision: 1.6 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -705,15 +705,18 @@ tpl [Notations/Pattern] {
       if[Expansion]
       {
 
-	     $alc=lc(#s=`@aid`);
+//	     $alc = lc(#s=`@aid`);
+	     $sym = abs1(#k = "M", #fnr = `@formatnr`);
 	     <b { "mode ";}  
 
-	     <a 
-	     { 
-	        @href=`concat($alc, ".", $ext, "#","NM",@nr)`; 
-		if [$titles="1"] { @title=`concat(@aid,":","NM",".",@nr)`; }
-		abs1(#k = "M", #fnr = `@formatnr`);
-	     }
+	     absref(#elems = `.`, #c = "0", #sym = $sym, #pid = `@relnr`);
+
+// 	     <a 
+// 	     { 
+// 	        @href=`concat($alc, ".", $ext, "#","NM",@nr)`; 
+// 		if [$titles="1"] { @title=`concat(@aid,":","NM",".",@nr)`; }
+// 		abs1(#k = "M", #fnr = `@formatnr`);
+// 	     }
 
 	     if [Visible/Int] 
 	     { 
