@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.6 $
+// $Revision: 1.7 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -60,15 +60,29 @@ tpl [IterStep/From] { <b { "from "; }
 
 
 // ##REQUIRE: the following two can be called only if $proof_links>0
-tpl top_propname(#el) { for-each [$el/..] {
-    if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] {
-       $k= { if [@kind='D'] { "Def"; } else { "Th"; }}
-       mkref(#aid=$aname,#nr=`@nr`,#k=`@kind`,#c="1",#nm=`concat($k,@nr)`);
-    }
-    else { $k1 = `concat($el/@nr,":")`;
-           $k2 = `key("E",$k1)/@propnr`;
-	   <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#","E",$k2)`;  
-		plab1(#nr=`$el/@nr`,#txt="Lemma"); }}}}
+tpl top_propname(#el) 
+{ 
+   for-each [$el/..] 
+   {
+      if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] 
+      {
+         $k = { if [@kind='D'] { "Def"; } else { "Th"; } }
+	 mkref(#aid = $aname, #nr = `@nr`, #k = `@kind`, 
+	       #c = "1", #nm = `concat($k,@nr)`);
+      }
+      else 
+      { 
+         $k1 = `concat($el/@nr,":")`;
+	 $k2 = `key("E",$k1)/@propnr`;
+	 <a 
+	 { 
+	    @class = "txt"; 
+	    @href  = `concat($anamelc, ".", $ext, "#","E",$k2)`;  
+	    plab1(#nr = `$el/@nr`, #txt = "Lemma"); 
+         }
+      }
+   }
+}
 
 
 // name of private reference - name of the proposition
