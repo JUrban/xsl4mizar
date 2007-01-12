@@ -5,7 +5,7 @@ output method=html;
 include mhtml_params.xsl;
 include mhtml_keys.xsl;
 
-// $Revision: 1.3 $
+// $Revision: 1.4 $
 //
 // File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs
 //
@@ -110,6 +110,28 @@ tpl pppred(#nr) {  if [$colored="1"] { <font { @color=$ppcolor;
 
 tpl ppfunc(#nr) {  if [$colored="1"] { <font { @color=$pfcolor; 
     "H"; <sub { $nr;} } } else { "H"; <sub { $nr;} } }
+
+
+tpl pplab(#nr, #vid)
+{ 
+    if [($print_lab_identifiers > 0) and ($vid > 0)]
+    {
+
+       $nm = { get_vid_name(#vid = $vid); }
+
+       if [$colored = "1"] 
+       { 
+	  <font 
+	  { 
+	     @color = $labcolor; 
+	     if [$titles="1"] { @title=`concat("E",$nr)`; } 
+	     $nm; 
+          } 
+       }
+       else { $nm;}
+    }
+    else { plab(#nr = $nr); }
+}
 
 tpl plab(#nr) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
     "E"; $nr;} }  else { "E"; $nr;} } }
