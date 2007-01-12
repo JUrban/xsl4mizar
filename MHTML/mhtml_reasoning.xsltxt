@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.7 $
+// $Revision: 1.8 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -21,7 +21,7 @@ tpl [Proposition] {
               or (name(..) = "Conclusion"))] { <b { "then "; } }}
     if [@nr>0] { if [($proof_links>0) and not(string-length(@plevel)>0)] { 
 		    plab1(#nr=`@nr`,#txt="Lemma"); } 
-                 else { plab(#nr=`@nr`);} ": ";}
+                 else { pplab(#nr=`@nr`, #vid = `@vid`);} ": ";}
     if [($generate_items>0) and not(string-length(@plevel)>0)] 
        { pcomment(#str=`concat($aname, ":lemma ", @propnr)`);
          apply; " ";
@@ -39,14 +39,17 @@ tpl linkbyif(#line,#col,#by) {
        <a { @href=$byurl; @class="txt"; @target="byATP"; <b { $by; " "; } }}
     else { <b { $by; " "; } }}
   
-tpl [By	](#nbr) { if [(count(*)>0)] { 
+tpl [By	](#nbr) 
+{ if [(count(*)>0)] { 
        linkbyif(#line=`@line`,#col=`@col`,#by="by");
        <i { list(#separ=", ", #elems=`*`); } ";"; }
     else { 
 	 if [$linkby>0] {  linkbyif(#line=`@line`,#col=`@col`,#by=";"); }
          else { ";"; }
     }
-    if [not($nbr="1")] { <br;  } }
+    if [not($nbr="1")] { <br;  } 
+}
+
 tpl [IterStep/By] { if [(count(*)>0)] { 
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
       <i { list(#separ=", ", #elems=`*`); } }}
@@ -88,11 +91,23 @@ tpl top_propname(#el)
 // name of private reference - name of the proposition
 tpl privname(#nr,#pl) {
       $k1 = `concat($nr,":",$pl)`;
-      if [key("E",$k1)] { 
-	 if [not(string-length($pl)>0)] { top_propname(#el=`key("E",$k1)`); }
-	 else { 
-	      $txt= { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
-	      <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#",$txt)`; plab(#nr=`@nr`); } } }
+      if [key("E",$k1)] 
+      { 
+	 for-each [key("E",$k1)] 
+	 {
+	    if [not(string-length($pl)>0)] { top_propname(#el = `.`); }
+	    else 
+	    { 
+	      $txt= { propname(#n = `@propnr`, #pl = $pl); } 
+	      <a 
+	      { 
+	         @class = "txt"; 
+		 @href  = `concat($anamelc, ".", $ext, "#",$txt)`;
+		 pplab(#nr=`@nr`, #vid = `@vid`); 
+              } 
+            }
+         } 
+      }
       else { 
 	   $ls = `string-length($pl)`;
 	   if [$ls>0] { 
@@ -130,7 +145,13 @@ tpl [Ref]
    {  
       if [$proof_links = 0] 
       { 
-         plab(#nr = `@nr`); 
+         // experimental!!
+	 $n1 = `@nr`;
+//	 for-each [preceding::*[((name()="Proposition") or (name()="Now") or (name()="IterEquality")) and (@nr=$n1)][1]]
+//       this seems to be reasonably fast 
+	 for-each [(preceding::Proposition[@nr=$n1]|preceding::Now[@nr=$n1]|preceding::IterEquality[@nr=$n1])[last()]]
+         { pplab(#nr = `@nr`, #vid=`@vid`); }
+//         plab(#nr = `@nr`); 
       }
       else 
       { 
