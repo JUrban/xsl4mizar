@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.4 $
+// $Revision: 1.5 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -52,6 +52,11 @@ output method=html;
 
 // print identifiers (like in JFM) instead of normalized names
 $print_identifiers = { "1"; }
+
+// print label identifiers  instead of normalized names
+// this is kept separate from $print_identifiers, because
+// it should be turned off for item generating
+$print_lab_identifiers = { "1"; }
 
 
 // tells whether relative or absolute names are shown
