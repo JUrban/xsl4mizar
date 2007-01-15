@@ -5,7 +5,7 @@ output method=html;
 include mhtml_params.xsl;
 include mhtml_keys.xsl;
 
-// $Revision: 1.4 $
+// $Revision: 1.5 $
 //
 // File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs
 //
@@ -119,25 +119,40 @@ tpl pplab(#nr, #vid)
 
        $nm = { get_vid_name(#vid = $vid); }
 
-       if [$colored = "1"] 
-       { 
-	  <font 
+       <i
+       {
+          if [$colored = "1"] 
 	  { 
-	     @color = $labcolor; 
-	     if [$titles="1"] { @title=`concat("E",$nr)`; } 
-	     $nm; 
-          } 
+	     <font 
+	     { 
+	        @color = $labcolor; 
+	        if [$titles="1"] { @title=`concat("E",$nr)`; } 
+	        $nm; 
+             } 
+          }
+	  else { $nm;}
        }
-       else { $nm;}
     }
     else { plab(#nr = $nr); }
 }
 
-tpl plab(#nr) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
-    "E"; $nr;} }  else { "E"; $nr;} } }
+tpl plab(#nr) 
+{ 
+   <i 
+   {  
+      if [$colored="1"] { <font { @color=$labcolor; "E"; $nr;} }  
+      else { "E"; $nr;} 
+   } 
+}
 
-tpl plab1(#nr,#txt) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
-    $txt; $nr;} }  else { $txt; $nr;} } }
+tpl plab1(#nr,#txt) 
+{ 
+   <i 
+   {  
+      if [$colored="1"] { <font { @color=$labcolor; $txt; $nr;} }  
+      else { $txt; $nr;} 
+   } 
+}
 
 tpl pcomment0(#str) { <i { if [$colored="1"] {
 <font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}
