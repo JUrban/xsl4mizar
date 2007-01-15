@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.8 $
+// $Revision: 1.9 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -31,23 +31,42 @@ tpl [Proposition] {
     else { apply; " ";} }
 
 // Justifications
-tpl linkbyif(#line,#col,#by) { 
-    if [$linkby>0] { 
-       $byurl = { choose { 
-	      when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
-	      when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } } }
-       <a { @href=$byurl; @class="txt"; @target="byATP"; <b { $by; " "; } }}
-    else { <b { $by; " "; } }}
-  
-tpl [By	](#nbr) 
-{ if [(count(*)>0)] { 
-       linkbyif(#line=`@line`,#col=`@col`,#by="by");
-       <i { list(#separ=", ", #elems=`*`); } ";"; }
-    else { 
-	 if [$linkby>0] {  linkbyif(#line=`@line`,#col=`@col`,#by=";"); }
-         else { ";"; }
+tpl linkbyif(#line,#col,#by) 
+{ 
+   if [$linkby>0] 
+   { 
+      $byurl = 
+      { 
+         choose 
+	 { 
+	    when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
+	    when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } 
+	 } 
+      }
+
+      <a { @href=$byurl; @class="txt"; @target="byATP"; <b { $by; " "; } }
     }
-    if [not($nbr="1")] { <br;  } 
+    else { <b { $by; " "; } }
+}
+
+// if #nbr=1 then no <br; is put in the end 
+// (used e.g. for conclusions, where definitional 
+//  expansions are handled on the same line)
+tpl [By	](#nbr) 
+{ 
+   if [(count(*)>0)] 
+   { 
+      linkbyif(#line = `@line`, #col = `@col`,#by = "by");
+      <i { list(#separ = ", ", #elems = `*`); } 
+      ";"; 
+   }
+   else 
+   { 
+      if [$linkby>0] {  linkbyif(#line = `@line`, #col = `@col`,#by = ";"); }
+      else { ";"; }
+   }
+
+   if [not($nbr = "1")] { <br;  }
 }
 
 tpl [IterStep/By] { if [(count(*)>0)] { 
@@ -70,18 +89,29 @@ tpl top_propname(#el)
       if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] 
       {
          $k = { if [@kind='D'] { "Def"; } else { "Th"; } }
-	 mkref(#aid = $aname, #nr = `@nr`, #k = `@kind`, 
-	       #c = "1", #nm = `concat($k,@nr)`);
+
+         $nm = 
+	 { 
+	    if [($print_lab_identifiers > 0) and ($el/@vid > 0)] { get_vid_name(#vid = `$el/$vid`); }
+	    else { `concat($k,@nr)`; }
+         }
+
+	 mkref(#aid = $aname, #nr = `@nr`, #k = `@kind`, #c = "1", #nm = $nm);
       }
       else 
       { 
          $k1 = `concat($el/@nr,":")`;
 	 $k2 = `key("E",$k1)/@propnr`;
+
 	 <a 
 	 { 
 	    @class = "txt"; 
 	    @href  = `concat($anamelc, ".", $ext, "#","E",$k2)`;  
-	    plab1(#nr = `$el/@nr`, #txt = "Lemma"); 
+	    if [($print_lab_identifiers > 0) and ($vid > 0)] 
+	    { 
+	       pplab(#nr = `$el/@nr`, #vid = `$el/@vid`);  
+            }
+	    else { plab1(#nr = `$el/@nr`, #txt = "Lemma"); }
          }
       }
    }
@@ -251,22 +281,49 @@ tpl [TakeAsVar]
    <b { "take "; } ppconst(#nr=`@nr`, #vid = `Typ[1]/@vid`); " = ";   apply[*[2]]; 
 		  ";"; try_th_exps(); <br; 
 }
+
 tpl [Conclusion] 
 { 
-   if [(By[@linked="true"]) or 
-		   (IterEquality/IterStep[1]/By[@linked="true"])] 
-		   { <b { "hence "; } apply[*[not(name()="By")]]; 
-		     apply[By](#nbr="1"); try_th_exps(); <br; }
-		else { if [Now] {  
-		     <div { <b {  "hereby "; } try_th_exps();
-		     apply(#nkw="1");  <b { "end;"; } } }
-		else { <b { "thus "; } 
-		     if [Proof] { apply[Proposition]; try_th_exps();
-				  apply[Proof]; }
-		     else { apply[Proposition]; 
-			    apply[ IterEquality|By|From|ErrorInf
-				   |SkippedProof](#nbr="1");
-			    try_th_exps(); <br; } } }
+   if [(By[@linked = "true"]) or 
+       (IterEquality/IterStep[1]/By[@linked = "true"])] 
+   { 
+      <b { "hence "; } 
+      apply[*[not(name() = "By")]]; 
+      apply[By](#nbr = "1"); 
+      try_th_exps(); 
+      <br; 
+   }
+   else 
+   { 
+      if [Now] 
+      {  
+         <div 
+	 { 
+	    <b {  "hereby "; } 
+	    try_th_exps();
+	    apply(#nkw = "1");  
+	    <b { "end;"; } 
+	 } 
+      }
+      else 
+      { 
+         <b { "thus "; } 
+
+	 if [Proof] 
+	 { 
+	    apply[Proposition]; 
+	    try_th_exps();
+	    apply[Proof]; 
+	 }
+	 else 
+	 { 
+	    apply[Proposition]; 
+	    apply[ IterEquality|By|From|ErrorInf|SkippedProof](#nbr = "1");
+	    try_th_exps(); 
+	    <br; 
+	 } 
+      } 
+   }
 }
 // Auxiliary items
 
