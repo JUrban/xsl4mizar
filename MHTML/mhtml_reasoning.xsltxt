@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.9 $
+// $Revision: 1.10 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -14,21 +14,44 @@ include mhtml_frmtrm.xsl;
 
 
 
-tpl [Proposition] { 
+tpl [Proposition] 
+{ 
     if [$proof_links>0] {<a { @NAME=propname(#n=`@propnr`, #pl=`@plevel`); }}
-    if [following-sibling::*[1][(name()="By") and (@linked="true")]] { 
-      if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
-              or (name(..) = "Conclusion"))] { <b { "then "; } }}
-    if [@nr>0] { if [($proof_links>0) and not(string-length(@plevel)>0)] { 
-		    plab1(#nr=`@nr`,#txt="Lemma"); } 
-                 else { pplab(#nr=`@nr`, #vid = `@vid`);} ": ";}
+
+    if [following-sibling::*[1][(name()="By") and (@linked="true")]] 
+    { 
+       if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
+           or (name(..) = "Conclusion"))] 
+       { 
+          <b { "then "; } 
+       }
+    }
+
+    if [@nr>0] 
+    { 
+       if [($proof_links>0) and ($print_lab_identifiers = 0) 
+            and not(string-length(@plevel)>0)]
+       { 
+	  plab1(#nr=`@nr`,#txt="Lemma"); 
+       }
+       else { pplab(#nr=`@nr`, #vid = `@vid`); }
+
+       ": ";
+    }
+
+    // ###TODO: include the possible link when generating items
     if [($generate_items>0) and not(string-length(@plevel)>0)] 
-       { pcomment(#str=`concat($aname, ":lemma ", @propnr)`);
-         apply; " ";
-	 if [following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")]] { 	 
-	 apply[`following-sibling::*[1]`]; }
-	}
-    else { apply; " ";} }
+    { 
+       pcomment(#str = `concat($aname, ":lemma ", @propnr)`);
+       apply; " ";
+
+       if [following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")]] 
+       { 	 
+	  apply[`following-sibling::*[1]`]; 
+       }
+    }
+    else { apply; " ";} 
+}
 
 // Justifications
 tpl linkbyif(#line,#col,#by) 
@@ -92,7 +115,7 @@ tpl top_propname(#el)
 
          $nm = 
 	 { 
-	    if [($print_lab_identifiers > 0) and ($el/@vid > 0)] { get_vid_name(#vid = `$el/$vid`); }
+	    if [($print_lab_identifiers > 0) and ($el/@vid > 0)] { get_vid_name(#vid = `$el/@vid`); }
 	    else { `concat($k,@nr)`; }
          }
 
@@ -202,11 +225,22 @@ tpl [SkippedProof](#nbr) { <b { "@proof .. end;"; }
 tpl [IterStep/SkippedProof] { <b { "@proof .. end;"; } }
 
 //   Term, elIterStep+
-tpl [IterEquality](#nbr) { if [IterStep[1]/By[@linked="true"]] {
-    if [not(name(..)="Conclusion")] { <b { "then ";}}}
-   if [@nr>0] {  plab(#nr=`@nr`); ": ";}
+tpl [IterEquality](#nbr) 
+{ 
+   if [IterStep[1]/By[@linked="true"]] 
+   {
+      if [not(name(..)="Conclusion")] { <b { "then ";}}
+   }
+
+   if [@nr>0] {  pplab(#nr = `@nr`, #vid = `@vid`); ": ";}
+
    apply[*[1]]; " = ";
-   nlist(#separ=".= ", #elems=`IterStep`); ";"; if [not($nbr="1")] { <br;  } }
+   nlist(#separ=".= ", #elems=`IterStep`); ";"; 
+
+   if [not($nbr="1")] { <br;  } 
+
+}
+
 tpl [IterStep] { apply;  }
 
 // Skeleton steps
