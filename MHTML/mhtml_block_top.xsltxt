@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.6 $
+// $Revision: 1.7 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -101,13 +101,13 @@ tpl jt
 
     <b { "theorem "; } 
 
-    if [$proof_links>0] 
+    if [($proof_links > 0) and ($print_lab_identifiers = 0)]
     { 
        plab1(#nr=$nr1,#txt="Th"); ": "; 
-    } 
+    }
     else 
     { 
-       for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; }
+       for-each [Proposition[@nr > 0]] { pplab(#nr=`@nr`, #vid=`@vid`); ": "; }
     }
 
     <a 
@@ -160,13 +160,13 @@ tpl dt
 
   ":: "; <b { "deftheorem "; }
 
-  if [$proof_links>0] 
+  if [($proof_links > 0) and ($print_lab_identifiers = 0)]
   { 
      plab1(#nr = $nr1, #txt = "Def"); 
   } 
   else 
   { 
-     for-each [Proposition[@nr > 0]] { plab(#nr = `@nr`); }
+     for-each [Proposition[@nr > 0]] { pplab(#nr = `@nr`, #vid = `@vid`); }
   } 
 
   " ";
@@ -358,6 +358,7 @@ tpl dfs()
     if [@nr] 
     {  
        $nr1   = `@nr`;
+       $vid   = `@vid`;
        $cnt1  = `1 + count(preceding-sibling::Definition[@nr])`;
        $cnstr = `count(Constructor)`;
 
@@ -405,13 +406,13 @@ tpl dfs()
 	  { 
 	     ":"; 
 
-	     if [$proof_links > 0] 
+	     if [($proof_links > 0) and ($print_lab_identifiers = 0)]
 	     { 
 	        plab1(#nr = `@defnr`, #txt = "Def");
 	     } 
 	     else 
 	     { 
-	        plab(#nr = $nr1); 
+	        pplab(#nr = $nr1, #vid = $vid); 
 	     }
 
 	     ": ";
@@ -573,14 +574,15 @@ tpl [Proof] {
 
 
 //   Reasoning, elBlockThesis 
-// #nkw tells not to print the keword (used if hereby was printed above)
+// #nkw tells not to print the keyword (used if hereby was printed above)
+// ###TODO: fix for generating items (see Proposition)
 tpl [Now](#nkw) 
 {
     if [not($nkw="1")] 
     { 
        <div 
        { 
-          if [@nr>0] { plab(#nr=`@nr`); ": ";}
+          if [@nr>0] { pplab(#nr=`@nr`, #vid=`@vid`); ": ";}
 
 	  <a 
 	  { 
