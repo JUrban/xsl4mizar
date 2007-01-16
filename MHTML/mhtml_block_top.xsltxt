@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.7 $
+// $Revision: 1.8 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -340,6 +340,7 @@ tpl [Definition]
 tpl dfs() 
 {
     $nl = { if [@nr] { "0"; } else { "1"; }}
+    $argtypes = `../Let/Typ`;
 // Constructor may be missing, if this is a redefinition
 // that does not change its types. In that case, the Constructor needs
 // to be retrieved from the Definiens - see below.
@@ -349,7 +350,7 @@ tpl dfs()
         // for generate_items, we have to take loci from the constructor here
        $indef1 = { if [($generate_items > 0)] { "0"; } else { "1"; } }
 
-       apply[Constructor](#indef = $indef1, #nl = $nl);
+       apply[Constructor](#indef = $indef1, #nl = $nl, #argt = $argtypes);
     } 
 
 // @nr is present iff Definiens is present; it can be 0 if
@@ -366,7 +367,6 @@ tpl dfs()
        { 
 	  // Definiens is better than Constructor for loci display,
 	  // since Constructor may be missing for redefinitions.
-	  // ##TODO: #vid for Definiens in analyzer.pas
           for-each [../following-sibling::Definiens[position() = $cnt1]] 
 	  {
 	     if [Typ] 
@@ -380,7 +380,7 @@ tpl dfs()
           }
        }
 
-       apply[Constructor](#indef = "1", #nl = $nl);
+       apply[Constructor](#indef = "1", #nl = $nl, #argt = $argtypes);
 
        for-each [../following-sibling::Definiens[position() = $cnt1]] 
        {
@@ -396,7 +396,7 @@ tpl dfs()
 
 	     for-each [document($doc, /)] 
 	     { 
-	        apply[key($ckind, $cnr)](#indef = "1", #nl = $nl); 
+	        apply[key($ckind, $cnr)](#indef = "1", #nl = $nl, #argt = $argtypes); 
 	     } 
           }
 
@@ -424,6 +424,8 @@ tpl dfs()
 	     pcomment(#str = `concat($aname, ":def ", @defnr)`); 
 	  }
 
+         // note that loci below can be translated to constants and identifiers
+         // - see definition of LocusVar
 	 for-each [DefMeaning/PartialDef] 
 	 { 
 	    apply[*[1]]; 
@@ -653,32 +655,67 @@ tpl [ArgTypes]
 }
 
 // #indef tells not to use Argtypes (we are inside Definition)
-tpl [Constructor](#indef,#nl) { 
+// note that this can also be used for displaying 
+// environmental constructors, or constructor retrieved from other file
+// #argt is explicit list of argument types, useful for
+// getting the @vid (identifier numbers) of loci
+tpl [Constructor](#indef,#nl,#argt) 
+{ 
     $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
+
     if [not($indef="1")] { apply[ArgTypes]; }
+
     if [@redefnr>0] { <b { "redefine "; } }
-    <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
-    if [@redefnr>0] { 
+
+    <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; }
+ 
+    if [@redefnr>0] 
+    { 
          abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
-         " as "; }
-    if [@kind="G"] { 
+         " as "; 
+    }
+
+    if [@kind="G"] 
+    { 
        abs(#k=`@kind`,#nr=`@relnr`,#sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
        "(# "; 
-       for-each [Fields/Field] { 
-		   abs(#k="U",#nr=`@nr`,#sym=abs1(#k="U", #nr=`@nr`)); 
-		   if [not(position()=last())] { ", "; } }
-       " #)"; }
-    else { if [@kind='V'] {
-	   ploci(#nr=`count(ArgTypes/Typ)`); " is ";  
-	  abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); }
-    else { pp(#k=`@kind`,#nr=`@relnr`,#args=`ArgTypes/Typ`, #loci=$loci); }
-// "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
-}
+
+       for-each [Fields/Field] 
+       { 
+          abs(#k="U",#nr=`@nr`,#sym=abs1(#k="U", #nr=`@nr`)); 
+	  if [not(position()=last())] { ", "; } 
+       }
+
+       " #)"; 
+    }
+    else 
+    { 
+       if [@kind='V'] 
+       {
+          $nr1 = `count(ArgTypes/Typ)`;
+          if [$loci = 1] { ploci(#nr = $nr1); }
+	  else { ppconst(#nr = $nr1, #vid = `$argt[position() = $nr1]/@vid`); }
+	  " is ";  
+	  abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
+       }
+       else { pp(#k=`@kind`,#nr=`@relnr`, #args = $argt, #loci=$loci); }
+       // "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
+    }
+
     if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
-        or (@kind= 'U') or (@kind= 'L')] { <b {" -> ";}
-	   list(#separ=",",#elems=`Typ`); } 
-      if [not($indef="1")]  {  ";"; <br;  <br; }
-      else { if [$nl="1"] { ";"; <br;} }
+        or (@kind= 'U') or (@kind= 'L')] 
+    { 
+       <b {" -> ";}
+       // note that loci in Typs here can be translated to constants and identifiers
+       // - see definition of LocusVar
+       list(#separ=",",#elems=`Typ`); 
+    }
+ 
+    if [not($indef="1")]  
+    {  
+       ";"; <br;  <br; 
+    }
+    else { if [$nl="1"] { ";"; <br;} }
 }
 
 // display synonym and antonym definiiotns
