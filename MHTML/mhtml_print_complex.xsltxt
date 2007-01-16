@@ -5,7 +5,7 @@ output method=html;
 include mhtml_utils.xsl;
 
 
-// $Revision: 1.9 $
+// $Revision: 1.10 $
 //
 // File: print_complex.xsltxt - html-ization of Mizar XML, more complex printing stuff
 //
@@ -214,7 +214,7 @@ tpl pp(#k, #nr, #args, #parenth, #pid, #loci, #i)
 
 
 
-// it is legal to pass onlt #loci instead of #args here
+// it is legal to pass only #loci instead of #args here
 // #pid is passed to abs, causes linking to patterns
 // #i is the bound var nbr
 tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i) 
@@ -285,7 +285,14 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
       if [position() <= $la] 
       {
 	$x=`@x`;
-	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
+	if [$loci>0] 
+	{ 
+	   if [$loci="2"] 
+	   { 
+	      ppconst(#nr=$x,#vid=`$args[position()=$x]/@vid`); 
+	   } 
+	   else { ploci(#nr=$x); }
+        }
 	else { apply[$args[position() = $x]](#p=$np,#i=$i); }
 	if [position() < $la] { ",";} 
       } 
@@ -303,10 +310,18 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
    for-each [$vis] 
    { 
       if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
-      if [position() > $la] {
+      if [position() > $la] 
+      {
 	$x=`@x`;
-	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
-     else { apply[$args[position()  = $x]](#p=$np,#i=$i); }
+	if [$loci>0] 
+	{ 
+	   if [$loci="2"] 
+	   { 
+	      ppconst(#nr=$x,#vid=`$args[position()=$x]/@vid`); 
+           } 
+	   else { ploci(#nr=$x); }
+        }
+	else { apply[$args[position()  = $x]](#p=$np,#i=$i); }
      if [position() < last()] { ",";} } 
    }
    if [$k='G'] { " #)"; } 
