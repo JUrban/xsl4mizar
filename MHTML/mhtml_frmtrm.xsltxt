@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.6 $
+// $Revision: 1.7 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -271,10 +271,13 @@ tpl get_vid(#up) {
     else { for-each [..] { get_vid(#up = $up); } } } } 
 }
 
+
+// trickery to translate loci to constants and identifiers when needed
+// ###TODO: also the constructor types
 tpl [LocusVar](#p, #i) 
 { 
     // try definienda possibly containing "it"
-    if [(ancestor::DefMeaning) and ($mml="0") and ($proof_links>0)]
+    if [(ancestor::DefMeaning) and ($mml="0")]
     {
        $it_possible = { if [(ancestor::Definiens[(@constrkind="M") or (@constrkind="K")])]
 		        { "1"; }
@@ -291,12 +294,12 @@ tpl [LocusVar](#p, #i)
           if [@nr <= $maxnr] 
 	  {
 	     $nr = `@nr`;
-	     for-each [ancestor::Definiens] 
+	     // preceding-sibling written this way selects in reverse document order
+	     for-each [ancestor::Definiens]
 	     {
-	        // preceding-sibling written this way selects in reverse document order
-		$pl = get_nearest_level(#el = `preceding-sibling::DefinitionBlock[1]`);
-		absconst(#nr = $nr, #pl = $pl);
-	     }
+	        $argtypes = `preceding-sibling::DefinitionBlock[1]/Let/Typ`;
+		ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
+             }
 	  }
 	  else 
 	  { 
