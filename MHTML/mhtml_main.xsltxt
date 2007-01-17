@@ -4,7 +4,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.2 $
+// $Revision: 1.3 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -109,9 +109,11 @@ var ndiv = obj;
 while (ndiv.nextSibling.nodeName != 'DIV') { ndiv = ndiv.nextSibling; }
 return hs2(ndiv);
 }
+
+// explorer7 implements XMLHttpRequest in some strange way
 function makeRequest(obj,url) {
         var http_request = false;
-        if (window.XMLHttpRequest) { // Mozilla, Safari,...
+        if (window.XMLHttpRequest && !(window.ActiveXObject)) { // Mozilla, Safari,...
             http_request = new XMLHttpRequest();
             if (http_request.overrideMimeType) {
                 http_request.overrideMimeType('text/xml');
@@ -133,17 +135,19 @@ function makeRequest(obj,url) {
         http_request.open('GET', url, true);
         http_request.send(null);
     }
+// commented the 200 state to have local requests too
 function insertRequest(obj,http_request) {
         if (http_request.readyState == 4) {
-            if (http_request.status == 200) {
+//            if (http_request.status == 200) {
 	    var ndiv = obj;
 	    while (ndiv.nodeName != 'SPAN') { ndiv = ndiv.nextSibling; }
 	    ndiv.innerHTML = http_request.responseText;
 	    obj.onclick = function(){ return hs2(obj) };
-            } else {
-                alert('There was a problem with the request.');
-		alert(http_request.status);
-            }}}
+//            } else {
+//                alert('There was a problem with the request.');
+//		alert(http_request.status);
+//            }
+	    }}
 // End -->
 "; }
 <base { 
