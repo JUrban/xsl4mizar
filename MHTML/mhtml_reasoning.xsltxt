@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.10 $
+// $Revision: 1.11 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -200,11 +200,24 @@ tpl [Ref]
       { 
          // experimental!!
 	 $n1 = `@nr`;
+	 $vid =  
+	 { 
+	   if [@vid] { `@vid`; }
+	   else
+	   {
+              if [$print_lab_identifiers > 0] // makes things faster if not, cause this is expensive
+              { 
 //	 for-each [preceding::*[((name()="Proposition") or (name()="Now") or (name()="IterEquality")) and (@nr=$n1)][1]]
 //       this seems to be reasonably fast 
-	 for-each [(preceding::Proposition[@nr=$n1]|preceding::Now[@nr=$n1]|preceding::IterEquality[@nr=$n1])[last()]]
-         { pplab(#nr = `@nr`, #vid=`@vid`); }
-//         plab(#nr = `@nr`); 
+	         for-each [(preceding::Proposition[@nr=$n1]|preceding::Now[@nr=$n1]
+                           |preceding::IterEquality[@nr=$n1])[last()]]
+                 { `@vid`; }
+	      }
+	      else { "0"; }
+           }
+         }
+
+         pplab(#nr = $n1, #vid= $vid);
       }
       else 
       { 
