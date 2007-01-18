@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.8 $
+// $Revision: 1.9 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -396,7 +396,7 @@ tpl dfs()
 
 	     for-each [document($doc, /)] 
 	     { 
-	        apply[key($ckind, $cnr)](#indef = "1", #nl = $nl, #argt = $argtypes); 
+	        apply[key($ckind, $cnr)](#indef = "1", #nl = $nl, #argt = $argtypes, #nrt= "1"); 
 	     } 
           }
 
@@ -659,7 +659,8 @@ tpl [ArgTypes]
 // environmental constructors, or constructor retrieved from other file
 // #argt is explicit list of argument types, useful for
 // getting the @vid (identifier numbers) of loci
-tpl [Constructor](#indef,#nl,#argt) 
+// #nrt tells not to showthe result type(s)
+tpl [Constructor](#indef,#nl,#argt,#nrt) 
 { 
     $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
 
@@ -702,8 +703,9 @@ tpl [Constructor](#indef,#nl,#argt)
        // "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
     }
 
-    if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
-        or (@kind= 'U') or (@kind= 'L')] 
+    if [not($nrt = 1) and 
+        ((@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
+         or (@kind= 'U') or (@kind= 'L'))] 
     { 
        <b {" -> ";}
        // note that loci in Typs here can be translated to constants and identifiers
