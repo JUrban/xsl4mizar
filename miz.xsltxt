@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.80 $
+// $Revision: 1.81 $
 //
 // File: miz.xsltxt - html-ization of Mizar XML, main file
 //
@@ -69,7 +69,11 @@ output method=html;
 //       the rest is linked to mmlquery
 // "l" - local mizaring, current article's constructs are linked to self,
 //       the rest to $MIZFILES/html
-#linking = { "s"; }
+#linking = { "l"; }
+
+// needed for local linking, document("") gives the sylesheet as a document
+#mizfiles = { `string(/*/@mizfiles)`; }
+#mizhtml  = { `concat($mizfiles,"html/")`; }
 
 // extension for linking to other articles - either xml or html
 #ext = { "html"; }
@@ -96,6 +100,11 @@ output method=html;
 
 // print identifiers (like in JFM) instead of normalized names
 $print_identifiers = { "1"; }
+
+// print label identifiers  instead of normalized names
+// this is kept separate from $print_identifiers, because
+// it should be turned off for item generating
+$print_lab_identifiers = { "1"; }
 
 
 // tells whether relative or absolute names are shown
@@ -191,6 +200,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 #labcolor = { "Green"; }
 
 #commentcolor = { "Red"; }
+
+// use spans for brackets
+#parenspans = { "1"; }
 
 // number of parenthesis colors (see the stylesheet in the bottom)
 #pcolors_nr = { "6"; }
@@ -382,11 +394,48 @@ tpl pppred(#nr) {  if [$colored="1"] { <font { @color=$ppcolor;
 tpl ppfunc(#nr) {  if [$colored="1"] { <font { @color=$pfcolor; 
     "H"; <sub { $nr;} } } else { "H"; <sub { $nr;} } }
 
-tpl plab(#nr) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
-    "E"; $nr;} }  else { "E"; $nr;} } }
 
-tpl plab1(#nr,#txt) { <i {  if [$colored="1"] { <font { @color=$labcolor; 
-    $txt; $nr;} }  else { $txt; $nr;} } }
+tpl pplab(#nr, #vid)
+{ 
+    if [($print_lab_identifiers > 0) and ($vid > 0)]
+    {
+
+       $nm = { get_vid_name(#vid = $vid); }
+
+       <i
+       {
+          if [$colored = "1"] 
+	  { 
+	     <font 
+	     { 
+	        @color = $labcolor; 
+	        if [$titles="1"] { @title=`concat("E",$nr)`; } 
+	        $nm; 
+             } 
+          }
+	  else { $nm;}
+       }
+    }
+    else { plab(#nr = $nr); }
+}
+
+tpl plab(#nr) 
+{ 
+   <i 
+   {  
+      if [$colored="1"] { <font { @color=$labcolor; "E"; $nr;} }  
+      else { "E"; $nr;} 
+   } 
+}
+
+tpl plab1(#nr,#txt) 
+{ 
+   <i 
+   {  
+      if [$colored="1"] { <font { @color=$labcolor; $txt; $nr;} }  
+      else { $txt; $nr;} 
+   } 
+}
 
 tpl pcomment0(#str) { <i { if [$colored="1"] {
 <font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}
@@ -1221,10 +1270,13 @@ tpl get_vid(#up) {
     else { for-each [..] { get_vid(#up = $up); } } } } 
 }
 
+
+// trickery to translate loci to constants and identifiers when needed
+// ###TODO: also the constructor types
 tpl [LocusVar](#p, #i) 
 { 
     // try definienda possibly containing "it"
-    if [(ancestor::DefMeaning) and ($mml="0") and ($proof_links>0)]
+    if [($mml="0") and (ancestor::DefMeaning)]
     {
        $it_possible = { if [(ancestor::Definiens[(@constrkind="M") or (@constrkind="K")])]
 		        { "1"; }
@@ -1241,12 +1293,12 @@ tpl [LocusVar](#p, #i)
           if [@nr <= $maxnr] 
 	  {
 	     $nr = `@nr`;
-	     for-each [ancestor::Definiens] 
+	     // preceding-sibling written this way selects in reverse document order
+	     for-each [ancestor::Definiens]
 	     {
-	        // preceding-sibling written this way selects in reverse document order
-		$pl = get_nearest_level(#el = `preceding-sibling::DefinitionBlock[1]`);
-		absconst(#nr = $nr, #pl = $pl);
-	     }
+	        $argtypes = `preceding-sibling::DefinitionBlock[1]/Let/Typ`;
+		ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
+             }
 	  }
 	  else 
 	  { 
@@ -1255,8 +1307,30 @@ tpl [LocusVar](#p, #i)
        }
     }
     else 
-    { 
-       ploci(#nr = `@nr`); 
+    {
+       // note that the Constructor may come from different document here
+       // even if $mml = 0, but that can be handled above, because this is
+       // only used for result types which in that case shouldn't have changed
+       if [($mml="0") and (ancestor::Constructor) and (ancestor::Definition)]
+       {
+          $nr = `@nr`;
+	  $argtypes = `ancestor::DefinitionBlock/Let/Typ`;
+	  ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
+       }
+       else 
+       {
+          if [($mml="0") and (ancestor::Registration)]
+       {
+          $nr = `@nr`;
+	  $argtypes = `ancestor::RegistrationBlock/Let/Typ`;
+	  ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
+       }
+
+       else 
+       { 
+          ploci(#nr = `@nr`); 
+       }
+       }
     }
 }
 
@@ -1493,7 +1567,16 @@ tpl mkref(#aid, #nr, #k, #c, #nm)
       }
       else 
       {
-        @href = `concat($alc, ".", $ext, "#",$k, $nr)`;
+
+        $ext1 = 
+	    { 
+	       if[($c = 1) and (($linking = 'm') or ($linking = 'l'))] { $selfext; }
+	       else { $ext; }
+            }
+
+        $mhtml1 = { if[($linking = 'l') and not($c = "1")] { $mizhtml; } else { ""; } }
+
+        @href = `concat($mhtml1,$alc, ".", $ext1, "#",$k, $nr)`;
 
         if [$c = "1"] 
 	{
@@ -1549,7 +1632,14 @@ tpl absref(#elems, #c, #sym, #pid)
 	 }
 	 else 
 	 { 
-            @href=`concat($alc, ".", $ext, "#", $n1, @kind, @nr)`; 
+	    $ext1 = 
+	    { 
+	       if[($c = 1) and (($linking = 'm') or ($linking = 'l'))] { $selfext; }
+	       else { $ext; }
+            }
+	    $mhtml1 = { if[($linking = 'l') and not($c = "1")] { $mizhtml; } else { ""; } }
+
+            @href=`concat($mhtml1,$alc, ".", $ext1, "#", $n1, @kind, @nr)`; 
 	    // this is probably needed if $mml = 1
 	    if [($c = "1") and not($linking = "s")] { @target="_self"; } 
          }
@@ -1675,72 +1765,118 @@ tpl pp(#k, #nr, #args, #parenth, #pid, #loci, #i)
 
 
 
-// it is legal to pass onlt #loci instead of #args here
+// it is legal to pass only #loci instead of #args here
 // #pid is passed to abs, causes linking to patterns
 // #i is the bound var nbr
-tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i) {
+tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i) 
+{
     $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
             else { for-each [document($formats,/)] {
                      for-each [key('F',$fnr)] { 
                        if [@leftargnr] { `@leftargnr`;} else { "0";} }}} }
-    // try if right bracket
-    $rsym = { if [($k='K') and ($la='0')] {
-                 abs1(#k=$k, #nr=$nr, #r="1"); } }
+    // try if right bracket - returns '' if not
+    $rsym = { if [($k='K') and ($la='0')] { abs1(#k=$k, #nr=$nr, #r="1"); } }
     $np = { if [not($vis) or ($k='G')] { "0"; } else {
                if [$parenth>0] { $parenth; } else { 
                   if [not($rsym='')] { "1"; } else { "0";} } } }
     $paren_color = `$np mod $pcolors_nr`;
 
     // print spanned paranthesis or left bracket
-    if [($np>0)] 
+    if [($parenspans = 1) and ($np > 0)] 
     { 
-      <span { @class=`concat("p",$paren_color)`;
-      if [$rsym=''] { "("; } else { 
-         abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); } 
-      <span { @class="default";
+       <span 
+       { 
+          @class=`concat("p",$paren_color)`;
 
-    // this is duplicated later - needed for Mozilla - bad escaping
-      for-each [$vis] { 
-       if [position() <= $la] {
-	$x=`@x`;
-	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
-	else { apply[$args[position() = $x]](#p=$np,#i=$i); }
-	if [position() < $la] { ",";} } }
-      if [$rsym=''] {
-       if [not($parenth>0) or ($la>0)] { " "; } 
-       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); " "; }
-      for-each [$vis] { 
-       if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
-       if [position() > $la] {
-	$x=`@x`;
-	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
-        else { apply[$args[position()  = $x]](#p=$np,#i=$i); }
-        if [position() < last()] { ",";} } }
+	  if [$rsym=''] 
+	  { 
+	     "("; 
+	  } 
+	  else 
+	  { 
+             abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
+	  }
+
+	  <span 
+	  { 
+             @class="default";
+	     pp2(#k = $k, #nr = $nr, #i = $i, #vis = $vis, #la = $la, #loci = $loci, #args = $args, 
+	         #np = $np, #rsym = $rsym, #parenth = $parenth, #fnr = $fnr, #pid = $pid);
+          }
+
+	  if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym, #pid=$pid); } 
        }
-      if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym, #pid=$pid); } }
     } 
     else 
     {
-      for-each [$vis] { 
-       if [position() <= $la] {
+       if[($np > 0)]
+       {
+          if [$rsym=''] { "("; } 
+	  else 
+	  { 
+             abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
+	  }
+       }
+
+       pp2(#k = $k, #nr = $nr, #i = $i, #vis = $vis, #la = $la, #loci = $loci, #args = $args, 
+           #np = $np, #rsym = $rsym, #parenth = $parenth, #fnr = $fnr, #pid = $pid);
+
+       if[($np > 0)]
+       {
+          if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym, #pid=$pid); }
+       }
+    }
+}
+
+tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
+{
+   // print left args
+   for-each [$vis] 
+   { 
+      if [position() <= $la] 
+      {
 	$x=`@x`;
-	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
+	if [$loci>0] 
+	{ 
+	   if [$loci="2"] 
+	   { 
+	      ppconst(#nr=$x,#vid=`$args[position()=$x]/@vid`); 
+	   } 
+	   else { ploci(#nr=$x); }
+        }
 	else { apply[$args[position() = $x]](#p=$np,#i=$i); }
-	if [position() < $la] { ",";} } }
-      if [$rsym=''] {
-       if [not($parenth>0) or ($la>0)] { " "; } 
-       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
-       if [$k='G'] { "(#"; } " "; }
-      for-each [$vis] { 
-       if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
-       if [position() > $la] {
+	if [position() < $la] { ",";} 
+      } 
+   }
+
+   // print symbol
+   if [$rsym=''] 
+   {
+      if [not($parenth>0) or ($la>0)] { " "; } 
+      abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
+      if [$k='G'] { "(#"; } " "; 
+   }
+
+   // print right args preceded by "of" for types
+   for-each [$vis] 
+   { 
+      if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
+      if [position() > $la] 
+      {
 	$x=`@x`;
-	if [$loci>0] { if [$loci="2"] { pconst(#nr=$x); } else { ploci(#nr=$x); }}
-        else { apply[$args[position()  = $x]](#p=$np,#i=$i); }
-        if [position() < last()] { ",";} } }
-      if [$k='G'] { " #)"; } 
-     }
- }
+	if [$loci>0] 
+	{ 
+	   if [$loci="2"] 
+	   { 
+	      ppconst(#nr=$x,#vid=`$args[position()=$x]/@vid`); 
+           } 
+	   else { ploci(#nr=$x); }
+        }
+	else { apply[$args[position()  = $x]](#p=$np,#i=$i); }
+     if [position() < last()] { ",";} } 
+   }
+   if [$k='G'] { " #)"; } 
+}
 
 
 // theorem, definition and scheme references
@@ -1825,39 +1961,84 @@ tpl absconst(#nr,#pl)
 
 
 
-tpl [Proposition] { 
+tpl [Proposition] 
+{ 
     if [$proof_links>0] {<a { @NAME=propname(#n=`@propnr`, #pl=`@plevel`); }}
-    if [following-sibling::*[1][(name()="By") and (@linked="true")]] { 
-      if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
-              or (name(..) = "Conclusion"))] { <b { "then "; } }}
-    if [@nr>0] { if [($proof_links>0) and not(string-length(@plevel)>0)] { 
-		    plab1(#nr=`@nr`,#txt="Lemma"); } 
-                 else { plab(#nr=`@nr`);} ": ";}
+
+    if [following-sibling::*[1][(name()="By") and (@linked="true")]] 
+    { 
+       if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
+           or (name(..) = "Conclusion"))] 
+       { 
+          <b { "then "; } 
+       }
+    }
+
+    if [@nr>0] 
+    { 
+       if [($proof_links>0) and ($print_lab_identifiers = 0) 
+            and not(string-length(@plevel)>0)]
+       { 
+	  plab1(#nr=`@nr`,#txt="Lemma"); 
+       }
+       else { pplab(#nr=`@nr`, #vid = `@vid`); }
+
+       ": ";
+    }
+
+    // ###TODO: include the possible link when generating items
     if [($generate_items>0) and not(string-length(@plevel)>0)] 
-       { pcomment(#str=`concat($aname, ":lemma ", @propnr)`);
-         apply; " ";
-	 if [following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")]] { 	 
-	 apply[`following-sibling::*[1]`]; }
-	}
-    else { apply; " ";} }
+    { 
+       pcomment(#str = `concat($aname, ":lemma ", @propnr)`);
+       apply; " ";
+
+       if [following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")]] 
+       { 	 
+	  apply[`following-sibling::*[1]`]; 
+       }
+    }
+    else { apply; " ";} 
+}
 
 // Justifications
-tpl linkbyif(#line,#col,#by) { 
-    if [$linkby>0] { 
-       $byurl = { choose { 
-	      when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
-	      when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } } }
-       <a { @href=$byurl; @class="txt"; @target="byATP"; <b { $by; " "; } }}
-    else { <b { $by; " "; } }}
-  
-tpl [By	](#nbr) { if [(count(*)>0)] { 
-       linkbyif(#line=`@line`,#col=`@col`,#by="by");
-       <i { list(#separ=", ", #elems=`*`); } ";"; }
-    else { 
-	 if [$linkby>0] {  linkbyif(#line=`@line`,#col=`@col`,#by=";"); }
-         else { ";"; }
+tpl linkbyif(#line,#col,#by) 
+{ 
+   if [$linkby>0] 
+   { 
+      $byurl = 
+      { 
+         choose 
+	 { 
+	    when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
+	    when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } 
+	 } 
+      }
+
+      <a { @href=$byurl; @class="txt"; @target="byATP"; <b { $by; " "; } }
     }
-    if [not($nbr="1")] { <br;  } }
+    else { <b { $by; " "; } }
+}
+
+// if #nbr=1 then no <br; is put in the end 
+// (used e.g. for conclusions, where definitional 
+//  expansions are handled on the same line)
+tpl [By	](#nbr) 
+{ 
+   if [(count(*)>0)] 
+   { 
+      linkbyif(#line = `@line`, #col = `@col`,#by = "by");
+      <i { list(#separ = ", ", #elems = `*`); } 
+      ";"; 
+   }
+   else 
+   { 
+      if [$linkby>0] {  linkbyif(#line = `@line`, #col = `@col`,#by = ";"); }
+      else { ";"; }
+   }
+
+   if [not($nbr = "1")] { <br;  }
+}
+
 tpl [IterStep/By] { if [(count(*)>0)] { 
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
       <i { list(#separ=", ", #elems=`*`); } }}
@@ -1871,25 +2052,62 @@ tpl [IterStep/From] { <b { "from "; }
 
 
 // ##REQUIRE: the following two can be called only if $proof_links>0
-tpl top_propname(#el) { for-each [$el/..] {
-    if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] {
-       $k= { if [@kind='D'] { "Def"; } else { "Th"; }}
-       mkref(#aid=$aname,#nr=`@nr`,#k=`@kind`,#c="1",#nm=`concat($k,@nr)`);
-    }
-    else { $k1 = `concat($el/@nr,":")`;
-           $k2 = `key("E",$k1)/@propnr`;
-	   <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#","E",$k2)`;  
-		plab1(#nr=`$el/@nr`,#txt="Lemma"); }}}}
+tpl top_propname(#el) 
+{ 
+   for-each [$el/..] 
+   {
+      if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] 
+      {
+         $k = { if [@kind='D'] { "Def"; } else { "Th"; } }
+
+         $nm = 
+	 { 
+	    if [($print_lab_identifiers > 0) and ($el/@vid > 0)] { get_vid_name(#vid = `$el/@vid`); }
+	    else { `concat($k,@nr)`; }
+         }
+
+	 mkref(#aid = $aname, #nr = `@nr`, #k = `@kind`, #c = "1", #nm = $nm);
+      }
+      else 
+      { 
+         $k1 = `concat($el/@nr,":")`;
+	 $k2 = `key("E",$k1)/@propnr`;
+
+	 <a 
+	 { 
+	    @class = "txt"; 
+	    @href  = `concat($anamelc, ".", $ext, "#","E",$k2)`;  
+	    if [($print_lab_identifiers > 0) and ($vid > 0)] 
+	    { 
+	       pplab(#nr = `$el/@nr`, #vid = `$el/@vid`);  
+            }
+	    else { plab1(#nr = `$el/@nr`, #txt = "Lemma"); }
+         }
+      }
+   }
+}
 
 
 // name of private reference - name of the proposition
 tpl privname(#nr,#pl) {
       $k1 = `concat($nr,":",$pl)`;
-      if [key("E",$k1)] { 
-	 if [not(string-length($pl)>0)] { top_propname(#el=`key("E",$k1)`); }
-	 else { 
-	      $txt= { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
-	      <a { @class="txt"; @href=`concat($anamelc, ".", $ext, "#",$txt)`; plab(#nr=`@nr`); } } }
+      if [key("E",$k1)] 
+      { 
+	 for-each [key("E",$k1)] 
+	 {
+	    if [not(string-length($pl)>0)] { top_propname(#el = `.`); }
+	    else 
+	    { 
+	      $txt= { propname(#n = `@propnr`, #pl = $pl); } 
+	      <a 
+	      { 
+	         @class = "txt"; 
+		 @href  = `concat($anamelc, ".", $ext, "#",$txt)`;
+		 pplab(#nr=`@nr`, #vid = `@vid`); 
+              } 
+            }
+         } 
+      }
       else { 
 	   $ls = `string-length($pl)`;
 	   if [$ls>0] { 
@@ -1927,7 +2145,26 @@ tpl [Ref]
    {  
       if [$proof_links = 0] 
       { 
-         plab(#nr = `@nr`); 
+         // experimental!!
+	 $n1 = `@nr`;
+	 $vid =  
+	 { 
+	   if [@vid] { `@vid`; }
+	   else
+	   {
+              if [$print_lab_identifiers > 0] // makes things faster if not, cause this is expensive
+              { 
+//	 for-each [preceding::*[((name()="Proposition") or (name()="Now") or (name()="IterEquality")) and (@nr=$n1)][1]]
+//       this seems to be reasonably fast 
+	         for-each [(preceding::Proposition[@nr=$n1]|preceding::Now[@nr=$n1]
+                           |preceding::IterEquality[@nr=$n1])[last()]]
+                 { `@vid`; }
+	      }
+	      else { "0"; }
+           }
+         }
+
+         pplab(#nr = $n1, #vid= $vid);
       }
       else 
       { 
@@ -1948,11 +2185,22 @@ tpl [SkippedProof](#nbr) { <b { "@proof .. end;"; }
 tpl [IterStep/SkippedProof] { <b { "@proof .. end;"; } }
 
 //   Term, elIterStep+
-tpl [IterEquality](#nbr) { if [IterStep[1]/By[@linked="true"]] {
-    if [not(name(..)="Conclusion")] { <b { "then ";}}}
-   if [@nr>0] {  plab(#nr=`@nr`); ": ";}
+tpl [IterEquality](#nbr) 
+{ 
+   if [IterStep[1]/By[@linked="true"]] 
+   {
+      if [not(name(..)="Conclusion")] { <b { "then ";}}
+   }
+
+   if [@nr>0] {  pplab(#nr = `@nr`, #vid = `@vid`); ": ";}
+
    apply[*[1]]; " = ";
-   nlist(#separ=".= ", #elems=`IterStep`); ";"; if [not($nbr="1")] { <br;  } }
+   nlist(#separ=".= ", #elems=`IterStep`); ";"; 
+
+   if [not($nbr="1")] { <br;  } 
+
+}
+
 tpl [IterStep] { apply;  }
 
 // Skeleton steps
@@ -2027,22 +2275,49 @@ tpl [TakeAsVar]
    <b { "take "; } ppconst(#nr=`@nr`, #vid = `Typ[1]/@vid`); " = ";   apply[*[2]]; 
 		  ";"; try_th_exps(); <br; 
 }
+
 tpl [Conclusion] 
 { 
-   if [(By[@linked="true"]) or 
-		   (IterEquality/IterStep[1]/By[@linked="true"])] 
-		   { <b { "hence "; } apply[*[not(name()="By")]]; 
-		     apply[By](#nbr="1"); try_th_exps(); <br; }
-		else { if [Now] {  
-		     <div { <b {  "hereby "; } try_th_exps();
-		     apply(#nkw="1");  <b { "end;"; } } }
-		else { <b { "thus "; } 
-		     if [Proof] { apply[Proposition]; try_th_exps();
-				  apply[Proof]; }
-		     else { apply[Proposition]; 
-			    apply[ IterEquality|By|From|ErrorInf
-				   |SkippedProof](#nbr="1");
-			    try_th_exps(); <br; } } }
+   if [(By[@linked = "true"]) or 
+       (IterEquality/IterStep[1]/By[@linked = "true"])] 
+   { 
+      <b { "hence "; } 
+      apply[*[not(name() = "By")]]; 
+      apply[By](#nbr = "1"); 
+      try_th_exps(); 
+      <br; 
+   }
+   else 
+   { 
+      if [Now] 
+      {  
+         <div 
+	 { 
+	    <b {  "hereby "; } 
+	    try_th_exps();
+	    apply(#nkw = "1");  
+	    <b { "end;"; } 
+	 } 
+      }
+      else 
+      { 
+         <b { "thus "; } 
+
+	 if [Proof] 
+	 { 
+	    apply[Proposition]; 
+	    try_th_exps();
+	    apply[Proof]; 
+	 }
+	 else 
+	 { 
+	    apply[Proposition]; 
+	    apply[ IterEquality|By|From|ErrorInf|SkippedProof](#nbr = "1");
+	    try_th_exps(); 
+	    <br; 
+	 } 
+      } 
+   }
 }
 // Auxiliary items
 
@@ -2278,13 +2553,13 @@ tpl jt
 
     <b { "theorem "; } 
 
-    if [$proof_links>0] 
+    if [($proof_links > 0) and ($print_lab_identifiers = 0)]
     { 
        plab1(#nr=$nr1,#txt="Th"); ": "; 
-    } 
+    }
     else 
     { 
-       for-each [Proposition[@nr > 0]] { plab(#nr=`@nr`); ": "; }
+       for-each [Proposition[@nr > 0]] { pplab(#nr=`@nr`, #vid=`@vid`); ": "; }
     }
 
     <a 
@@ -2337,13 +2612,13 @@ tpl dt
 
   ":: "; <b { "deftheorem "; }
 
-  if [$proof_links>0] 
+  if [($proof_links > 0) and ($print_lab_identifiers = 0)]
   { 
      plab1(#nr = $nr1, #txt = "Def"); 
   } 
   else 
   { 
-     for-each [Proposition[@nr > 0]] { plab(#nr = `@nr`); }
+     for-each [Proposition[@nr > 0]] { pplab(#nr = `@nr`, #vid = `@vid`); }
   } 
 
   " ";
@@ -2517,6 +2792,7 @@ tpl [Definition]
 tpl dfs() 
 {
     $nl = { if [@nr] { "0"; } else { "1"; }}
+    $argtypes = `../Let/Typ`;
 // Constructor may be missing, if this is a redefinition
 // that does not change its types. In that case, the Constructor needs
 // to be retrieved from the Definiens - see below.
@@ -2526,7 +2802,7 @@ tpl dfs()
         // for generate_items, we have to take loci from the constructor here
        $indef1 = { if [($generate_items > 0)] { "0"; } else { "1"; } }
 
-       apply[Constructor](#indef = $indef1, #nl = $nl);
+       apply[Constructor](#indef = $indef1, #nl = $nl, #argt = $argtypes);
     } 
 
 // @nr is present iff Definiens is present; it can be 0 if
@@ -2535,6 +2811,7 @@ tpl dfs()
     if [@nr] 
     {  
        $nr1   = `@nr`;
+       $vid   = `@vid`;
        $cnt1  = `1 + count(preceding-sibling::Definition[@nr])`;
        $cnstr = `count(Constructor)`;
 
@@ -2542,7 +2819,6 @@ tpl dfs()
        { 
 	  // Definiens is better than Constructor for loci display,
 	  // since Constructor may be missing for redefinitions.
-	  // ##TODO: #vid for Definiens in analyzer.pas
           for-each [../following-sibling::Definiens[position() = $cnt1]] 
 	  {
 	     if [Typ] 
@@ -2556,7 +2832,7 @@ tpl dfs()
           }
        }
 
-       apply[Constructor](#indef = "1", #nl = $nl);
+       apply[Constructor](#indef = "1", #nl = $nl, #argt = $argtypes);
 
        for-each [../following-sibling::Definiens[position() = $cnt1]] 
        {
@@ -2572,7 +2848,7 @@ tpl dfs()
 
 	     for-each [document($doc, /)] 
 	     { 
-	        apply[key($ckind, $cnr)](#indef = "1", #nl = $nl); 
+	        apply[key($ckind, $cnr)](#indef = "1", #nl = $nl, #argt = $argtypes, #nrt= "1"); 
 	     } 
           }
 
@@ -2582,13 +2858,13 @@ tpl dfs()
 	  { 
 	     ":"; 
 
-	     if [$proof_links > 0] 
+	     if [($proof_links > 0) and ($print_lab_identifiers = 0)]
 	     { 
 	        plab1(#nr = `@defnr`, #txt = "Def");
 	     } 
 	     else 
 	     { 
-	        plab(#nr = $nr1); 
+	        pplab(#nr = $nr1, #vid = $vid); 
 	     }
 
 	     ": ";
@@ -2600,6 +2876,8 @@ tpl dfs()
 	     pcomment(#str = `concat($aname, ":def ", @defnr)`); 
 	  }
 
+         // note that loci below can be translated to constants and identifiers
+         // - see definition of LocusVar
 	 for-each [DefMeaning/PartialDef] 
 	 { 
 	    apply[*[1]]; 
@@ -2750,14 +3028,15 @@ tpl [Proof] {
 
 
 //   Reasoning, elBlockThesis 
-// #nkw tells not to print the keword (used if hereby was printed above)
+// #nkw tells not to print the keyword (used if hereby was printed above)
+// ###TODO: fix for generating items (see Proposition)
 tpl [Now](#nkw) 
 {
     if [not($nkw="1")] 
     { 
        <div 
        { 
-          if [@nr>0] { plab(#nr=`@nr`); ": ";}
+          if [@nr>0] { pplab(#nr=`@nr`, #vid=`@vid`); ": ";}
 
 	  <a 
 	  { 
@@ -2828,32 +3107,69 @@ tpl [ArgTypes]
 }
 
 // #indef tells not to use Argtypes (we are inside Definition)
-tpl [Constructor](#indef,#nl) { 
+// note that this can also be used for displaying 
+// environmental constructors, or constructor retrieved from other file
+// #argt is explicit list of argument types, useful for
+// getting the @vid (identifier numbers) of loci
+// #nrt tells not to showthe result type(s)
+tpl [Constructor](#indef,#nl,#argt,#nrt) 
+{ 
     $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
+
     if [not($indef="1")] { apply[ArgTypes]; }
+
     if [@redefnr>0] { <b { "redefine "; } }
-    <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; } 
-    if [@redefnr>0] { 
+
+    <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; }
+ 
+    if [@redefnr>0] 
+    { 
          abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
-         " as "; }
-    if [@kind="G"] { 
+         " as "; 
+    }
+
+    if [@kind="G"] 
+    { 
        abs(#k=`@kind`,#nr=`@relnr`,#sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
        "(# "; 
-       for-each [Fields/Field] { 
-		   abs(#k="U",#nr=`@nr`,#sym=abs1(#k="U", #nr=`@nr`)); 
-		   if [not(position()=last())] { ", "; } }
-       " #)"; }
-    else { if [@kind='V'] {
-	   ploci(#nr=`count(ArgTypes/Typ)`); " is ";  
-	  abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); }
-    else { pp(#k=`@kind`,#nr=`@relnr`,#args=`ArgTypes/Typ`, #loci=$loci); }
-// "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
-}
-    if [(@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
-        or (@kind= 'U') or (@kind= 'L')] { <b {" -> ";}
-	   list(#separ=",",#elems=`Typ`); } 
-      if [not($indef="1")]  {  ";"; <br;  <br; }
-      else { if [$nl="1"] { ";"; <br;} }
+
+       for-each [Fields/Field] 
+       { 
+          abs(#k="U",#nr=`@nr`,#sym=abs1(#k="U", #nr=`@nr`)); 
+	  if [not(position()=last())] { ", "; } 
+       }
+
+       " #)"; 
+    }
+    else 
+    { 
+       if [@kind='V'] 
+       {
+          $nr1 = `count(ArgTypes/Typ)`;
+          if [$loci = 1] { ploci(#nr = $nr1); }
+	  else { ppconst(#nr = $nr1, #vid = `$argt[position() = $nr1]/@vid`); }
+	  " is ";  
+	  abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
+       }
+       else { pp(#k=`@kind`,#nr=`@relnr`, #args = $argt, #loci=$loci); }
+       // "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
+    }
+
+    if [not($nrt = 1) and 
+        ((@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
+         or (@kind= 'U') or (@kind= 'L'))] 
+    { 
+       <b {" -> ";}
+       // note that loci in Typs here can be translated to constants and identifiers
+       // - see definition of LocusVar
+       list(#separ=",",#elems=`Typ`); 
+    }
+ 
+    if [not($indef="1")]  
+    {  
+       ";"; <br;  <br; 
+    }
+    else { if [$nl="1"] { ";"; <br;} }
 }
 
 // display synonym and antonym definiiotns
@@ -2994,9 +3310,11 @@ var ndiv = obj;
 while (ndiv.nextSibling.nodeName != 'DIV') { ndiv = ndiv.nextSibling; }
 return hs2(ndiv);
 }
+
+// explorer7 implements XMLHttpRequest in some strange way
 function makeRequest(obj,url) {
         var http_request = false;
-        if (window.XMLHttpRequest) { // Mozilla, Safari,...
+        if (window.XMLHttpRequest && !(window.ActiveXObject)) { // Mozilla, Safari,...
             http_request = new XMLHttpRequest();
             if (http_request.overrideMimeType) {
                 http_request.overrideMimeType('text/xml');
@@ -3018,17 +3336,19 @@ function makeRequest(obj,url) {
         http_request.open('GET', url, true);
         http_request.send(null);
     }
+// commented the 200 state to have local requests too
 function insertRequest(obj,http_request) {
         if (http_request.readyState == 4) {
-            if (http_request.status == 200) {
+//            if (http_request.status == 200) {
 	    var ndiv = obj;
 	    while (ndiv.nodeName != 'SPAN') { ndiv = ndiv.nextSibling; }
 	    ndiv.innerHTML = http_request.responseText;
 	    obj.onclick = function(){ return hs2(obj) };
-            } else {
-                alert('There was a problem with the request.');
-		alert(http_request.status);
-            }}}
+//            } else {
+//                alert('There was a problem with the request.');
+//		alert(http_request.status);
+//            }
+	    }}
 // End -->
 "; }
 <base { 
