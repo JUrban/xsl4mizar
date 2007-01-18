@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.7 $
+// $Revision: 1.8 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -277,7 +277,7 @@ tpl get_vid(#up) {
 tpl [LocusVar](#p, #i) 
 { 
     // try definienda possibly containing "it"
-    if [(ancestor::DefMeaning) and ($mml="0")]
+    if [($mml="0") and (ancestor::DefMeaning)]
     {
        $it_possible = { if [(ancestor::Definiens[(@constrkind="M") or (@constrkind="K")])]
 		        { "1"; }
@@ -308,8 +308,30 @@ tpl [LocusVar](#p, #i)
        }
     }
     else 
-    { 
-       ploci(#nr = `@nr`); 
+    {
+       // note that the Constructor may come from different document here
+       // even if $mml = 0, but that can be handled above, because this is
+       // only used for result types which in that case shouldn't have changed
+       if [($mml="0") and (ancestor::Constructor) and (ancestor::Definition)]
+       {
+          $nr = `@nr`;
+	  $argtypes = `ancestor::DefinitionBlock/Let/Typ`;
+	  ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
+       }
+       else 
+       {
+          if [($mml="0") and (ancestor::Registration)]
+       {
+          $nr = `@nr`;
+	  $argtypes = `ancestor::RegistrationBlock/Let/Typ`;
+	  ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
+       }
+
+       else 
+       { 
+          ploci(#nr = `@nr`); 
+       }
+       }
     }
 }
 
