@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.5 $
+// $Revision: 1.6 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -25,7 +25,11 @@ output method=html;
 //       the rest is linked to mmlquery
 // "l" - local mizaring, current article's constructs are linked to self,
 //       the rest to $MIZFILES/html
-#linking = { "s"; }
+#linking = { "l"; }
+
+// needed for local linking, document("") gives the sylesheet as a document
+#mizfiles = { `string(/*/@mizfiles)`; }
+#mizhtml  = { `concat($mizfiles,"html/")`; }
 
 // extension for linking to other articles - either xml or html
 #ext = { "html"; }
