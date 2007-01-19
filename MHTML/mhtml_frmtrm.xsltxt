@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.8 $
+// $Revision: 1.9 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -312,7 +312,8 @@ tpl [LocusVar](#p, #i)
        // note that the Constructor may come from different document here
        // even if $mml = 0, but that can be handled above, because this is
        // only used for result types which in that case shouldn't have changed
-       if [($mml="0") and (ancestor::Constructor) and (ancestor::Definition)]
+       // Exapnsion used for expandable mode defs
+       if [($mml="0") and ((ancestor::Constructor) or (ancestor::Expansion)) and (ancestor::Definition)]
        {
           $nr = `@nr`;
 	  $argtypes = `ancestor::DefinitionBlock/Let/Typ`;
@@ -321,16 +322,22 @@ tpl [LocusVar](#p, #i)
        else 
        {
           if [($mml="0") and (ancestor::Registration)]
-       {
-          $nr = `@nr`;
-	  $argtypes = `ancestor::RegistrationBlock/Let/Typ`;
-	  ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
-       }
-
-       else 
-       { 
-          ploci(#nr = `@nr`); 
-       }
+	  {
+             $nr = `@nr`;
+	     $argtypes = `ancestor::RegistrationBlock/Let/Typ`;
+	     ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
+	  }
+	  else 
+	  {
+	     if [($mml="0") and ((ancestor::DefPred) or (ancestor::DefFunc))]
+	     { 
+	        "$"; `@nr`;
+             }
+	     else 
+	     { 
+                ploci(#nr = `@nr`); 
+	     }
+	  }
        }
     }
 }
