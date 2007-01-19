@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.11 $
+// $Revision: 1.12 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -130,7 +130,7 @@ tpl top_propname(#el)
 	 { 
 	    @class = "txt"; 
 	    @href  = `concat($anamelc, ".", $ext, "#","E",$k2)`;  
-	    if [($print_lab_identifiers > 0) and ($vid > 0)] 
+	    if [($print_lab_identifiers > 0) and ($el/@vid > 0)] 
 	    { 
 	       pplab(#nr = `$el/@nr`, #vid = `$el/@vid`);  
             }
@@ -271,16 +271,23 @@ tpl [Let](#fst,#beg) {
   if // if not first in a sequence, it is already handled - do nothing -
      // this prevents the default proof traversal of already handled Lets 
     [not($fst="1") and (preceding-sibling::*[position()=$it_step][name()="Let"])] {}
-  else { // try next Let for the same type - we cannot deal with thesis here 
-  $next = { if [(count(Typ)=1) and 
-     (following-sibling::*[position()=$it_step][name()="Let"][count(Typ)=1]) and
-     (($has_thesis="0") or 
-     ((following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)]) 
-     and
-     (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])))]
-	{  are_equal_vid(#el1=`./Typ`,
-                  #el2=`following-sibling::*[position()=$it_step]/Typ`); }
-	else { "0"; }}
+  else 
+  { // try next Let for the same type - we cannot deal with thesis here 
+
+  $next = 
+  { 
+     if [(count(Typ)=1) and 
+         (following-sibling::*[position()=$it_step][name()="Let"][count(Typ)=1]) and
+	 (($has_thesis="0") or 
+	  ((following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)])
+	   and
+	   (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])))]
+     {  
+        are_equal_vid(#el1=`./Typ`, #el2=`following-sibling::*[position()=$it_step]/Typ`); 
+     }
+     else { "0"; }
+  }
+
   if [$beg] // no thesis guaranteed, only one const guaranteed
 	    // this sequence has already been started,
    {   
