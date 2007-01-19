@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.9 $
+// $Revision: 1.10 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -266,9 +266,21 @@ tpl [SchemeBlock] {
    else { sd(); } }
 
 tpl sd {
+
     <div { <a { @NAME=`concat("S",@schemenr)`; <b { "scheme  "; }
     pcomment(#str=`concat($aname,":sch ",@schemenr)`); }
-     "s"; `@schemenr`; "{ ";
+//     "s"; `@schemenr`; 
+
+    if [($proof_links > 0) and ($print_lab_identifiers = 0)]
+    { 
+       plab1(#nr = `@schemenr`, #txt = "Sch"); 
+    } 
+    else 
+    { 
+       pplab(#nr = `@schemenr`, #vid = `@vid`, #txt = "Sch");
+    }
+
+    "{ ";
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`); 
     " } :"; <br;
     <div { @class="add"; apply[Proposition]; } 
@@ -288,6 +300,8 @@ tpl [Definition]
 {     
     if [@expandable = "true"] 
     { 
+       $argtypes = `../Let/Typ`;
+       $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
        for-each [Pattern] 
        {
           <a 
@@ -299,9 +313,18 @@ tpl [Definition]
 	     if [Visible/Int] 
 	     { 
 	        " of "; 
+
 		for-each [Visible/Int] 
 		{ 
-		   ploci(#nr=`@x`); 
+
+		   $x=`@x`;
+
+		   if [$loci="2"] 
+		   { 
+		      ppconst(#nr= $x,#vid=`$argtypes[position()=$x]/@vid`); 
+                   } 
+		   else { ploci(#nr=$x); }
+
 		   if [not(position()=last())] { ","; } 
                 }
              }
@@ -666,16 +689,16 @@ tpl [Constructor](#indef,#nl,#argt,#nrt)
 
     if [not($indef="1")] { apply[ArgTypes]; }
 
-    if [@redefnr>0] { <b { "redefine "; } }
+    if [@redefnr>0] 
+    { 
+       pcomment0(#str = "original: ");
+       abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
+       <br;
+       <b { "redefine "; }
+    }
 
     <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; }
  
-    if [@redefnr>0] 
-    { 
-         abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
-         " as "; 
-    }
-
     if [@kind="G"] 
     { 
        abs(#k=`@kind`,#nr=`@relnr`,#sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
@@ -725,12 +748,13 @@ tpl [NotationBlock/Pattern] {
 // pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
 // #fnr=`@formatnr`, #loci="1"); <br;
 $loci = { if [$mml="1"] { "1"; } else { "2"; }}
+$argtypes = `../Let/Typ`;
 <a { @NAME=`concat("N",@kind,@nr)`;
 <b { if [@antonymic] { "antonym "; } else { "synonym "; }}
-pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
+pp1(#k=`@constrkind`,#nr=`@constrnr`, #args = $argtypes, #vis=`Visible/Int`,
 #fnr=`@formatnr`, #loci=$loci); } <b { " for "; } 
 
-pp(#k=`@constrkind`,#nr=`@constrnr`,
+pp(#k=`@constrkind`,#nr=`@constrnr`, #args = $argtypes,
 #pid=`@redefnr`, #loci=$loci); ";"; <br;
 
 }
@@ -780,7 +804,7 @@ tpl [Notations/Pattern] {
          $loci = { if [$mml="1"] { "1"; } else { "2"; }}
 	 <b { mkind(#kind=`@kind`); }  " ";
 	 pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
-	     #fnr=`@formatnr`, #loci=$loci); 
+	     #fnr=`@formatnr`, #loci="1"); 
 
 	 <br;
 
