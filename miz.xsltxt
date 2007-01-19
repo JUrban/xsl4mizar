@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.81 $
+// $Revision: 1.82 $
 //
 // File: miz.xsltxt - html-ization of Mizar XML, main file
 //
@@ -395,7 +395,7 @@ tpl ppfunc(#nr) {  if [$colored="1"] { <font { @color=$pfcolor;
     "H"; <sub { $nr;} } } else { "H"; <sub { $nr;} } }
 
 
-tpl pplab(#nr, #vid)
+tpl pplab(#nr, #vid, #txt)
 { 
     if [($print_lab_identifiers > 0) and ($vid > 0)]
     {
@@ -416,7 +416,14 @@ tpl pplab(#nr, #vid)
 	  else { $nm;}
        }
     }
-    else { plab(#nr = $nr); }
+    else 
+    {
+       if [$txt]  
+       { 
+          plab1(#nr = $nr, #txt = $txt); 
+       } 
+       else { plab(#nr = $nr); }
+    }
 }
 
 tpl plab(#nr) 
@@ -640,8 +647,8 @@ tpl are_equal_vid(#el1,#el2) {
     if[ not(name($el1)=name($el2)) or not(count($el1/*)=count($el2/*))
 	or not(count($el1/@*)=count($el2/@*))] { "0"; }
     else { 
-	 $s1 = { for-each [$el1/@*] { if[not(name()="div")] { `string()`;}} }
-	 $s2 = { for-each [$el2/@*] { if[not(name()="div")] { `string()`;}} }
+	 $s1 = { for-each [$el1/@*] { if[not(name()="vid")] { `string()`;}} }
+	 $s2 = { for-each [$el2/@*] { if[not(name()="vid")] { `string()`;}} }
 	 if [not($s1=$s2)] { "0"; }
     else 
      { are_equal_many_vid(#els1=`$el1/*`,#els2=`$el2/*`,#nr=`count($el1/*)`); }}}
@@ -1311,7 +1318,8 @@ tpl [LocusVar](#p, #i)
        // note that the Constructor may come from different document here
        // even if $mml = 0, but that can be handled above, because this is
        // only used for result types which in that case shouldn't have changed
-       if [($mml="0") and (ancestor::Constructor) and (ancestor::Definition)]
+       // Exapnsion used for expandable mode defs
+       if [($mml="0") and ((ancestor::Constructor) or (ancestor::Expansion)) and (ancestor::Definition)]
        {
           $nr = `@nr`;
 	  $argtypes = `ancestor::DefinitionBlock/Let/Typ`;
@@ -1320,16 +1328,22 @@ tpl [LocusVar](#p, #i)
        else 
        {
           if [($mml="0") and (ancestor::Registration)]
-       {
-          $nr = `@nr`;
-	  $argtypes = `ancestor::RegistrationBlock/Let/Typ`;
-	  ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
-       }
-
-       else 
-       { 
-          ploci(#nr = `@nr`); 
-       }
+	  {
+             $nr = `@nr`;
+	     $argtypes = `ancestor::RegistrationBlock/Let/Typ`;
+	     ppconst(#nr = $nr, #vid = `$argtypes[position() = $nr]/@vid`);
+	  }
+	  else 
+	  {
+	     if [($mml="0") and ((ancestor::DefPred) or (ancestor::DefFunc))]
+	     { 
+	        "$"; `@nr`;
+             }
+	     else 
+	     { 
+                ploci(#nr = `@nr`); 
+	     }
+	  }
        }
     }
 }
@@ -2077,7 +2091,7 @@ tpl top_propname(#el)
 	 { 
 	    @class = "txt"; 
 	    @href  = `concat($anamelc, ".", $ext, "#","E",$k2)`;  
-	    if [($print_lab_identifiers > 0) and ($vid > 0)] 
+	    if [($print_lab_identifiers > 0) and ($el/@vid > 0)] 
 	    { 
 	       pplab(#nr = `$el/@nr`, #vid = `$el/@vid`);  
             }
@@ -2218,16 +2232,23 @@ tpl [Let](#fst,#beg) {
   if // if not first in a sequence, it is already handled - do nothing -
      // this prevents the default proof traversal of already handled Lets 
     [not($fst="1") and (preceding-sibling::*[position()=$it_step][name()="Let"])] {}
-  else { // try next Let for the same type - we cannot deal with thesis here 
-  $next = { if [(count(Typ)=1) and 
-     (following-sibling::*[position()=$it_step][name()="Let"][count(Typ)=1]) and
-     (($has_thesis="0") or 
-     ((following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)]) 
-     and
-     (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])))]
-	{  are_equal_vid(#el1=`./Typ`,
-                  #el2=`following-sibling::*[position()=$it_step]/Typ`); }
-	else { "0"; }}
+  else 
+  { // try next Let for the same type - we cannot deal with thesis here 
+
+  $next = 
+  { 
+     if [(count(Typ)=1) and 
+         (following-sibling::*[position()=$it_step][name()="Let"][count(Typ)=1]) and
+	 (($has_thesis="0") or 
+	  ((following-sibling::*[1][name()="Thesis"][not(ThesisExpansions/Pair)])
+	   and
+	   (following-sibling::*[3][name()="Thesis"][not(ThesisExpansions/Pair)])))]
+     {  
+        are_equal_vid(#el1=`./Typ`, #el2=`following-sibling::*[position()=$it_step]/Typ`); 
+     }
+     else { "0"; }
+  }
+
   if [$beg] // no thesis guaranteed, only one const guaranteed
 	    // this sequence has already been started,
    {   
@@ -2718,9 +2739,21 @@ tpl [SchemeBlock] {
    else { sd(); } }
 
 tpl sd {
+
     <div { <a { @NAME=`concat("S",@schemenr)`; <b { "scheme  "; }
     pcomment(#str=`concat($aname,":sch ",@schemenr)`); }
-     "s"; `@schemenr`; "{ ";
+//     "s"; `@schemenr`; 
+
+    if [($proof_links > 0) and ($print_lab_identifiers = 0)]
+    { 
+       plab1(#nr = `@schemenr`, #txt = "Sch"); 
+    } 
+    else 
+    { 
+       pplab(#nr = `@schemenr`, #vid = `@vid`, #txt = "Sch");
+    }
+
+    "{ ";
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`); 
     " } :"; <br;
     <div { @class="add"; apply[Proposition]; } 
@@ -2740,6 +2773,8 @@ tpl [Definition]
 {     
     if [@expandable = "true"] 
     { 
+       $argtypes = `../Let/Typ`;
+       $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
        for-each [Pattern] 
        {
           <a 
@@ -2751,9 +2786,18 @@ tpl [Definition]
 	     if [Visible/Int] 
 	     { 
 	        " of "; 
+
 		for-each [Visible/Int] 
 		{ 
-		   ploci(#nr=`@x`); 
+
+		   $x=`@x`;
+
+		   if [$loci="2"] 
+		   { 
+		      ppconst(#nr= $x,#vid=`$argtypes[position()=$x]/@vid`); 
+                   } 
+		   else { ploci(#nr=$x); }
+
 		   if [not(position()=last())] { ","; } 
                 }
              }
@@ -3118,16 +3162,16 @@ tpl [Constructor](#indef,#nl,#argt,#nrt)
 
     if [not($indef="1")] { apply[ArgTypes]; }
 
-    if [@redefnr>0] { <b { "redefine "; } }
+    if [@redefnr>0] 
+    { 
+       pcomment0(#str = "original: ");
+       abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
+       <br;
+       <b { "redefine "; }
+    }
 
     <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; }
  
-    if [@redefnr>0] 
-    { 
-         abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
-         " as "; 
-    }
-
     if [@kind="G"] 
     { 
        abs(#k=`@kind`,#nr=`@relnr`,#sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
@@ -3177,12 +3221,13 @@ tpl [NotationBlock/Pattern] {
 // pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
 // #fnr=`@formatnr`, #loci="1"); <br;
 $loci = { if [$mml="1"] { "1"; } else { "2"; }}
+$argtypes = `../Let/Typ`;
 <a { @NAME=`concat("N",@kind,@nr)`;
 <b { if [@antonymic] { "antonym "; } else { "synonym "; }}
-pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
+pp1(#k=`@constrkind`,#nr=`@constrnr`, #args = $argtypes, #vis=`Visible/Int`,
 #fnr=`@formatnr`, #loci=$loci); } <b { " for "; } 
 
-pp(#k=`@constrkind`,#nr=`@constrnr`,
+pp(#k=`@constrkind`,#nr=`@constrnr`, #args = $argtypes,
 #pid=`@redefnr`, #loci=$loci); ";"; <br;
 
 }
@@ -3232,7 +3277,7 @@ tpl [Notations/Pattern] {
          $loci = { if [$mml="1"] { "1"; } else { "2"; }}
 	 <b { mkind(#kind=`@kind`); }  " ";
 	 pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
-	     #fnr=`@formatnr`, #loci=$loci); 
+	     #fnr=`@formatnr`, #loci="1"); 
 
 	 <br;
 
