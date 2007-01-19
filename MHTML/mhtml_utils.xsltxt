@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_simple.xsl;
 
 
-// $Revision: 1.7 $
+// $Revision: 1.8 $
 //
 // File: utils.xsltxt - html-ization of Mizar XML, various utility functions
 //
@@ -178,8 +178,8 @@ tpl are_equal_vid(#el1,#el2) {
     if[ not(name($el1)=name($el2)) or not(count($el1/*)=count($el2/*))
 	or not(count($el1/@*)=count($el2/@*))] { "0"; }
     else { 
-	 $s1 = { for-each [$el1/@*] { if[not(name()="div")] { `string()`;}} }
-	 $s2 = { for-each [$el2/@*] { if[not(name()="div")] { `string()`;}} }
+	 $s1 = { for-each [$el1/@*] { if[not(name()="vid")] { `string()`;}} }
+	 $s2 = { for-each [$el2/@*] { if[not(name()="vid")] { `string()`;}} }
 	 if [not($s1=$s2)] { "0"; }
     else 
      { are_equal_many_vid(#els1=`$el1/*`,#els2=`$el2/*`,#nr=`count($el1/*)`); }}}
