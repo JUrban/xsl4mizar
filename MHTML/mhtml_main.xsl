@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.2 $ -->
+  <!-- $Revision: 1.3 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -107,9 +107,11 @@ var ndiv = obj;
 while (ndiv.nextSibling.nodeName != &apos;DIV&apos;) { ndiv = ndiv.nextSibling; }
 return hs2(ndiv);
 }
+
+// explorer7 implements XMLHttpRequest in some strange way
 function makeRequest(obj,url) {
         var http_request = false;
-        if (window.XMLHttpRequest) { // Mozilla, Safari,...
+        if (window.XMLHttpRequest &amp;&amp; !(window.ActiveXObject)) { // Mozilla, Safari,...
             http_request = new XMLHttpRequest();
             if (http_request.overrideMimeType) {
                 http_request.overrideMimeType(&apos;text/xml&apos;);
@@ -131,17 +133,19 @@ function makeRequest(obj,url) {
         http_request.open(&apos;GET&apos;, url, true);
         http_request.send(null);
     }
+// commented the 200 state to have local requests too
 function insertRequest(obj,http_request) {
         if (http_request.readyState == 4) {
-            if (http_request.status == 200) {
+//            if (http_request.status == 200) {
 	    var ndiv = obj;
 	    while (ndiv.nodeName != &apos;SPAN&apos;) { ndiv = ndiv.nextSibling; }
 	    ndiv.innerHTML = http_request.responseText;
 	    obj.onclick = function(){ return hs2(obj) };
-            } else {
-                alert(&apos;There was a problem with the request.&apos;);
-		alert(http_request.status);
-            }}}
+//            } else {
+//                alert(&apos;There was a problem with the request.&apos;);
+//		alert(http_request.status);
+//            }
+	    }}
 // End --&gt;
 </xsl:text>
             </xsl:element>

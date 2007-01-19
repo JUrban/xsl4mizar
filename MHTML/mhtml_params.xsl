@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.1 $ -->
+  <!-- $Revision: 1.2 $ -->
   <!--  -->
   <!-- File: params.xsltxt - html-ization of Mizar XML, top-level parameters -->
   <!--  -->
@@ -18,14 +18,40 @@
   <!-- linking methods: -->
   <!-- "q" - query, everything is linked to mmlquery -->
   <!-- "s" - self, everything is linked to these xml/html files -->
-  <!-- "m" - mizaring, current article's constructs are linked to self, -->
+  <!-- "m" - mizaring and mmlquery, current article's constructs are linked to self, -->
   <!-- the rest is linked to mmlquery -->
+  <!-- "l" - local mizaring, current article's constructs are linked to self, -->
+  <!-- the rest to $MIZFILES/html -->
   <xsl:param name="linking">
-    <xsl:text>s</xsl:text>
+    <xsl:text>l</xsl:text>
   </xsl:param>
-  <!-- extension for linking - either xml or html -->
+  <!-- needed for local linking, document("") gives the sylesheet as a document -->
+  <xsl:param name="mizfiles">
+    <xsl:value-of select="string(/*/@mizfiles)"/>
+  </xsl:param>
+  <xsl:param name="mizhtml">
+    <xsl:value-of select="concat($mizfiles,&quot;html/&quot;)"/>
+  </xsl:param>
+  <!-- extension for linking to other articles - either xml or html -->
   <xsl:param name="ext">
     <xsl:text>html</xsl:text>
+  </xsl:param>
+  <!-- extension for linking to other articles - either xml or html -->
+  <xsl:param name="selfext">
+    <xsl:choose>
+      <xsl:when test="$linking = &quot;l&quot;">
+        <xsl:text>xml</xsl:text>
+      </xsl:when>
+      <xsl:when test="$linking = &quot;s&quot;">
+        <xsl:value-of select="$ext"/>
+      </xsl:when>
+      <xsl:when test="$linking = &quot;m&quot;">
+        <xsl:text>xml</xsl:text>
+      </xsl:when>
+      <xsl:when test="$linking = &quot;q&quot;">
+        <xsl:text>html</xsl:text>
+      </xsl:when>
+    </xsl:choose>
   </xsl:param>
   <!-- put titles to links or not -->
   <xsl:param name="titles">
@@ -37,6 +63,12 @@
   </xsl:param>
   <!-- print identifiers (like in JFM) instead of normalized names -->
   <xsl:variable name="print_identifiers">
+    <xsl:text>1</xsl:text>
+  </xsl:variable>
+  <!-- print label identifiers  instead of normalized names -->
+  <!-- this is kept separate from $print_identifiers, because -->
+  <!-- it should be turned off for item generating -->
+  <xsl:variable name="print_lab_identifiers">
     <xsl:text>1</xsl:text>
   </xsl:variable>
   <!-- tells whether relative or absolute names are shown -->
@@ -115,6 +147,11 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:param>
+  <!-- whether we print all attributes (not just those with @pid) -->
+  <!-- this is set to 1 for processing MML files -->
+  <xsl:param name="print_all_attrs">
+    <xsl:value-of select="$mml"/>
+  </xsl:param>
   <!-- .atr file with imported constructors -->
   <xsl:param name="constrs">
     <xsl:value-of select="concat($anamelc, &apos;.atr&apos;)"/>
@@ -173,6 +210,10 @@
   </xsl:param>
   <xsl:param name="commentcolor">
     <xsl:text>Red</xsl:text>
+  </xsl:param>
+  <!-- use spans for brackets -->
+  <xsl:param name="parenspans">
+    <xsl:text>1</xsl:text>
   </xsl:param>
   <!-- number of parenthesis colors (see the stylesheet in the bottom) -->
   <xsl:param name="pcolors_nr">

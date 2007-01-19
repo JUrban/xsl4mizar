@@ -5,7 +5,7 @@
   <xsl:include href="mhtml_params.xsl"/>
   <xsl:include href="mhtml_keys.xsl"/>
 
-  <!-- $Revision: 1.3 $ -->
+  <!-- $Revision: 1.4 $ -->
   <!--  -->
   <!-- File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs -->
   <!--  -->
@@ -277,6 +277,56 @@
         <xsl:element name="sub">
           <xsl:value-of select="$nr"/>
         </xsl:element>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="pplab">
+    <xsl:param name="nr"/>
+    <xsl:param name="vid"/>
+    <xsl:param name="txt"/>
+    <xsl:choose>
+      <xsl:when test="($print_lab_identifiers &gt; 0) and ($vid &gt; 0)">
+        <xsl:variable name="nm">
+          <xsl:call-template name="get_vid_name">
+            <xsl:with-param name="vid" select="$vid"/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:element name="i">
+          <xsl:choose>
+            <xsl:when test="$colored = &quot;1&quot;">
+              <xsl:element name="font">
+                <xsl:attribute name="color">
+                  <xsl:value-of select="$labcolor"/>
+                </xsl:attribute>
+                <xsl:if test="$titles=&quot;1&quot;">
+                  <xsl:attribute name="title">
+                    <xsl:value-of select="concat(&quot;E&quot;,$nr)"/>
+                  </xsl:attribute>
+                </xsl:if>
+                <xsl:value-of select="$nm"/>
+              </xsl:element>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$nm"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:element>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="$txt">
+            <xsl:call-template name="plab1">
+              <xsl:with-param name="nr" select="$nr"/>
+              <xsl:with-param name="txt" select="$txt"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="plab">
+              <xsl:with-param name="nr" select="$nr"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>

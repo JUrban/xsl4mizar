@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_frmtrm.xsl"/>
 
-  <!-- $Revision: 1.4 $ -->
+  <!-- $Revision: 1.5 $ -->
   <!--  -->
   <!-- File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items -->
   <!--  -->
@@ -24,7 +24,7 @@
     </xsl:if>
     <xsl:if test="following-sibling::*[1][(name()=&quot;By&quot;) and (@linked=&quot;true&quot;)]">
       <xsl:if test="not((name(..) = &quot;Consider&quot;) or (name(..) = &quot;Reconsider&quot;) 
-              or (name(..) = &quot;Conclusion&quot;))">
+           or (name(..) = &quot;Conclusion&quot;))">
         <xsl:element name="b">
           <xsl:text>then </xsl:text>
         </xsl:element>
@@ -32,7 +32,8 @@
     </xsl:if>
     <xsl:if test="@nr&gt;0">
       <xsl:choose>
-        <xsl:when test="($proof_links&gt;0) and not(string-length(@plevel)&gt;0)">
+        <xsl:when test="($proof_links&gt;0) and ($print_lab_identifiers = 0) 
+            and not(string-length(@plevel)&gt;0)">
           <xsl:call-template name="plab1">
             <xsl:with-param name="nr" select="@nr"/>
             <xsl:with-param name="txt">
@@ -41,13 +42,15 @@
           </xsl:call-template>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:call-template name="plab">
+          <xsl:call-template name="pplab">
             <xsl:with-param name="nr" select="@nr"/>
+            <xsl:with-param name="vid" select="@vid"/>
           </xsl:call-template>
         </xsl:otherwise>
       </xsl:choose>
       <xsl:text>: </xsl:text>
     </xsl:if>
+    <!-- ###TODO: include the possible link when generating items -->
     <xsl:choose>
       <xsl:when test="($generate_items&gt;0) and not(string-length(@plevel)&gt;0)">
         <xsl:call-template name="pcomment">
@@ -108,6 +111,9 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- if #nbr=1 then no <br; is put in the end -->
+  <!-- (used e.g. for conclusions, where definitional -->
+  <!-- expansions are handled on the same line) -->
   <xsl:template match="By	">
     <xsl:param name="nbr"/>
     <xsl:choose>
@@ -146,7 +152,7 @@
         </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:if test="not($nbr=&quot;1&quot;)">
+    <xsl:if test="not($nbr = &quot;1&quot;)">
       <xsl:element name="br"/>
     </xsl:if>
   </xsl:template>
@@ -238,6 +244,18 @@
               </xsl:otherwise>
             </xsl:choose>
           </xsl:variable>
+          <xsl:variable name="nm">
+            <xsl:choose>
+              <xsl:when test="($print_lab_identifiers &gt; 0) and ($el/@vid &gt; 0)">
+                <xsl:call-template name="get_vid_name">
+                  <xsl:with-param name="vid" select="$el/@vid"/>
+                </xsl:call-template>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="concat($k,@nr)"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
           <xsl:call-template name="mkref">
             <xsl:with-param name="aid" select="$aname"/>
             <xsl:with-param name="nr" select="@nr"/>
@@ -245,7 +263,7 @@
             <xsl:with-param name="c">
               <xsl:text>1</xsl:text>
             </xsl:with-param>
-            <xsl:with-param name="nm" select="concat($k,@nr)"/>
+            <xsl:with-param name="nm" select="$nm"/>
           </xsl:call-template>
         </xsl:when>
         <xsl:otherwise>
@@ -258,12 +276,22 @@
             <xsl:attribute name="href">
               <xsl:value-of select="concat($anamelc, &quot;.&quot;, $ext, &quot;#&quot;,&quot;E&quot;,$k2)"/>
             </xsl:attribute>
-            <xsl:call-template name="plab1">
-              <xsl:with-param name="nr" select="$el/@nr"/>
-              <xsl:with-param name="txt">
-                <xsl:text>Lemma</xsl:text>
-              </xsl:with-param>
-            </xsl:call-template>
+            <xsl:choose>
+              <xsl:when test="($print_lab_identifiers &gt; 0) and ($el/@vid &gt; 0)">
+                <xsl:call-template name="pplab">
+                  <xsl:with-param name="nr" select="$el/@nr"/>
+                  <xsl:with-param name="vid" select="$el/@vid"/>
+                </xsl:call-template>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:call-template name="plab1">
+                  <xsl:with-param name="nr" select="$el/@nr"/>
+                  <xsl:with-param name="txt">
+                    <xsl:text>Lemma</xsl:text>
+                  </xsl:with-param>
+                </xsl:call-template>
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:element>
         </xsl:otherwise>
       </xsl:choose>
@@ -277,32 +305,35 @@
     <xsl:variable name="k1" select="concat($nr,&quot;:&quot;,$pl)"/>
     <xsl:choose>
       <xsl:when test="key(&quot;E&quot;,$k1)">
-        <xsl:choose>
-          <xsl:when test="not(string-length($pl)&gt;0)">
-            <xsl:call-template name="top_propname">
-              <xsl:with-param name="el" select="key(&quot;E&quot;,$k1)"/>
-            </xsl:call-template>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:variable name="txt">
-              <xsl:call-template name="propname">
-                <xsl:with-param name="n" select="key(&quot;E&quot;,$k1)/@propnr"/>
-                <xsl:with-param name="pl" select="$pl"/>
+        <xsl:for-each select="key(&quot;E&quot;,$k1)">
+          <xsl:choose>
+            <xsl:when test="not(string-length($pl)&gt;0)">
+              <xsl:call-template name="top_propname">
+                <xsl:with-param name="el" select="."/>
               </xsl:call-template>
-            </xsl:variable>
-            <xsl:element name="a">
-              <xsl:attribute name="class">
-                <xsl:text>txt</xsl:text>
-              </xsl:attribute>
-              <xsl:attribute name="href">
-                <xsl:value-of select="concat($anamelc, &quot;.&quot;, $ext, &quot;#&quot;,$txt)"/>
-              </xsl:attribute>
-              <xsl:call-template name="plab">
-                <xsl:with-param name="nr" select="@nr"/>
-              </xsl:call-template>
-            </xsl:element>
-          </xsl:otherwise>
-        </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:variable name="txt">
+                <xsl:call-template name="propname">
+                  <xsl:with-param name="n" select="@propnr"/>
+                  <xsl:with-param name="pl" select="$pl"/>
+                </xsl:call-template>
+              </xsl:variable>
+              <xsl:element name="a">
+                <xsl:attribute name="class">
+                  <xsl:text>txt</xsl:text>
+                </xsl:attribute>
+                <xsl:attribute name="href">
+                  <xsl:value-of select="concat($anamelc, &quot;.&quot;, $ext, &quot;#&quot;,$txt)"/>
+                </xsl:attribute>
+                <xsl:call-template name="pplab">
+                  <xsl:with-param name="nr" select="@nr"/>
+                  <xsl:with-param name="vid" select="@vid"/>
+                </xsl:call-template>
+              </xsl:element>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:for-each>
       </xsl:when>
       <xsl:otherwise>
         <xsl:variable name="ls" select="string-length($pl)"/>
@@ -354,8 +385,33 @@
       <xsl:when test="not(@articlenr)">
         <xsl:choose>
           <xsl:when test="$proof_links = 0">
-            <xsl:call-template name="plab">
-              <xsl:with-param name="nr" select="@nr"/>
+            <!-- experimental!! -->
+            <xsl:variable name="n1" select="@nr"/>
+            <xsl:variable name="vid">
+              <xsl:choose>
+                <xsl:when test="@vid">
+                  <xsl:value-of select="@vid"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:choose>
+                    <xsl:when test="$print_lab_identifiers &gt; 0">
+                      <!-- for-each [preceding::*[((name()="Proposition") or (name()="Now") or (name()="IterEquality")) and (@nr=$n1)][1]] -->
+                      <!-- this seems to be reasonably fast -->
+                      <xsl:for-each select="(preceding::Proposition[@nr=$n1]|preceding::Now[@nr=$n1]
+                           |preceding::IterEquality[@nr=$n1])[last()]">
+                        <xsl:value-of select="@vid"/>
+                      </xsl:for-each>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:text>0</xsl:text>
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:variable>
+            <xsl:call-template name="pplab">
+              <xsl:with-param name="nr" select="$n1"/>
+              <xsl:with-param name="vid" select="$vid"/>
             </xsl:call-template>
           </xsl:when>
           <xsl:otherwise>
@@ -420,8 +476,9 @@
       </xsl:if>
     </xsl:if>
     <xsl:if test="@nr&gt;0">
-      <xsl:call-template name="plab">
+      <xsl:call-template name="pplab">
         <xsl:with-param name="nr" select="@nr"/>
+        <xsl:with-param name="vid" select="@vid"/>
       </xsl:call-template>
       <xsl:text>: </xsl:text>
     </xsl:if>
@@ -480,11 +537,11 @@
         <xsl:variable name="next">
           <xsl:choose>
             <xsl:when test="(count(Typ)=1) and 
-     (following-sibling::*[position()=$it_step][name()=&quot;Let&quot;][count(Typ)=1]) and
-     (($has_thesis=&quot;0&quot;) or 
-     ((following-sibling::*[1][name()=&quot;Thesis&quot;][not(ThesisExpansions/Pair)]) 
-     and
-     (following-sibling::*[3][name()=&quot;Thesis&quot;][not(ThesisExpansions/Pair)])))">
+         (following-sibling::*[position()=$it_step][name()=&quot;Let&quot;][count(Typ)=1]) and
+	 (($has_thesis=&quot;0&quot;) or 
+	  ((following-sibling::*[1][name()=&quot;Thesis&quot;][not(ThesisExpansions/Pair)])
+	   and
+	   (following-sibling::*[3][name()=&quot;Thesis&quot;][not(ThesisExpansions/Pair)])))">
               <xsl:call-template name="are_equal_vid">
                 <xsl:with-param name="el1" select="./Typ"/>
                 <xsl:with-param name="el2" select="following-sibling::*[position()=$it_step]/Typ"/>
@@ -633,12 +690,12 @@
 
   <xsl:template match="Conclusion">
     <xsl:choose>
-      <xsl:when test="(By[@linked=&quot;true&quot;]) or 
-		   (IterEquality/IterStep[1]/By[@linked=&quot;true&quot;])">
+      <xsl:when test="(By[@linked = &quot;true&quot;]) or 
+       (IterEquality/IterStep[1]/By[@linked = &quot;true&quot;])">
         <xsl:element name="b">
           <xsl:text>hence </xsl:text>
         </xsl:element>
-        <xsl:apply-templates select="*[not(name()=&quot;By&quot;)]"/>
+        <xsl:apply-templates select="*[not(name() = &quot;By&quot;)]"/>
         <xsl:apply-templates select="By">
           <xsl:with-param name="nbr">
             <xsl:text>1</xsl:text>
@@ -677,8 +734,7 @@
               </xsl:when>
               <xsl:otherwise>
                 <xsl:apply-templates select="Proposition"/>
-                <xsl:apply-templates select=" IterEquality|By|From|ErrorInf
-				   |SkippedProof">
+                <xsl:apply-templates select=" IterEquality|By|From|ErrorInf|SkippedProof">
                   <xsl:with-param name="nbr">
                     <xsl:text>1</xsl:text>
                   </xsl:with-param>

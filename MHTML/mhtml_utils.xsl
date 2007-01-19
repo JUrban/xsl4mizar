@@ -3,7 +3,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
   <xsl:include href="mhtml_print_simple.xsl"/>
-  <!-- $Revision: 1.3 $ -->
+  <!-- $Revision: 1.4 $ -->
   <!--  -->
   <!-- File: utils.xsltxt - html-ization of Mizar XML, various utility functions -->
   <!--  -->
@@ -557,14 +557,14 @@
       <xsl:otherwise>
         <xsl:variable name="s1">
           <xsl:for-each select="$el1/@*">
-            <xsl:if test="not(name()=&quot;div&quot;)">
+            <xsl:if test="not(name()=&quot;vid&quot;)">
               <xsl:value-of select="string()"/>
             </xsl:if>
           </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="s2">
           <xsl:for-each select="$el2/@*">
-            <xsl:if test="not(name()=&quot;div&quot;)">
+            <xsl:if test="not(name()=&quot;vid&quot;)">
               <xsl:value-of select="string()"/>
             </xsl:if>
           </xsl:for-each>
