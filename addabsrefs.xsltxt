@@ -70,6 +70,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // .fex file with FromExplanations
 #fex=  { `concat($anamelc, '.fex')`; }
 
+// this needs to be set to 1 for processing .eth files
+#ethprocess = { "0"; }
+
 // top level element instead of top-level document, which is hard to
 // know
 #top = `/`;
@@ -158,10 +161,14 @@ tpl [ThesisExpansions/Pair] {
 	 else { "errorexpansion"; }}}}}
 
 // add absolute numbers to these (they are kind-dependent)
-tpl [Theorem|Constructor|Pattern](#s) { $n=`name()`; <$n { copy-of `@*`;
+tpl [Theorem|Constructor|Pattern](#s) { 
+             $n=`name()`; <$n 
+	     { 
+	     copy-of `@*`;
+             if [$ethprocess = 0] {
              $k=`@kind`; @aid=$aname;
              @nr=`1 + count(preceding::*[(name()=$n) and (@kind=$k)])`;
-	     if [@redefnr > 0] { abs(#k=$k,#nr=`@redefnr`,#r="1"); } 
+	     if [@redefnr > 0] { abs(#k=$k,#nr=`@redefnr`,#r="1"); } }
              apply(#s=$s); }}
 
 tpl [Scheme|Definiens|RCluster|CCluster|FCluster](#s){ 
