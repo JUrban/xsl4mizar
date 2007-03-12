@@ -172,8 +172,12 @@ tpl [Theorem|Constructor|Pattern](#s) {
              apply(#s=$s); }}
 
 tpl [Scheme|Definiens|RCluster|CCluster|FCluster](#s){ 
-             $n=`name()`; <$n { copy-of `@*`; @aid=$aname;
-             @nr=`1 + count(preceding::*[(name()=$n)])`;
+             $n=`name()`; <$n 
+	     { 
+	     copy-of `@*`; 
+	     if [$ethprocess = 0] {
+	     @aid=$aname;
+             @nr=`1 + count(preceding::*[(name()=$n)])`; }
              apply(#s=$s); }}
 
 tpl [Field](#s) { <Field 
