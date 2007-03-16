@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.33 $
+// $Revision: 1.34 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -345,6 +345,18 @@ tpl [SchemeBlock] {
     try_inference( #el=`*[position() = (last() - 1)]`,#pl=`@newlevel`); 
     "]).\n"; }
 
+// SchemePremises implies SchemeThesis
+tpl [Scheme] { 
+    $sname = lc(#s=`concat('s',@nr,'_',@aid)`);
+    "fof("; $sname; ",theorem,"; "(";
+    if [count(*)>2] { "( "; 
+       ilist( #separ=$and_s, #elems=`*[position() > 2]`);
+	      " ) "; $imp_s; }
+    apply[*[position()=2]]; ")";
+    ",file("; lc(#s=`@aid`); ","; $sname; "),[mptp_info("; 
+    `@nr`; ",[],"; "scheme,position(0,0),[0])]).\n"; }
+
+
 tpl [JustifiedTheorem/Proposition] { "fof("; absr(#el=`..`); ",theorem,";
     apply(#pl=`@plevel`);
     ",file("; $anamelc; ","; absr(#el=`..`); "),[mptp_info("; 
@@ -360,6 +372,7 @@ tpl [Theorem] { "fof("; absr(#el=`.`); ",";
     apply; ",file("; lc(#s=`@aid`); ",";
     absr(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $kword; 
     ",position(0,0),[0])]).\n"; }
+
 
 // ##GRM: Mptp_Info : "mptp_info(" 
 //           Item_Number "," Level "," Item_Kind ","
