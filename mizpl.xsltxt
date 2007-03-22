@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.34 $
+// $Revision: 1.35 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -573,23 +573,43 @@ tpl [Reconsider] { $cnr = `@constnr`; $pl=`@plevel`;
 }}
 
 // The argument types of scheme functors are forgotten by Mizar
-// so we do not use them either and use $true
-tpl [SchemeFuncDecl] { $pl=`@plevel`; 
-//    $nm =  { "f"; `@nr`; addp(#pl=$pl); }
-    $nm = { sch_fpname(#k="f",#nr=`@nr`,#schnr=`../@schemenr`,#aid=$aname); }
-    $levl = { ",["; `translate($pl,"_",",")`; "],";}
-    $l = `count(ArgTypes/Typ)`;
+// so we do not use them either and use $true.
+// The proof level is just [], to be compatible with scheme
+// proof level. The scheme to which this belongs is remembered 
+// instead in the Item_Arguments.
+tpl [SchemeFuncDecl] 
+{ 
+    $pl   = `@plevel`; 
+    $schnr= `../@schemenr`;
+//  $levl = { ",["; `translate($pl,"_",",")`; "],"; }
+    $levl = { ",[],"; }  
+    $sname = `concat('s',$schnr,'_',$anamelc)`;
+//  $nm   =  { "f"; `@nr`; addp(#pl=$pl); }
+    $nm   = { sch_fpname(#k="f",#nr=`@nr`,#schnr=`../@schemenr`,#aid=$aname); }
+    $l    = `count(ArgTypes/Typ)`;
+
     "fof(dt_";  $nm; ",sort,"; 
-    if [$l > 0] { 
-       "!["; for-each [ArgTypes/Typ] { 
-		      ploci(#nr=`position()`); " : $true"; 
-		      if [not(position()=last())] { ","; } }
-       "]: "; }
+    if [$l > 0] 
+    { 
+       "!["; 
+       for-each [ArgTypes/Typ] 
+       { 
+          ploci(#nr=`position()`); 
+	  " : $true"; 
+	  if [not(position()=last())] { ","; } 
+       }
+       "]: "; 
+    }
+
     $srt_s; "("; $nm;
-    if [$l > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+    if [$l > 0] 
+    { 
+       "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; 
+    }
     ","; apply[Typ](#pl=$pl); ")";
     ",file("; $anamelc; ","; $nm; "),[mptp_info("; `@nr`; $levl;
-    "functor,position(0,0),[scheme,type])]).\n"; }
+    "functor,position(0,0),[scheme,type,"; $sname; "])]).\n"; 
+}
 
 
 // "M" | "L" | "V" | "R" | "K" | "U" | "G"
@@ -1059,10 +1079,16 @@ tpl privname(#nr,#pl) {
  }
 
 // name of scheme functor (#k='f') or predicate (#k='p')
-tpl sch_fpname(#k,#nr,#schnr,#aid) {
-    if [$k and $nr and $aid and $schnr] {
-       lc(#s=`concat($k,$nr,'_s',$schnr,'_',$aid)`); }
-    else { lc(#s=$k); `@nr`;  $fail; }
+tpl sch_fpname(#k,#nr,#schnr,#aid) 
+{
+    if [$k and $nr and $aid and $schnr] 
+    {
+       lc(#s=`concat($k,$nr,'_s',$schnr,'_',$aid)`); 
+    }
+    else 
+    { 
+       lc(#s=$k); `@nr`;  $fail; 
+    }
 }
 
 // name of scheme functor (#k='f') or predicate (#k='p')
