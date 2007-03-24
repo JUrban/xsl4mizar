@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.35 $
+// $Revision: 1.36 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -330,20 +330,32 @@ tpl plname(#n,#pl) {
     else { lemmaname(#n=$n); } }
 
 // SchemePremises implies SchemeThesis
-// the proof might rather be 'implication intro'
-tpl [SchemeBlock] { 
+// the proof might rather be 'implication intro' - no
+// the proof is standard, the premises are printed, because
+// we just traverse all propositions. Note the following hacks:
+// - scheme functors and preds get empty level (i.e. are defined globally)
+// - the scheme gets empty level (i.e. one level up)
+// - the scheme's proof is raised too (i.e. one number); on that proof level
+//   exist only the premises and the thesis (this is standard), the premises are 
+//   treated as assumptions, the thesis as a proved conclusion
+tpl [SchemeBlock] 
+{ 
     $sname = `concat('s',@schemenr,'_',$anamelc)`;
     "fof("; $sname; ",theorem,"; "(";
-    if [SchemePremises/Proposition] { "( "; 
+    if [SchemePremises/Proposition] 
+    { "( "; 
        ilist( #separ=$and_s, #elems=`SchemePremises/Proposition/*`,
-	      #pl=`@newlevel`); " ) "; $imp_s; }
+	      #pl=`@newlevel`); 
+       " ) "; $imp_s; 
+    }
     apply[Proposition/*](#pl=`@newlevel`); ")";
     ",file("; $anamelc; ","; $sname; "),[mptp_info("; 
     `@schemenr`; ",[],"; "scheme,position("; `@line`; ","; 
     `@col`; "),["; `@schemenr`; "])"; 
     // only Proof and SkippedProof
-    try_inference( #el=`*[position() = (last() - 1)]`,#pl=`@newlevel`); 
-    "]).\n"; }
+    try_inference( #el=`*[position() = (last() - 1)]`,#pl=`@newlevel`,#nl=`@newlevel`); 
+    "]).\n"; 
+}
 
 // SchemePremises implies SchemeThesis
 tpl [Scheme] { 
@@ -377,13 +389,38 @@ tpl [Theorem] { "fof("; absr(#el=`.`); ",";
 // ##GRM: Mptp_Info : "mptp_info(" 
 //           Item_Number "," Level "," Item_Kind ","
 //           Position "," "[" Item_Arguments "]" ")" .
-tpl [DefTheorem/Proposition] { "fof("; absr(#el=`..`); ",definition,";
+tpl [DefTheorem/Proposition] 
+{ 
+   "fof("; absr(#el=`..`); ",definition,";
     apply(#pl=`@plevel`);
     ",file("; $anamelc; ","; absr(#el=`..`); "),[mptp_info("; 
     `../@nr`; ",[],"; "definition,position("; `@line`; ","; 
-    `@col`; "),["; if [@nr] { `@nr`;} else { "0";} "]"; ")]).\n"; }
+    `@col`; "),["; 
+    if [@nr] { `@nr`;} else { "0";} 
+    add_mizar_item();
+    "]"; ")]).\n"; 
+}
 
-tpl [Proposition] { 
+// add the name of the mizar item which introduced the current proposition
+// private - assumes that we are inside Proposition
+// possible parents of Proposition (note that MPTP proposition can be 
+// born also from other XML elements than Proposition, they are
+// Now, IterStep, IterEquality):
+// Assume,Case,Conclusion,Given,PerCases,Suppose,
+// Consider(2 kinds of props),Reconsider,
+// DefTheorem,JustifiedTheorem,SchemeBlock,SchemePremises,
+// Coherence,Compatibility,Consistency,Correctness,Existence,Uniqueness,UnknownCorrCond,
+// JustifiedProperty
+tpl add_mizar_item
+{
+// temporarily commented to compile
+//   ",mizar_item(";
+//   $parent_nm = `name(..)`;
+}
+
+
+tpl [Proposition] 
+{ 
     $pname = plname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; 
     if [following-sibling::*[1][name() = "By" or name() = "From" or
@@ -393,7 +430,8 @@ tpl [Proposition] {
     `translate(@plevel,"_",",")`; "],proposition,position("; `@line`; ","; 
     `@col`; "),["; if [@nr] { `@nr`;} else { "0";} "])";
     try_inference(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`);
-    "]).\n"; }
+    "]).\n"; 
+}
 
 tpl [Now] { $pname = plname(#n=`@propnr`, #pl=`@plevel`);
     "fof(";  $pname; ","; "lemma-derived,";
@@ -429,16 +467,20 @@ tpl [IterStep] { $pname = plname(#n=`@propnr`, #pl=`@plevel`);
      try_inference(#el=`*[2]`,#pl=`@plevel`,#prnr=`@propnr`);
      "]).\n"; }
 
-tpl try_inference(#el,#pl,#prnr) { for-each [$el] {
+tpl try_inference(#el,#pl,#prnr,#nl) 
+{ 
+  for-each [$el] 
+  {
     if [name() = "By"] { ",";
        byinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
     else { if [name() = "From"] { ",";
        frominfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
     else { if [name() = "Proof"] { ",";
-       proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
+       proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr,#nl=$nl); }
     else { if [name() = "SkippedProof"] { ",";
        skippedinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
-}}}}}
+  }}}}
+}
 
 
 tpl skippedinfer(#el,#pl,#prnr) { "inference(mizar_skipped_proof,[],[])"; }
@@ -449,19 +491,28 @@ tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
 
 // handles Refs for From, (possibly linked) By and ThesisExpansions
 // ignores possible ThesisExpansions/Pair - each has a Ref added to it
-tpl refs(#el,#pl,#prnr) { for-each [$el] {
-    if [@linked] { 
+tpl refs(#el,#pl,#prnr) 
+{  
+  for-each [$el] 
+  {
+    if [@linked] 
+    { 
        if [name(..)="IterStep"] {
 	  plname(#n=`../../@propnr - 1`,#pl=`../../@plevel`); } 
        else { if [$prnr>1] {
 	  plname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; } }
-      if [Ref] { ","; } }
-    else { if [name()="From"] { 
+      if [Ref] { ","; } 
+    }
+    else { if [name()="From"] 
+    { 
 	 sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); 
-	 if [Ref] { ","; } } }
+	 if [Ref] { ","; }
+    }}
+
     for-each [Ref] { refname(#el=`.`,#pl=$pl); 
 	if [not(position()=last())] { ","; } }
-}}
+  }
+}
 
 
 tpl [FuncInstance](#pl) { $k = `@kind`;
@@ -509,28 +560,50 @@ tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
 
 // ###TODO: finish the description!! 
 // assumes Proof, Now or IterEquality,
+// selects all references (no matter what their level is) used for
+// justifying anything inside the proof (so e.g. assumption, which 
+// is never used to justify anything willnot be listed). This is a 
+// bit arbitrary choice, because in computing background theory for 
+// a given proof, this is not sufficient for getting a complete 
+// symbol set (all formulas inside the proof have to be collected anyway).
+// Another options would be to encode just the Mizar ND proof's 
+// last inference (e.g. "universal intro", if the proof starts with "let"),
+// or to encode only the formulas on the child level.
 // ##GRM: Proof_Inference : 
 //          "inference(mizar_proof,[proof_level(" Level ")], 
 //          [ References ] ")" .   
-tpl proofinfer(#el,#pl,#prnr) { for-each [$el] {
+// seems that #pl and #prnr are no longer used, only #nl is used to possibly
+// override #el's own @newlevel (used for schemes)
+tpl proofinfer(#el,#pl,#prnr,#nl) 
+{ 
+  for-each [$el] 
+  {
     "inference(mizar_proof,[proof_level(["; 
-    if [not(@newlevel)] { $fail; } else {`translate(@newlevel,"_",",")`; }
+    if [$nl] { `translate($nl,"_",",")`; }
+    else { if [@newlevel] { `translate(@newlevel,"_",",")`; }
+    else { $fail; }}
      "])],["; 
     for-each [.//By[((name(preceding-sibling::*[1])="Proposition") 
 	              or (name(..)="IterStep"))
 	            and ((@linked="true") or (count(Ref)>0))] 
 	     | .//From[((name(preceding-sibling::*[1])="Proposition") 
 	                 or (name(..)="IterStep"))]
-             | .//ThesisExpansions[count(Ref)>0]] { 
+             | .//ThesisExpansions[count(Ref)>0]] 
+    { 
       if [name()="ThesisExpansions"] { refs( #el=`.`); }
       else { if [name(..)="IterStep"] {  
 	     refs( #el=`.`,#pl=`../@plevel`,#prnr=`../@propnr`); }
-        else {
+        else 
+	{
 	      refs( #el=`.`,#pl=`preceding-sibling::*[1]/@plevel`,
-		    #prnr=`preceding-sibling::*[1]/@propnr`); }}
-      if [not(position()=last())] { ","; } }
+		    #prnr=`preceding-sibling::*[1]/@propnr`); 
+        }
+      }
+      if [not(position()=last())] { ","; } 
+    }
     "])";
-}}
+  }
+}
 
 
 // create name and info for a scheme instance
@@ -907,7 +980,17 @@ tpl [CCluster] { if [ErrorCluster] { } else {
        "proof_level(["; `translate(../@newlevel,"_",",")`; "])"; }
     "])]).\n"; } }
 
-tpl [FCluster] { if [ErrorCluster] { } else {
+// sufficient proof refs can be collected from its coherence 
+// (correctness) proof (the corr_conds are therefore written here, 
+// with the proposition given as argument)
+// generalization of the local consts is however needed for small-step 
+// proof export, and the local consts can be re-used for other clusters
+// inside this block; so then their henkin axiom will generally be a conjunction
+tpl [FCluster] 
+{ 
+  if [ErrorCluster] { } 
+  else 
+  {
     "fof("; absk(#el=`.`,#kind="fc"); ",sort,";
     apply[ArgTypes];
     $succ = { `count(Cluster/*)`; }
@@ -918,9 +1001,22 @@ tpl [FCluster] { if [ErrorCluster] { } else {
     ")"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="fc"); "),[mptp_info("; `@nr`; 
     ",[],fcluster,position(0,0),[";
-    if [$mml="0"] { 
-       "proof_level(["; `translate(../@newlevel,"_",",")`; "])"; }
-    "])]).\n"; } }
+    if [$mml="0"] 
+    { 
+       "proof_level(["; `translate(../@newlevel,"_",",")`; "]),"; 
+       $corr_nm = `name(*[position() = last()])`;
+       if [$corr_nm/Proposition]
+       {
+          "correctness_conditions([";
+	  lc(#s = $corr_nm); "(";
+	  plname(#n=`$corr_nm/Proposition/@propnr`, #pl=`$corr_nm/Proposition/@plevel`);
+	  ")])";
+       }
+       else { $fail; }
+    }
+    "])]).\n"; 
+  }
+}
 
 tpl [RCluster] { if [ErrorCluster] { } else {
     "fof("; absk(#el=`.`,#kind="rc"); ",sort,";
