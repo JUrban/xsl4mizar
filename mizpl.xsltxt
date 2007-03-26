@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.36 $
+// $Revision: 1.37 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -958,7 +958,10 @@ tpl [Abstractness](#el,#arg1,#arg2) { for-each [$el] {
 
 
 
-tpl [CCluster] { if [ErrorCluster] { } else {
+tpl [CCluster] 
+{ 
+  if [ErrorCluster] { } else 
+  {
     "fof("; absk(#el=`.`,#kind="cc"); ",sort,";
     $l = `1 + count(ArgTypes/Typ)`;
     apply[ArgTypes];
@@ -976,9 +979,14 @@ tpl [CCluster] { if [ErrorCluster] { } else {
     "))"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="cc"); "),[mptp_info("; `@nr`; 
     ",[],ccluster,position(0,0),["; 
-    if [$mml="0"] { 
-       "proof_level(["; `translate(../@newlevel,"_",",")`; "])"; }
-    "])]).\n"; } }
+    if [$mml="0"] 
+    { 
+       "proof_level(["; `translate(../@newlevel,"_",",")`; "]),"; 
+       cluster_correctness_conditions(#el=`../*[position() = last()]`);
+    }
+    "])]).\n"; 
+   }
+}
 
 // sufficient proof refs can be collected from its coherence 
 // (correctness) proof (the corr_conds are therefore written here, 
@@ -986,6 +994,12 @@ tpl [CCluster] { if [ErrorCluster] { } else {
 // generalization of the local consts is however needed for small-step 
 // proof export, and the local consts can be re-used for other clusters
 // inside this block; so then their henkin axiom will generally be a conjunction
+// ##GRM: Cluster_Info : "proof_level(" Level ")" "," Correctness_Info
+// ##GRM: Correctness_Info: "correctness_conditions(" "[" 
+//                           Correctness_Proposition+ "]" ")" 
+// ##GRM: Correctness_Proposition: Correctness_Condition_Name "(" Proposition_Ref ")"
+// ##GRM: Correctness_Condition_Name: "unknowncorrcond" | "coherence" | "compatibility" | 
+//                                    "consistency" | "existence" | "uniqueness" | "correctness"
 tpl [FCluster] 
 { 
   if [ErrorCluster] { } 
@@ -1004,21 +1018,37 @@ tpl [FCluster]
     if [$mml="0"] 
     { 
        "proof_level(["; `translate(../@newlevel,"_",",")`; "]),"; 
-       $corr_nm = `name(*[position() = last()])`;
-       if [$corr_nm/Proposition]
-       {
-          "correctness_conditions([";
-	  lc(#s = $corr_nm); "(";
-	  plname(#n=`$corr_nm/Proposition/@propnr`, #pl=`$corr_nm/Proposition/@plevel`);
-	  ")])";
-       }
-       else { $fail; }
+       cluster_correctness_conditions(#el=`../*[position() > 1]`);
     }
     "])]).\n"; 
   }
 }
 
-tpl [RCluster] { if [ErrorCluster] { } else {
+// private for clusters
+tpl cluster_correctness_conditions(#el)
+{
+
+  "correctness_conditions([";
+
+  for-each [$el]
+  {
+    $corr_nm = `name()`;
+    if [Proposition]
+    {
+      lc(#s = $corr_nm); "(";
+      plname(#n=`Proposition/@propnr`, #pl=`Proposition/@plevel`);
+      ")";
+    }
+    else { $fail; }
+    if [not(position()=last())] { ","; }
+    "])";
+  }
+}
+
+tpl [RCluster] 
+{ 
+  if [ErrorCluster] { } else 
+  {
     "fof("; absk(#el=`.`,#kind="rc"); ",sort,";
     $l = `1 + count(ArgTypes/Typ)`;
     apply[ArgTypes];
@@ -1031,9 +1061,14 @@ tpl [RCluster] { if [ErrorCluster] { } else {
     ")"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="rc"); "),[mptp_info("; `@nr`; 
     ",[],rcluster,position(0,0),[";
-    if [$mml="0"] { 
-       "proof_level(["; `translate(../@newlevel,"_",",")`; "])"; }
-    "])]).\n"; } }
+    if [$mml="0"] 
+    { 
+       "proof_level(["; `translate(../@newlevel,"_",",")`; "]),"; 
+       cluster_correctness_conditions(#el=`../*[position() = last()]`);
+    }
+    "])]).\n"; 
+  } 
+}
 
 
 tpl [ArgTypes] { if [Typ] {
