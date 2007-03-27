@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.38 $
+// $Revision: 1.39 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -1053,8 +1053,8 @@ tpl cluster_correctness_conditions(#el)
 
 // ##NOTE: We need to deal with the RCluster coming from structurel 
 // definitions (attribute "strict") specially, since the existence
-//  is never proved in Mizar. The current choice is to forge the existence
-// condition, and justify it by the type declaration of the appropriate 
+//  is never proved in Mizar. The current choice is to forge the justification
+//  by the type declaration of the appropriate 
 // aggregate functor (which is defined to be "strict").
 tpl [RCluster] 
 { 
@@ -1075,10 +1075,24 @@ tpl [RCluster]
     if [$mml="0"] 
     { 
        "proof_level(["; `translate(../@newlevel,"_",",")`; "]),"; 
-       cluster_correctness_conditions(#el=`../*[position() = last()]`);
+       // forge the correctness of structural "strict" registrations
+       if [name(../..) = "Definition"] 
+       {
+	 if [not(../../Constructor[@kind = "G"])] { $fail; }
+	 else
+	 {
+	    "inference(mizar_by,[],[dt_"; 
+	    absc1(#el=`../../Constructor[@kind = "G"]`);
+	    "])";
+	 }
+       }
+       else 
+       { 
+         cluster_correctness_conditions(#el=`../*[position() = last()]`);
+       }
     }
     "])]).\n"; 
-  } 
+  }
 }
 
 
