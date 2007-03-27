@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.37 $
+// $Revision: 1.38 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -686,15 +686,18 @@ tpl [SchemeFuncDecl]
 
 
 // "M" | "L" | "V" | "R" | "K" | "U" | "G"
-tpl [Constructor] { 
+tpl [Constructor] 
+{ 
     $lkind = { lc(#s=`@kind`); } 
 // the type hierarchy formula for "M" | "L" | "K" | "U" | "G"
     if [(@kind='M') or (@kind='L') or (@kind='K') or 
-        (@kind='U') or (@kind='G')] {
+        (@kind='U') or (@kind='G')] 
+    {
       "fof(dt_";  absc1(#el=`.`); ",sort,";
       apply[ArgTypes];
       $l = `1 + count(ArgTypes/Typ)`;
-      if [(@kind='M') or (@kind='L')] {
+      if [(@kind='M') or (@kind='L')] 
+      {
         "!["; ploci(#nr=$l); " : "; "$true"; "]: ("; 
         $srt_s; "("; ploci(#nr=$l); ","; absc1(#el=`.`); 
         if [$l > 1] { "("; 
@@ -709,17 +712,20 @@ tpl [Constructor] {
         }
         if [count(Typ) > 1] { ")"; }
         ")";
-      }  else  { 
-      if [(@kind='K') or (@kind='U') or (@kind='G')] {
+      }  
+      else  { if [(@kind='K') or (@kind='U') or (@kind='G')] 
+      {
         $srt_s; "("; absc1(#el=`.`);
         if [$l > 1] { "("; 
            arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
 	",";
         apply[Typ]; ")";
-      } }
+      }}
+      
       ",file("; lc(#s=`@aid`); ",";
       absc1(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $lkind; 
-      ",position(0,0),[ctype])]).\n"; }
+      ",position(0,0),[ctype])]).\n"; 
+    }
     apply[Properties](#el=`.`);
     if [@kind='G'] { free_prop(#el=`.`); }
     if [(@kind='M') or (@kind='L')] {	 existence(#el=`.`); }
@@ -1045,6 +1051,11 @@ tpl cluster_correctness_conditions(#el)
   }
 }
 
+// ##NOTE: We need to deal with the RCluster coming from structurel 
+// definitions (attribute "strict") specially, since the existence
+//  is never proved in Mizar. The current choice is to forge the existence
+// condition, and justify it by the type declaration of the appropriate 
+// aggregate functor (which is defined to be "strict").
 tpl [RCluster] 
 { 
   if [ErrorCluster] { } else 
