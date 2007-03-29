@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.10 $
+// $Revision: 1.11 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -71,6 +71,104 @@ tpl fc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
                  ";"; <br; if [$mml="1"] { <br; }}
 
 
+tpl [IdentifyWithExp] { 
+    $nr1 = `1 + count(preceding::IdentifyWithExp)`;
+    if [$generate_items>0]	{ 
+// <xsl:document href="items/{$anamelc}/iy_{$nr1}" format="html">
+       iy();
+// </xsl:document>
+   $bogus=`1`;
+ } 
+    else { iy(); } }
+
+tpl iy
+{ 
+   if [($mml="1") or ($generate_items>0)] 
+   { 
+      argtypes(#el=`Typ`);
+   }
+
+   $nr1 = `1 + count(preceding::IdentifyWithExp)`;
+
+   <a 
+   { 
+      @NAME=`concat("IY",$nr1)`;
+      <b { "identify "; } 
+   }
+
+   if [ErrorIdentify] { "erroridentify"; }
+   else { if [($mml="1") or ($generate_items>0)] 
+   { 
+       apply[*[position() = last() - 1]]; 
+       <b {" with ";} 
+       apply[*[position() = last()]]; 
+     
+   }
+   else // try nice display from the compatibility formula
+   {
+     for-each [following-sibling::*[1]/Proposition/*[1]]
+     {
+       if [name() = "Pred"] // equality - terms
+       { 
+         apply[*[1]]; 
+	 <b {" with ";} 
+	 apply[*[2]];
+       }
+       else { if [name() = "And"] // equivalence - predicates
+       {
+         $e1= is_equiv(#el=`.`);
+	 if [$e1="1"] 
+	 { 
+	   apply[*[1]/*[1]/*[1]]; 
+	   <b {" with ";}
+	   apply[*[1]/*[1]/*[2]/*[1]];
+	 }
+	 else 
+	 {
+	   "IDENTIFY DISPLAY FAILED -  PLEASE COMPLAIN!"; <br;
+	   apply[.];		 
+	 }
+       }
+       else 
+       {
+         $i3= is_impl1(#el=`.`);
+	 if [not($i3=2)] { "IDENTIFY DISPLAY FAILED -  PLEASE COMPLAIN!";  }
+	 else
+	 {
+           for-each [*[1]/*[@pid=$pid_Impl_RightNot]/*[1]]
+	   {
+	     if [name() = "Pred"] 
+	     {
+	       apply[*[1]]; 
+	       <b {" with ";} 
+	       apply[*[2]];
+	     }
+	     else 
+	     {
+	       $e1= is_equiv(#el=`.`);
+	       if [$e1="1"] 
+	       { 
+	         apply[*[1]/*[1]/*[1]]; 
+		 <b {" with ";}
+		 apply[*[1]/*[1]/*[2]/*[1]];
+               }
+	       else 
+	       {
+	         "IDENTIFY DISPLAY FAILED -  PLEASE COMPLAIN!"; <br;
+		 apply[.];		 
+	       }
+	     }
+	   }
+	   <b {" when ";}
+	   ilist(#separ = ", ", #elems=`*[1]/*[not(@pid=$pid_Impl_RightNot)]`); 
+	 }
+       }}
+     }
+   }}
+
+   ";"; <br; if [$mml="1"] { <br; }
+}
+
 
 // ignore them
 tpl [Reservation/Typ] { ""; }
@@ -91,7 +189,21 @@ tpl [JustifiedTheorem]
 // </xsl:document>
        $bogus=`1`;
     } 
-    else { jt(); } 
+    else 
+    { 
+      // optional interestingness rating produced by external soft
+      if [@interesting > 0]
+      {
+         // scale red and blue from 0% (green) to 100% (white)
+         $intensity = `(1 - @interesting) * 100`;
+         <div 
+	 { 
+	    @style=`concat("background-color:rgb(",$intensity,"%,100%,", $intensity, "%);")`;
+	    jt();
+         }
+      }
+      else { jt(); } 
+    }
 }
 
 // private - assumes that is inside JustifiedTheorem
@@ -113,7 +225,12 @@ tpl jt
     <a 
     { 
        @NAME = `concat("T", $nr1)`; 
-       pcomment(#str = `concat($aname,":", $nr1)`); 
+       pcomment0(#str = `concat($aname,":", $nr1)`); 
+       if [@interesting > 0] 
+       { 
+          " interestingness: "; `@interesting`;
+       }
+       <br;
     }
 
     if [Proof] 
@@ -392,14 +509,7 @@ tpl dfs()
 	  // since Constructor may be missing for redefinitions.
           for-each [../following-sibling::Definiens[position() = $cnt1]] 
 	  {
-	     if [Typ] 
-	     {
-	        <b { "let "; } 
-		ploci(#nr = "1"); 
-		" be "; 
-		alist(#j = "1", #sep1 = ", ", #sep2 = " be ", #elems = `Typ`); 
-		";"; <br; 
-	     } 
+	     argtypes(#el=`Typ`);
           }
        }
 
@@ -488,6 +598,9 @@ tpl [DefinitionBlock]
 //   ( elRCluster | elFCluster | elCCluster ),
 //   CorrectnessCondition*, elCorrectness?
 tpl [Registration] { apply; }
+
+//   elIdentifyWithExp, CorrectnessCondition*, elCorrectness?
+tpl [IdentifyRegistration] { apply; }
 
 //   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
 tpl [RegistrationBlock] 
@@ -665,14 +778,16 @@ tpl [Theorem]
 }
 
 // now used only when #mml=1 - in article the block has them
-tpl [ArgTypes] 
+tpl [ArgTypes] { argtypes(#el = `*`); }
+
+tpl argtypes(#el)
 { 
-   if [*] 
+   if [$el] 
    { 
       <b { "let "; } 
       ploci(#nr="1");
       " be "; 
-      alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`*`); 
+      alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`$el`); 
       ";"; <br; 
    }
 }
