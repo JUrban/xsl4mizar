@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_print_complex.xsl"/>
 
-  <!-- $Revision: 1.4 $ -->
+  <!-- $Revision: 1.5 $ -->
   <!--  -->
   <!-- File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types -->
   <!--  -->
@@ -538,21 +538,6 @@
                     </xsl:for-each>
                     <xsl:text> )</xsl:text>
                   </xsl:when>
-                  <!-- this was too AI, mizar is much simpler -->
-                  <!-- $cnt=`count(*[1]/*)`; -->
-                  <!-- $pcnt1 = { if [$i3="1"] { count_positive(#els=`*[1]/*`,#nr=$cnt); } else {"10000";} } -->
-                  <!-- $pcnt = $pcnt1; -->
-                  <!-- // $pcnt1; ":"; $cnt; ":"; $i3; -->
-                  <!-- if [($pcnt>0) and ($pcnt<$cnt)] { -->
-                  <!-- // "hhhhhhhhhhhh"; -->
-                  <!-- "( "; put_positive(#separ=" & ",#els=`*[1]/*`,#nr=$pcnt,#i=$i); " implies "; -->
-                  <!-- put_positive(#separ=" or ",#els=`*[1]/*`,#nr=`$cnt - $pcnt`,#neg="1",#i=$i); ")"; -->
-                  <!-- } -->
-                  <!-- else { if [($i3="1") and ($pcnt=0)] { "( "; put_positive(#separ=" or ",#els=`*[1]/*`,#nr=$cnt,#neg="1",#i=$i); ")"; } -->
-                  <!-- if [$i3="1"  and (*[1]/*[not(name()="Not")]) and (*[1]/Not)] { "( ( "; -->
-                  <!-- ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i,#pr="1"); -->
-                  <!-- " )"; " implies "; -->
-                  <!-- "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i,#pr="1"); " ) )"; } -->
                   <xsl:otherwise>
                     <xsl:text>not </xsl:text>
                     <xsl:if test="@pid">
@@ -574,8 +559,21 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } } -->
-  <!-- else { "not "; apply[*[1]]; } } -->
+  <!-- this was too AI, mizar is much simpler -->
+  <!-- $cnt=`count(*[1]/*)`; -->
+  <!-- $pcnt1 = { if [$i3="1"] { count_positive(#els=`*[1]/*`,#nr=$cnt); } else {"10000";} } -->
+  <!-- $pcnt = $pcnt1; -->
+  <!-- // $pcnt1; ":"; $cnt; ":"; $i3; -->
+  <!-- if [($pcnt>0) and ($pcnt<$cnt)] { -->
+  <!-- // "hhhhhhhhhhhh"; -->
+  <!-- "( "; put_positive(#separ=" & ",#els=`*[1]/*`,#nr=$pcnt,#i=$i); " implies "; -->
+  <!-- put_positive(#separ=" or ",#els=`*[1]/*`,#nr=`$cnt - $pcnt`,#neg="1",#i=$i); ")"; -->
+  <!-- } -->
+  <!-- else { if [($i3="1") and ($pcnt=0)] { "( "; put_positive(#separ=" or ",#els=`*[1]/*`,#nr=$cnt,#neg="1",#i=$i); ")"; } -->
+  <!-- if [$i3="1"  and (*[1]/*[not(name()="Not")]) and (*[1]/Not)] { "( ( "; -->
+  <!-- ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i,#pr="1"); -->
+  <!-- " )"; " implies "; -->
+  <!-- "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i,#pr="1"); " ) )"; } -->
   <xsl:template match="And">
     <xsl:param name="i"/>
     <xsl:param name="pr"/>
@@ -1065,6 +1063,8 @@
   </xsl:template>
 
   <!-- trickery to translate loci to constants and identifiers when needed -->
+  <!-- this unfortunately does not work for IdentifyRegistration, so that's -->
+  <!-- dealt with by looking at the compatibility fla now :-( -->
   <!-- ###TODO: also the constructor types -->
   <xsl:template match="LocusVar">
     <xsl:param name="p"/>

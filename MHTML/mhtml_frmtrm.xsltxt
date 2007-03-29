@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.9 $
+// $Revision: 1.10 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -95,12 +95,14 @@ tpl check_for_not(#el) {
     else { if [name($el)="For"] { check_for_not(#el=`$el/*[2]`); }
     else { "0"; }}}}
 
-tpl [Not](#i,#pr,#st) { 
+tpl [Not](#i,#pr,#st) 
+{ 
     $fnb = { if [For] { check_for_not(#el=`*[1]/*[2]`); } else { "0"; } }
     if [$fnb="1"]  { apply[*[1]](#i=$i,#ex="1"); }
     else { if [Pred|Is|PrivPred|Verum|ErrorFrm] {  if [$st="1"] { " holds "; }
 	   apply[*[1]](#i=$i,#not="1"); }
-    else { 
+    else 
+    { 
          $i3= is_impl1(#el=`.`);
 	 if [$i3 > 0] { // " IMPL1 "; $i3; 
             if [$st="1"] { " st "; } else { "( "; }
@@ -139,6 +141,9 @@ tpl [Not](#i,#pr,#st) {
 		   else { " not "; apply[.](#i=$i); } } }  " )";
 	      }
 
+              else { "not "; if[@pid] { comment { "HUMANRECFAILED"; } } // else {"NOPID  ";} 
+                     apply[*[1]](#i=$i); } } } } 
+} 
 // this was too AI, mizar is much simpler
 // 	     $cnt=`count(*[1]/*)`; 
 // 	     $pcnt1 = { if [$i3="1"] { count_positive(#els=`*[1]/*`,#nr=$cnt); } else {"10000";} }
@@ -154,10 +159,6 @@ tpl [Not](#i,#pr,#st) {
 //	     ilist(#separ=" & ", #elems=`*[1]/*[not(name()="Not")]`, #i=$i,#pr="1");
 //	    " )"; " implies "; 
 //	    "( "; ilist(#separ=" or ", #elems=`*[1]/Not/*[1]`, #i=$i,#pr="1"); " ) )"; }
-              else { "not "; if[@pid] { comment { "HUMANRECFAILED"; } } // else {"NOPID  ";} 
-                     apply[*[1]](#i=$i); } } } } } 
-// tpl [And/Not] { if [For] { <div { "not "; apply[*[1]]; } }
-//                else { "not "; apply[*[1]]; } }
 
 
 
@@ -273,6 +274,8 @@ tpl get_vid(#up) {
 
 
 // trickery to translate loci to constants and identifiers when needed
+// this unfortunately does not work for IdentifyRegistration, so that's
+// dealt with by looking at the compatibility fla now :-(
 // ###TODO: also the constructor types
 tpl [LocusVar](#p, #i) 
 { 
