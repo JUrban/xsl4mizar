@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.12 $
+// $Revision: 1.13 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -457,9 +457,29 @@ tpl [DefPred] { <b { "defpred ";} pppred(#nr=`@nr`); "[";
 // forbid as default
 tpl [Thesis] { }
 
+tpl try_th_exps_old
+  { 
+     apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; 
+  }
+
 tpl try_th_exps
 { 
-    apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; 
+    for-each [./following-sibling::*[1][name()="Thesis"]]
+    {
+      apply[ThesisExpansions];
+
+      if [$display_thesis = 1] 
+      {
+        " ";
+        <a 
+	{   
+	  add_hs_attrs();
+	  pcomment0(#str=" thesis: ");      
+	}
+
+	<span { @class="hide"; " "; apply[*[1]]; }
+      }
+    }
 }
 
 tpl [ThesisExpansions] { if [Pair] {
