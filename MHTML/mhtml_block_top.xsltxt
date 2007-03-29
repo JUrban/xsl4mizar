@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.11 $
+// $Revision: 1.12 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -16,26 +16,30 @@ include mhtml_reasoning.xsl;
 tpl [RCluster] { 
     $nr1 = `1 + count(preceding::RCluster)`;
     if [$generate_items>0]	{ 
-// <xsl:document href="items/{$anamelc}/rc_{$nr1}" format="html">
+// <xsl:document href="proofhtml/exreg/{$anamelc}.{$nr1}" format="html">
        rc();
 // </xsl:document>
    $bogus=`1`;
  } 
     else { rc(); } }
 
-tpl rc {
-                 if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
-		 $nr1 = `1 + count(preceding::RCluster)`;
-		 <a { @NAME=`concat("RC",$nr1)`;
-		      <b { "cluster "; } }
-                 if [ErrorCluster] { "errorcluster"; }
-	         else { apply[*[3]]; " "; apply[*[2]]; }
-                 ";"; <br; if [$mml="1"] { <br; }}
+tpl rc 
+{
+  if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
+  $nr1 = `1 + count(preceding::RCluster)`;
+  <a 
+  { 
+    @NAME=`concat("RC",$nr1)`;
+    <b { "cluster "; } 
+  }
+  if [ErrorCluster] { "errorcluster"; } else { apply[*[3]]; " "; apply[*[2]]; }
+  ";"; <br; if [$mml="1"] { <br; }
+}
 
 tpl [CCluster] { 
     $nr1 = `1 + count(preceding::CCluster)`;
     if [$generate_items>0]	{ 
-// <xsl:document href="items/{$anamelc}/cc_{$nr1}" format="html">
+// <xsl:document href="proofhtml/condreg/{$anamelc}.{$nr1}" format="html">
        cc();
 // </xsl:document>
    $bogus=`1`;
@@ -55,26 +59,29 @@ tpl cc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
 tpl [FCluster] { 
     $nr1 = `1 + count(preceding::FCluster)`;
     if [$generate_items>0]	{ 
-// <xsl:document href="items/{$anamelc}/fc_{$nr1}" format="html">
+// <xsl:document href="proofhtml/funcreg/{$anamelc}.{$nr1}" format="html">
        fc();
 // </xsl:document>
    $bogus=`1`;
  } 
     else { fc(); } }
 
-tpl fc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
-		 $nr1 = `1 + count(preceding::FCluster)`;
-		 <a { @NAME=`concat("FC",$nr1)`;
-		      <b { "cluster "; } }
-                 if [ErrorCluster] { "errorcluster"; }
-	         else { apply[*[2]]; <b {" -> ";} apply[*[3]]; apply[Typ];}
-                 ";"; <br; if [$mml="1"] { <br; }}
+tpl fc
+{ 
+   if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
+   $nr1 = `1 + count(preceding::FCluster)`;
+   <a { @NAME=`concat("FC",$nr1)`;
+   <b { "cluster "; } }
+   if [ErrorCluster] { "errorcluster"; }
+   else { apply[*[2]]; <b {" -> ";} apply[*[3]]; apply[Typ];}
+   ";"; <br; if [$mml="1"] { <br; }
+}
 
 
 tpl [IdentifyWithExp] { 
     $nr1 = `1 + count(preceding::IdentifyWithExp)`;
     if [$generate_items>0]	{ 
-// <xsl:document href="items/{$anamelc}/iy_{$nr1}" format="html">
+// <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html">
        iy();
 // </xsl:document>
    $bogus=`1`;
@@ -184,7 +191,7 @@ tpl [JustifiedTheorem]
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
     if [$generate_items>0]	
     { 
-// <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html">
+// <xsl:document href="proofhtml/th/{$anamelc}.{$nr1}" format="html">
        jt();
 // </xsl:document>
        $bogus=`1`;
@@ -236,7 +243,10 @@ tpl jt
     if [Proof] 
     { 
        <div { @class="add"; apply[*[1]/*[1]]; } 
-       apply[*[2]]; 
+       if [not($generate_items>0) or ($generate_items_proofs>0)]
+       {
+         apply[*[2]]; 
+       }
     }
     else 
     { 
@@ -262,7 +272,7 @@ tpl [DefTheorem]
     $nr1 = `1+count(preceding-sibling::DefTheorem)`;
     if [$generate_items>0]	
     { 
-// <xsl:document href="items/{$anamelc}/def_{$nr1}" format="html">
+// <xsl:document href="proofhtml/def/{$anamelc}.{$nr1}" format="html">
        dt();
 // </xsl:document>
        $bogus=`1`;
@@ -374,18 +384,24 @@ tpl [SchemePredDecl] {
 //   element elSchemePremises { elProposition* },
 //   elProposition, Justification, elEndPosition
 tpl [SchemeBlock] {
-    if [$generate_items>0]	{ 
-// <xsl:document href="items/{$anamelc}/sch_{@schemenr}" format="html">
+    if [$generate_items>0]	
+    { 
+// <xsl:document href="proofhtml/sch/{$anamelc}.{@schemenr}" format="html">
        sd();
 // </xsl:document>
    $bogus=`1`;
    } 
    else { sd(); } }
 
-tpl sd {
-
-    <div { <a { @NAME=`concat("S",@schemenr)`; <b { "scheme  "; }
-    pcomment(#str=`concat($aname,":sch ",@schemenr)`); }
+tpl sd 
+{
+  <div 
+  { 
+    <a 
+    { 
+      @NAME=`concat("S",@schemenr)`; <b { "scheme  "; }
+      pcomment(#str=`concat($aname,":sch ",@schemenr)`); 
+    }
 //     "s"; `@schemenr`; 
 
     if [($proof_links > 0) and ($print_lab_identifiers = 0)]
@@ -401,10 +417,21 @@ tpl sd {
     list(#separ=", ", #elems=`SchemeFuncDecl|SchemePredDecl`); 
     " } :"; <br;
     <div { @class="add"; apply[Proposition]; } 
-    if [SchemePremises/Proposition] { <b { "provided"; }
-       <div { @class="add"; 
-       andlist(#elems=`SchemePremises/Proposition`); } }
-    apply[*[position() = last() - 1]];  }}
+    if [SchemePremises/Proposition] 
+    { 
+       <b { "provided"; }
+       <div 
+       { 
+          @class="add"; 
+	  andlist(#elems=`SchemePremises/Proposition`); 
+       } 
+    }
+    if [not($generate_items>0)]
+    {
+       apply[*[position() = last() - 1]];
+    }
+  }
+}
 
 
 //   ( ( CorrectnessCondition*, elCorrectness?,
@@ -462,7 +489,7 @@ tpl [Definition]
        { 
           $cnt1 = `1 + count(preceding-sibling::Definition[@nr])`;
 	  $defnr = `../following-sibling::Definiens[position() = $cnt1]/@defnr`;
-// <xsl:document href="items/{$anamelc}/dfs_{$defnr}" format="html">
+// <xsl:document href="proofhtml/dfs/{$anamelc}.{$defnr}" format="html">
           dfs();
 // </xsl:document>
           $bogus = `1`;

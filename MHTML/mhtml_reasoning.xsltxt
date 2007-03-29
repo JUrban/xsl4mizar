@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.13 $
+// $Revision: 1.14 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -42,12 +42,19 @@ tpl [Proposition]
     // ###TODO: include the possible link when generating items
     if [($generate_items>0) and not(string-length(@plevel)>0)] 
     { 
-       pcomment(#str = `concat($aname, ":lemma ", @propnr)`);
-       apply; " ";
-
-       if [following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")]] 
-       { 	 
-	  apply[`following-sibling::*[1]`]; 
+       if [name(..) = "SchemeBlock"] { apply; " "; }
+       else
+       {
+         if [not(name(..) = "SchemePremises")]
+	 {
+	   pcomment(#str = `concat($aname, ":lemma ", @propnr)`);
+         }
+	 apply; " "; 
+	 if [($generate_items_proofs>0) and
+	      (following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")])] 
+	 { 	 
+	   apply[`following-sibling::*[1]`]; 
+	 }
        }
     }
     else { apply; " ";} 

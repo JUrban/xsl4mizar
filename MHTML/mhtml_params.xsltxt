@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.7 $
+// $Revision: 1.8 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -96,6 +96,10 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // tells if only selected items are generated to subdirs; default is off
 #generate_items = { "0"; }
+
+// relevant only if $generate_items>0
+// tells if proofs of selected items are generated to subdirs; default is off
+#generate_items_proofs = { "0"; }
 
 
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }

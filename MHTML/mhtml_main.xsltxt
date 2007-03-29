@@ -4,7 +4,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.3 $
+// $Revision: 1.4 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -47,13 +47,16 @@ include mhtml_block_top.xsl;  // ##INCLUDE HERE
 // Default
 tpl [/] { if [$generate_items = "1"] { 
     apply[/*/JustifiedTheorem|/*/DefTheorem|/*/SchemeBlock];
-    apply[//RCluster|//CCluster|//FCluster|//Definition];
-   for-each [/*/Proposition] {
-// <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html">
+    apply[//RCluster|//CCluster|//FCluster|//Definition|//IdentifyWithExp];
+// top-level lemmas
+   for-each [/*/Proposition] 
+   {
+// <xsl:document href="proofhtml/lemma/{$anamelc}.{@propnr}" format="html">
 apply[`.`];
 // </xsl:document>
    $bogus=`1`;
-} }
+   } 
+}
 
 else { <html { 
 

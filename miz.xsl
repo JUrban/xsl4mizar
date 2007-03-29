@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.34 $ -->
+  <!-- $Revision: 1.35 $ -->
   <!--  -->
   <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -144,6 +144,11 @@
   </xsl:param>
   <!-- tells if only selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- relevant only if $generate_items>0 -->
+  <!-- tells if proofs of selected items are generated to subdirs; default is off -->
+  <xsl:param name="generate_items_proofs">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <xsl:variable name="lcletters">
@@ -4635,14 +4640,25 @@
     <!-- ###TODO: include the possible link when generating items -->
     <xsl:choose>
       <xsl:when test="($generate_items&gt;0) and not(string-length(@plevel)&gt;0)">
-        <xsl:call-template name="pcomment">
-          <xsl:with-param name="str" select="concat($aname, &quot;:lemma &quot;, @propnr)"/>
-        </xsl:call-template>
-        <xsl:apply-templates/>
-        <xsl:text> </xsl:text>
-        <xsl:if test="following-sibling::*[1][(name()=&quot;By&quot;) or (name()=&quot;From&quot;) or (name()=&quot;Proof&quot;)]">
-          <xsl:apply-templates select="following-sibling::*[1]"/>
-        </xsl:if>
+        <xsl:choose>
+          <xsl:when test="name(..) = &quot;SchemeBlock&quot;">
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:if test="not(name(..) = &quot;SchemePremises&quot;)">
+              <xsl:call-template name="pcomment">
+                <xsl:with-param name="str" select="concat($aname, &quot;:lemma &quot;, @propnr)"/>
+              </xsl:call-template>
+            </xsl:if>
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+            <xsl:if test="($generate_items_proofs&gt;0) and
+	      (following-sibling::*[1][(name()=&quot;By&quot;) or (name()=&quot;From&quot;) or (name()=&quot;Proof&quot;)])">
+              <xsl:apply-templates select="following-sibling::*[1]"/>
+            </xsl:if>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates/>
@@ -5604,7 +5620,7 @@
     <xsl:variable name="nr1" select="1 + count(preceding::RCluster)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="items/{$anamelc}/rc_{$nr1}" format="html"> 
+        <xsl:document href="proofhtml/exreg/{$anamelc}.{$nr1}" format="html"> 
         <xsl:call-template name="rc"/>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
@@ -5649,7 +5665,7 @@
     <xsl:variable name="nr1" select="1 + count(preceding::CCluster)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="items/{$anamelc}/cc_{$nr1}" format="html"> 
+        <xsl:document href="proofhtml/condreg/{$anamelc}.{$nr1}" format="html"> 
         <xsl:call-template name="cc"/>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
@@ -5698,7 +5714,7 @@
     <xsl:variable name="nr1" select="1 + count(preceding::FCluster)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="items/{$anamelc}/fc_{$nr1}" format="html"> 
+        <xsl:document href="proofhtml/funcreg/{$anamelc}.{$nr1}" format="html"> 
         <xsl:call-template name="fc"/>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
@@ -5746,7 +5762,7 @@
     <xsl:variable name="nr1" select="1 + count(preceding::IdentifyWithExp)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="items/{$anamelc}/iy_{$nr1}" format="html"> 
+        <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html"> 
         <xsl:call-template name="iy"/>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
@@ -5905,7 +5921,7 @@
     <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="items/{$anamelc}/th_{$nr1}" format="html"> 
+        <xsl:document href="proofhtml/th/{$anamelc}.{$nr1}" format="html"> 
         <xsl:call-template name="jt"/>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
@@ -5978,7 +5994,9 @@
           </xsl:attribute>
           <xsl:apply-templates select="*[1]/*[1]"/>
         </xsl:element>
-        <xsl:apply-templates select="*[2]"/>
+        <xsl:if test="not($generate_items&gt;0) or ($generate_items_proofs&gt;0)">
+          <xsl:apply-templates select="*[2]"/>
+        </xsl:if>
       </xsl:when>
       <xsl:otherwise>
         <xsl:element name="div">
@@ -6006,7 +6024,7 @@
     <xsl:variable name="nr1" select="1+count(preceding-sibling::DefTheorem)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="items/{$anamelc}/def_{$nr1}" format="html"> 
+        <xsl:document href="proofhtml/def/{$anamelc}.{$nr1}" format="html"> 
         <xsl:call-template name="dt"/>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
@@ -6216,7 +6234,7 @@
   <xsl:template match="SchemeBlock">
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="items/{$anamelc}/sch_{@schemenr}" format="html"> 
+        <xsl:document href="proofhtml/sch/{$anamelc}.{@schemenr}" format="html"> 
         <xsl:call-template name="sd"/>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
@@ -6288,7 +6306,9 @@
           </xsl:call-template>
         </xsl:element>
       </xsl:if>
-      <xsl:apply-templates select="*[position() = last() - 1]"/>
+      <xsl:if test="not($generate_items&gt;0)">
+        <xsl:apply-templates select="*[position() = last() - 1]"/>
+      </xsl:if>
     </xsl:element>
   </xsl:template>
 
@@ -6365,7 +6385,7 @@
           <xsl:when test="@nr and ($generate_items&gt;0)">
             <xsl:variable name="cnt1" select="1 + count(preceding-sibling::Definition[@nr])"/>
             <xsl:variable name="defnr" select="../following-sibling::Definiens[position() = $cnt1]/@defnr"/>
-            <xsl:document href="items/{$anamelc}/dfs_{$defnr}" format="html"> 
+            <xsl:document href="proofhtml/dfs/{$anamelc}.{$defnr}" format="html"> 
             <xsl:call-template name="dfs"/>
             </xsl:document> 
             <xsl:variable name="bogus" select="1"/>
@@ -7202,9 +7222,10 @@
     <xsl:choose>
       <xsl:when test="$generate_items = &quot;1&quot;">
         <xsl:apply-templates select="/*/JustifiedTheorem|/*/DefTheorem|/*/SchemeBlock"/>
-        <xsl:apply-templates select="//RCluster|//CCluster|//FCluster|//Definition"/>
+        <xsl:apply-templates select="//RCluster|//CCluster|//FCluster|//Definition|//IdentifyWithExp"/>
+        <!-- top-level lemmas -->
         <xsl:for-each select="/*/Proposition">
-          <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html"> 
+          <xsl:document href="proofhtml/lemma/{$anamelc}.{@propnr}" format="html"> 
           <xsl:apply-templates select="."/>
           </xsl:document> 
           <xsl:variable name="bogus" select="1"/>
