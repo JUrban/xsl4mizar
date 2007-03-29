@@ -72,6 +72,10 @@
   <xsl:param name="fex">
     <xsl:value-of select="concat($anamelc, &apos;.fex&apos;)"/>
   </xsl:param>
+  <!-- this needs to be set to 1 for processing .eth files -->
+  <xsl:param name="ethprocess">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- top level element instead of top-level document, which is hard to -->
   <!-- know -->
   <xsl:param name="top" select="/"/>
@@ -381,21 +385,23 @@
     <xsl:variable name="n" select="name()"/>
     <xsl:element name="{$n}">
       <xsl:copy-of select="@*"/>
-      <xsl:variable name="k" select="@kind"/>
-      <xsl:attribute name="aid">
-        <xsl:value-of select="$aname"/>
-      </xsl:attribute>
-      <xsl:attribute name="nr">
-        <xsl:value-of select="1 + count(preceding::*[(name()=$n) and (@kind=$k)])"/>
-      </xsl:attribute>
-      <xsl:if test="@redefnr &gt; 0">
-        <xsl:call-template name="abs">
-          <xsl:with-param name="k" select="$k"/>
-          <xsl:with-param name="nr" select="@redefnr"/>
-          <xsl:with-param name="r">
-            <xsl:text>1</xsl:text>
-          </xsl:with-param>
-        </xsl:call-template>
+      <xsl:if test="$ethprocess = 0">
+        <xsl:variable name="k" select="@kind"/>
+        <xsl:attribute name="aid">
+          <xsl:value-of select="$aname"/>
+        </xsl:attribute>
+        <xsl:attribute name="nr">
+          <xsl:value-of select="1 + count(preceding::*[(name()=$n) and (@kind=$k)])"/>
+        </xsl:attribute>
+        <xsl:if test="@redefnr &gt; 0">
+          <xsl:call-template name="abs">
+            <xsl:with-param name="k" select="$k"/>
+            <xsl:with-param name="nr" select="@redefnr"/>
+            <xsl:with-param name="r">
+              <xsl:text>1</xsl:text>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:if>
       </xsl:if>
       <xsl:apply-templates>
         <xsl:with-param name="s" select="$s"/>
@@ -408,12 +414,14 @@
     <xsl:variable name="n" select="name()"/>
     <xsl:element name="{$n}">
       <xsl:copy-of select="@*"/>
-      <xsl:attribute name="aid">
-        <xsl:value-of select="$aname"/>
-      </xsl:attribute>
-      <xsl:attribute name="nr">
-        <xsl:value-of select="1 + count(preceding::*[(name()=$n)])"/>
-      </xsl:attribute>
+      <xsl:if test="$ethprocess = 0">
+        <xsl:attribute name="aid">
+          <xsl:value-of select="$aname"/>
+        </xsl:attribute>
+        <xsl:attribute name="nr">
+          <xsl:value-of select="1 + count(preceding::*[(name()=$n)])"/>
+        </xsl:attribute>
+      </xsl:if>
       <xsl:apply-templates>
         <xsl:with-param name="s" select="$s"/>
       </xsl:apply-templates>
@@ -1028,6 +1036,7 @@
   </xsl:template>
 
   <xsl:template match=" Now | IterEquality">
+    <xsl:param name="s"/>
     <xsl:variable name="p0">
       <xsl:call-template name="prevprops">
         <xsl:with-param name="el" select="."/>
@@ -1043,7 +1052,7 @@
     <xsl:variable name="s2">
       <xsl:choose>
         <xsl:when test="$s">
-          <xsl:value-of select="concat($s,&quot;_&quot;,$s1)"/>
+          <xsl:value-of select="concat($s, &quot;_&quot;, $s1)"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="$s1"/>
