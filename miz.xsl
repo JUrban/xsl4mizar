@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.35 $ -->
+  <!-- $Revision: 1.36 $ -->
   <!--  -->
   <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -5495,32 +5495,51 @@
   <!-- forbid as default -->
   <xsl:template match="Thesis"/>
 
+  <xsl:template name="do_thesis">
+    <xsl:apply-templates select="ThesisExpansions"/>
+    <xsl:if test="$display_thesis = 1">
+      <xsl:text> </xsl:text>
+      <xsl:element name="a">
+        <xsl:call-template name="add_hs_attrs"/>
+        <xsl:call-template name="pcomment0">
+          <xsl:with-param name="str">
+            <xsl:text> thesis: </xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:element>
+      <xsl:element name="span">
+        <xsl:attribute name="class">
+          <xsl:text>hide</xsl:text>
+        </xsl:attribute>
+        <xsl:text> </xsl:text>
+        <xsl:apply-templates select="*[1]"/>
+      </xsl:element>
+    </xsl:if>
+  </xsl:template>
+
   <xsl:template name="try_th_exps_old">
     <xsl:apply-templates select="./following-sibling::*[1][name()=&quot;Thesis&quot;]/ThesisExpansions"/>
   </xsl:template>
 
   <xsl:template name="try_th_exps">
-    <xsl:for-each select="./following-sibling::*[1][name()=&quot;Thesis&quot;]">
-      <xsl:apply-templates select="ThesisExpansions"/>
-      <xsl:if test="$display_thesis = 1">
-        <xsl:text> </xsl:text>
-        <xsl:element name="a">
-          <xsl:call-template name="add_hs_attrs"/>
-          <xsl:call-template name="pcomment0">
-            <xsl:with-param name="str">
-              <xsl:text> thesis: </xsl:text>
-            </xsl:with-param>
-          </xsl:call-template>
-        </xsl:element>
-        <xsl:element name="span">
-          <xsl:attribute name="class">
-            <xsl:text>hide</xsl:text>
-          </xsl:attribute>
-          <xsl:text> </xsl:text>
-          <xsl:apply-templates select="*[1]"/>
-        </xsl:element>
-      </xsl:if>
-    </xsl:for-each>
+    <xsl:choose>
+      <xsl:when test="./following-sibling::*[1][name()=&quot;Thesis&quot;]">
+        <xsl:for-each select="./following-sibling::*[1][name()=&quot;Thesis&quot;]">
+          <xsl:call-template name="do_thesis"/>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:if test="((name(..) = &quot;Now&quot;) or (name(..) = &quot;Case&quot;) or (name(..) = &quot;Suppose&quot;))
+              and (../BlockThesis/Thesis)">
+          <xsl:variable name="prev_thesis_changes" select="count(./preceding-sibling::*[(name()=&quot;Let&quot;) or (name()=&quot;Take&quot;) 
+	                               or (name()=&quot;TakeAsVar&quot;) or (name()=&quot;Assume&quot;) 
+				       or (name()=&quot;Given&quot;) or (name()=&quot;Conclusion&quot;)])"/>
+          <xsl:for-each select=" ../BlockThesis/Thesis[$prev_thesis_changes + 1]">
+            <xsl:call-template name="do_thesis"/>
+          </xsl:for-each>
+        </xsl:if>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="ThesisExpansions">
