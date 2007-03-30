@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.41 $
+// $Revision: 1.42 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -330,6 +330,19 @@ tpl lemmaname(#n) { "l"; $n; "_"; $anamelc; }
 tpl plname(#n,#pl) {
     if [string-length($pl)>0] { propname(#n=$n, #pl=$pl); }
     else { lemmaname(#n=$n); } }
+
+tpl thesisname(#n,#pl) { "i"; $n; addp(#pl=$pl); }
+
+tpl [Thesis]
+{
+   $nr    = `1 + count(preceding-sibling::Thesis)`;
+   $tname = { thesisname(#n = $nr, #pl = `@plevel`); }
+   "fof("; $tname; ",thesis,";
+   apply(#pl=`@plevel`); 
+   ",file("; $anamelc; ","; $tname; 
+   "),[mptp_info("; $nr; ",["; `translate(@plevel,"_",",")`; 
+   "],thesis,position(0,0),[])]).\n";
+}
 
 // SchemePremises implies SchemeThesis
 // the proof might rather be 'implication intro' - no
@@ -1443,7 +1456,7 @@ tpl priv_def(#k,#nr,#pl) {
 tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster]; }
+	     //CCluster|//FCluster|//RCluster|//Thesis]; }
 	  else { apply; } }
 
 
