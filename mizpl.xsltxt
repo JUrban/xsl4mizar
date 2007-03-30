@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.40 $
+// $Revision: 1.41 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -484,11 +484,12 @@ tpl [Proposition]
     "]).\n"; 
 }
 
+// ###TODO: what about other blocks??
 tpl [Now] 
 { 
    $pname = plname(#n=`@propnr`, #pl=`@plevel`);
    "fof(";  $pname; ","; $derived_lemma; ",";
-   apply[BlockThesis/*](#pl=`@plevel`); ",file("; $anamelc; 
+   apply[BlockThesis/*[position() = last()]](#pl=`@plevel`); ",file("; $anamelc; 
    ","; $pname; "),[mptp_info("; `@propnr`; ",["; 
    `translate(@plevel,"_",",")`; "],proposition,position("; `@line`; ","; 
    `@col`; "),["; 
@@ -691,20 +692,24 @@ tpl sch_instname(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`);
 tpl [Let|Given|TakeAsVar|Consider|Set] 
 { 
   $cnr = `@constnr`; $pl=`@plevel`; 
-    $rnm = lc(#s=`name()`);
-    for-each [Typ] {
-      $nr = `$cnr + position() - 1`; $nm =  { "c"; $nr; addp(#pl=$pl); }
+  $rnm = lc(#s=`name()`);
+  for-each [Typ] 
+  {
+      $nr   = `$cnr + position() - 1`; 
+      $nm   =  { "c"; $nr; addp(#pl=$pl); }
       $levl = { ",["; `translate($pl,"_",",")`; "],";}
       "fof(dt_";  $nm; ",sort,"; $srt_s; "("; $nm; ",";
       apply[.](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
       "),[mptp_info("; $nr; $levl; "constant,position(0,0),["; $rnm; 
       ",type])]).\n"; 
-      if [($rnm = "takeasvar") or ($rnm = "set")] {
+      if [($rnm = "takeasvar") or ($rnm = "set")] 
+      {
 	 "fof(de_";  $nm; ",definition,"; "( "; $nm; $eq_s; 
 	 apply[../*[not(name() = "Typ")]](#pl=$pl); " )";
 	 ",file("; $anamelc; ","; $nm; "),[mptp_info("; $nr; $levl;
-	 "constant,position(0,0),["; $rnm; ",equality])]).\n"; } 
-    }
+	 "constant,position(0,0),["; $rnm; ",equality])]).\n"; 
+      } 
+  }
 //    apply[Proposition];
 }
 
