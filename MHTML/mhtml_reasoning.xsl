@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_frmtrm.xsl"/>
 
-  <!-- $Revision: 1.5 $ -->
+  <!-- $Revision: 1.6 $ -->
   <!--  -->
   <!-- File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items -->
   <!--  -->
@@ -53,14 +53,25 @@
     <!-- ###TODO: include the possible link when generating items -->
     <xsl:choose>
       <xsl:when test="($generate_items&gt;0) and not(string-length(@plevel)&gt;0)">
-        <xsl:call-template name="pcomment">
-          <xsl:with-param name="str" select="concat($aname, &quot;:lemma &quot;, @propnr)"/>
-        </xsl:call-template>
-        <xsl:apply-templates/>
-        <xsl:text> </xsl:text>
-        <xsl:if test="following-sibling::*[1][(name()=&quot;By&quot;) or (name()=&quot;From&quot;) or (name()=&quot;Proof&quot;)]">
-          <xsl:apply-templates select="following-sibling::*[1]"/>
-        </xsl:if>
+        <xsl:choose>
+          <xsl:when test="name(..) = &quot;SchemeBlock&quot;">
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:if test="not(name(..) = &quot;SchemePremises&quot;)">
+              <xsl:call-template name="pcomment">
+                <xsl:with-param name="str" select="concat($aname, &quot;:lemma &quot;, @propnr)"/>
+              </xsl:call-template>
+            </xsl:if>
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+            <xsl:if test="($generate_items_proofs&gt;0) and
+	      (following-sibling::*[1][(name()=&quot;By&quot;) or (name()=&quot;From&quot;) or (name()=&quot;Proof&quot;)])">
+              <xsl:apply-templates select="following-sibling::*[1]"/>
+            </xsl:if>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates/>
@@ -897,8 +908,51 @@
   <!-- forbid as default -->
   <xsl:template match="Thesis"/>
 
-  <xsl:template name="try_th_exps">
+  <xsl:template name="do_thesis">
+    <xsl:apply-templates select="ThesisExpansions"/>
+    <xsl:if test="$display_thesis = 1">
+      <xsl:text> </xsl:text>
+      <xsl:element name="a">
+        <xsl:call-template name="add_hs_attrs"/>
+        <xsl:call-template name="pcomment0">
+          <xsl:with-param name="str">
+            <xsl:text> thesis: </xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:element>
+      <xsl:element name="span">
+        <xsl:attribute name="class">
+          <xsl:text>hide</xsl:text>
+        </xsl:attribute>
+        <xsl:text> </xsl:text>
+        <xsl:apply-templates select="*[1]"/>
+      </xsl:element>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template name="try_th_exps_old">
     <xsl:apply-templates select="./following-sibling::*[1][name()=&quot;Thesis&quot;]/ThesisExpansions"/>
+  </xsl:template>
+
+  <xsl:template name="try_th_exps">
+    <xsl:choose>
+      <xsl:when test="./following-sibling::*[1][name()=&quot;Thesis&quot;]">
+        <xsl:for-each select="./following-sibling::*[1][name()=&quot;Thesis&quot;]">
+          <xsl:call-template name="do_thesis"/>
+        </xsl:for-each>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:if test="((name(..) = &quot;Now&quot;) or (name(..) = &quot;Case&quot;) or (name(..) = &quot;Suppose&quot;))
+              and (../BlockThesis/Thesis)">
+          <xsl:variable name="prev_thesis_changes" select="count(./preceding-sibling::*[(name()=&quot;Let&quot;) or (name()=&quot;Take&quot;) 
+	                               or (name()=&quot;TakeAsVar&quot;) or (name()=&quot;Assume&quot;) 
+				       or (name()=&quot;Given&quot;) or (name()=&quot;Conclusion&quot;)])"/>
+          <xsl:for-each select=" ../BlockThesis/Thesis[$prev_thesis_changes + 1]">
+            <xsl:call-template name="do_thesis"/>
+          </xsl:for-each>
+        </xsl:if>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="ThesisExpansions">

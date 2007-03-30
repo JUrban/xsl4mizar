@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.14 $
+// $Revision: 1.15 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -464,19 +464,12 @@ tpl [DefPred] { <b { "defpred ";} pppred(#nr=`@nr`); "[";
 // forbid as default
 tpl [Thesis] { }
 
-tpl try_th_exps_old
-  { 
-     apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; 
-  }
-
-tpl try_th_exps
-{ 
-    for-each [./following-sibling::*[1][name()="Thesis"]]
-    {
-      apply[ThesisExpansions];
-
-      if [$display_thesis = 1] 
-      {
+tpl do_thesis
+{
+  apply[ThesisExpansions];
+  
+  if [$display_thesis = 1] 
+  {
         " ";
         <a 
 	{   
@@ -485,8 +478,35 @@ tpl try_th_exps
 	}
 
 	<span { @class="hide"; " "; apply[*[1]]; }
-      }
+  }
+}
+
+tpl try_th_exps_old
+  { 
+     apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; 
+  }
+
+tpl try_th_exps
+{ 
+  if [./following-sibling::*[1][name()="Thesis"]]
+  {  
+    for-each [./following-sibling::*[1][name()="Thesis"]]
+    {
+      do_thesis(); 
     }
+  }
+  else { if [((name(..) = "Now") or (name(..) = "Case") or (name(..) = "Suppose"))
+              and (../BlockThesis/Thesis)]
+  {
+    $prev_thesis_changes 
+      = `count(./preceding-sibling::*[(name()="Let") or (name()="Take") 
+	                               or (name()="TakeAsVar") or (name()="Assume") 
+				       or (name()="Given") or (name()="Conclusion")])`;
+    for-each [ ../BlockThesis/Thesis[$prev_thesis_changes + 1]]
+    {
+      do_thesis();
+    }
+  }}
 }
 
 tpl [ThesisExpansions] { if [Pair] {
