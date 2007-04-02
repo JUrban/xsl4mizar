@@ -171,14 +171,19 @@ tpl [Theorem|Constructor|Pattern](#s) {
 	     if [@redefnr > 0] { abs(#k=$k,#nr=`@redefnr`,#r="1"); } }
              apply(#s=$s); }}
 
-tpl [Scheme|Definiens|RCluster|CCluster|FCluster](#s){ 
-             $n=`name()`; <$n 
-	     { 
-	     copy-of `@*`; 
-	     if [$ethprocess = 0] {
-	     @aid=$aname;
-             @nr=`1 + count(preceding::*[(name()=$n)])`; }
-             apply(#s=$s); }}
+tpl [Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp](#s)
+{ 
+  $n=`name()`; <$n 
+  { 
+    copy-of `@*`; 
+    if [$ethprocess = 0] 
+    {
+      @aid = $aname;
+      @nr = `1 + count(preceding::*[(name()=$n)])`; 
+    }
+    apply(#s=$s); 
+  }
+}
 
 tpl [Field](#s) { <Field 
     { copy-of `@*`; abs(#k="U", #nr=`@nr`); 
@@ -329,8 +334,10 @@ tpl [Conclusion | Assume | Take | Thesis | BlockThesis |
     Case | Suppose | PerCases | SchemeFuncDecl | SchemePredDecl |
    UnknownCorrCond | Coherence | 
    Compatibility | Consistency | Existence | Uniqueness | 
-   Correctness | JustifiedProperty](#s) {
-  copy { copy-of `@*`; @plevel=$s;  apply(#s=$s);}}
+   Correctness | JustifiedProperty](#s) 
+{
+  copy { copy-of `@*`; @plevel=$s;  apply(#s=$s);}
+}
 
 // numbering of private funcs and defs
 // scheme funcs and preds are numbered by the standard @nr attribute and plevel
