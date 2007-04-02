@@ -409,7 +409,7 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="Scheme|Definiens|RCluster|CCluster|FCluster">
+  <xsl:template match="Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp">
     <xsl:param name="s"/>
     <xsl:variable name="n" select="name()"/>
     <xsl:element name="{$n}">
