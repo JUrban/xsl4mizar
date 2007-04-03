@@ -1,0 +1,350 @@
+stylesheet "1.0";
+
+output method=text;
+
+
+// $Revision: 1.1 $
+//
+// File: miz2dli.xsltxt - stylesheet translating Mizar XML syntax to MML Query DLI syntax
+//
+// Authors: Josef Urban, ...
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// Mizar XML syntax to MML Query DLI syntax
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL miz2dli.xsltxt > miz2dli.xsl
+
+
+strip-space "*";
+
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+// this needs to be set to 1 for processing MML prel files
+// and to 0 for processing of the original .xml file
+#mml = { "0"; }
+
+// nr. of clusters in Typ
+// this is set to 1 for processing MML files
+#cluster_nr = { if [$mml = "0"] { "2"; } else { "1"; }}
+
+// which cluster in Typ is used (lower or upper); nontrivial only
+// if $cluster_nr = 2 (default in that case is now the first (lower) cluster)
+#which_cluster = { "1"; }
+
+// macros for symbols used by Query (some of them are not used yet)
+#is_s  = { "$is"; }
+#for_s = { "$for"; }
+#not_s = { "$not"; }
+#and_s = { "$and"; }
+#imp_s = { "$implies"; }
+#equiv_s = { "$iff"; }
+#or_s  = { "$or"; }
+#srt_s = { "$type"; }
+#frank_s = { "$fraenkel"; }
+
+// put whatever debugging message here
+#fail = { "$SOMETHINGFAILED"; }
+
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+
+// :::::::::::::::::::::  Expression stuff :::::::::::::::::::::
+
+// ##NOTE: the proof level (parameter #pl) is never used so far for Query,
+//     because Query does not handle proofs yet; since the code is 
+//     just an adaptation of the MPTP code, I left it there - it will
+//     be useful in the future
+
+
+// ###TODO: the XML now contains info on the original logical connective
+//          use them if Query has syntax for them
+
+// #i is nr of the bound variable, 1 by default
+tpl [For](#i,#pl)
+{ 
+  $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
+  $for_s; "("; pvar(#nr=$j); ","; 
+  $srt_s; "("; apply[Typ[1]](#i=$j,#pl=$pl); ")";
+  apply[*[2]](#i=$j,#pl=$pl); ")";
+}
+
+tpl [Not](#i,#pl) { $not_s; "("; apply[*[1]](#i=$i,#pl=$pl); ")"; } 
+tpl [And](#i,#pl) { $and_s;  "("; ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; }
+
+tpl [PrivPred](#i,#pl) { apply[*[position() = last()]](#i=$i,#pl=$pl); }
+
+tpl [Is](#i,#pl) 
+{ 
+   $is_s; "("; apply[*[1]](#i=$i,#pl=$pl); ","; 
+   apply[*[2]](#i=$i,#pl=$pl); ")"; 
+}
+
+tpl [Verum](#i,#pl) { "$VERUM"; }
+tpl [ErrorFrm](#i,#pl) { "$ERRORFRM"; }
+
+
+tpl [Pred](#i,#pl) 
+{ 
+  if [@kind='V']  
+  { 
+    $is_s; "("; ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ","; absc(#el=`.`); ")";
+  }
+  else 
+  { 
+    if [@kind='P'] { sch_fpname(#k="P",#nr=`@nr`,#schnr=`@schemenr`,#aid=`@aid`); } 
+    else { absc(#el=`.`); }
+
+    if [count(*)>0] 
+    { 
+      "("; ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; 
+    }
+  } 
+}
+
+// Terms
+tpl [Var](#i,#pl) { pvar(#nr=`@nr`); } 
+tpl [LocusVar](#i,#pl) { ploci(#nr=`@nr`); }
+tpl [Const](#i,#pl) { pconst(#nr=`@nr`); }
+tpl [Num](#i,#pl) { pnum(#nr=`@nr`); }
+// ##GRM: Sch_Func : "f" Number "_" Scheme_Name
+tpl [Func](#i,#pl) 
+{ 
+    if [@kind='F'] { sch_fpname(#k="F",#nr=`@nr`,#schnr=`@schemenr`,#aid=`@aid`); }
+    else { absc(#el=`.`); }
+    if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i, #pl=$pl); ")"; } 
+}
+
+tpl [PrivFunc](#i,#pl) { apply[*[position() = 1]](#i=$i,#pl=$pl); }
+tpl [ErrorTrm](#i,#pl) { "$ERRORTRM"; }
+tpl [Fraenkel](#i,#pl) 
+{ 
+     $j = { if [$i>0] { $i;} else { "0"; } }
+     $frank_s; "("; 
+     for-each [Typ] 
+     {
+       "$var(";
+       $k = `$j + position()`;
+       pvar(#nr=$k); ","; 
+       apply[.](#i=$k,#pl=$pl); ")";
+       if [not(position()=last())] { ","; }
+     }
+     if [Typ] { ","; }
+     $l = `$j + count(Typ)`;
+     apply[*[position() = last() - 1]](#i=$l,#pl=$pl); ","; 
+     apply[*[position() = last()]](#i=$l,#pl=$pl); ")";
+}
+
+
+// we expect 'L' instead of 'G' (that means addabsrefs preprocessing)
+tpl [Typ](#i,#pl) 
+{ 
+  $srt_s; "(";
+  if [@kind='errortyp'] { "$ERRORTYP"; }
+  else { if [(@kind="M") or (@kind="L")] 
+  {
+    $adjectives = { `count(Cluster[$which_cluster]/*)`; }
+    if [$adjectives > 0] 
+    { 
+      apply[Cluster[$which_cluster]](#i=$i,#pl=$pl);
+      ","; 
+    }
+    absc(#el=`.`);
+    if [count(*) > $cluster_nr ]
+    { 
+      "(";
+      ilist(#separ=",", #elems=`*[position() > $cluster_nr]`, #i=$i, #pl=$pl); 
+      ")";
+    }
+  }
+  else { $fail; } }
+  ")";
+}
+
+tpl [Cluster](#i,#pl) { ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); }
+
+// ###TODO: the current Query syntax seems to forget about arguments of adjectives
+tpl [Adjective](#i,#pl) 
+{ 
+  if [@value="false"] { "-"; } else { "+"; } "(";
+  absc(#el=`.`); ")";
+}
+
+// :::::::::::::::::::::  End of expression stuff :::::::::::::::::::::
+
+// :::::::::::::::::::::  Top items :::::::::::::::::::::
+
+tpl [RCluster]
+{ 
+   `@aid`; ":exreg "; `@nr`; "=exreg(";
+   loci(#el = `ArgTypes/Typ`); ",";
+   "$cluster"; if [Cluster/*] { "("; apply[Cluster]; ")"; } ",";
+   apply[Typ];
+   ")\n";
+}
+
+// ###TODO: not sure how Query deals with the optional Typ specification - now omitted
+tpl [FCluster]
+{ 
+   `@aid`; ":funcreg "; `@nr`; "=funcreg(";
+   loci(#el = `ArgTypes/Typ`); ",";
+   "$cluster"; if [Cluster/*] { "("; apply[Cluster]; ")"; } ",";
+   apply[*[2]];
+   ")\n";
+}
+
+tpl [CCluster]
+{ 
+   `@aid`; ":condreg "; `@nr`; "=condreg(";
+   loci(#el = `ArgTypes/Typ`); ",";
+   "$antecedent"; if [Cluster[1]/*] { "("; apply[Cluster[1]]; ")"; } ",";
+   apply[Typ];
+   "$cluster"; if [Cluster[2]/*] { "("; apply[Cluster[2]]; ")"; } ",";
+   apply[*[3]];
+   ")\n";
+}
+
+
+tpl [IdentifyWithExp] 
+{ 
+   `@aid`; ":idreg "; `@nr`; "=idreg(";
+   loci(#el = `Typ`); ",";
+   apply[*[position() = last() - 1]]; ",";
+   apply[*[position() = last()]]; 
+   ")\n";  
+}
+
+tpl [JustifiedTheorem|DefTheorem] 
+{ 
+   `@aid`; ":"; refkind(#kind = `@kind`); " "; `@nr`; "=theorem(";
+   apply[*[1]]; ")\n";
+}
+
+tpl [RegistrationBlock]
+{
+   apply[IdentifyRegistration/IdentifyWithExp
+	| Registration/RCluster
+	| Registration/CCluster
+	| Registration/FCluster]; 
+}
+
+// :::::::::::::::::::::  End of top items :::::::::::::::::::::
+
+
+// :::::::::::::::::::::  Utilities ::::::::::::::::::::::::::
+
+// ###TODO: constants should use levels when Query deals with proofs
+tpl pvar(#nr) { "$B "; $nr; }
+tpl pconst(#nr,#pl) { "$C "; $nr; }
+tpl ploci(#nr) { "$A "; $nr; }
+tpl pnum(#nr) { "$N "; $nr; }
+
+// absolute constructor names (use $fail for debugging absnrs)
+tpl absc(#el) 
+{ 
+  for-each [$el] 
+  {
+    if [@absnr and @aid] 
+    { 
+      `@aid`; ":"; mkind(#kind = `@kind`); " "; `@absnr`;
+    }
+    else 
+    { 
+      lc(#s=`@kind`); `@nr`;  $fail; 
+    } 
+  } 
+}
+
+// name of scheme functor (#k='f') or predicate (#k='p')
+// ###TODO: the current Query syntax should be changed to contain 
+//     the article name, and the scheme number (to make it absolute 
+//     - see e.g. the commented MPTP syntax)
+tpl sch_fpname(#k,#nr,#schnr,#aid) 
+{
+    if [$k and $nr and $aid and $schnr] 
+    {
+//       lc(#s=`concat($k,$nr,'_s',$schnr,'_',$aid)`); 
+       "$private functor "; $nr;
+    }
+    else 
+    { 
+       lc(#s=$k); `@nr`;  $fail; 
+    }
+}
+
+
+// translate constructor (notation) kinds to their mizar/mmlquery names
+tpl mkind(#kind) 
+{
+   choose 
+   { 
+      when [$kind = 'M'] { "mode";}
+      when [$kind = 'V'] { "attr";}
+      when [$kind = 'R'] { "pred";}
+      when [$kind = 'K'] { "func";}
+      when [$kind = 'G'] { "aggr";}
+      when [$kind = 'L'] { "struct";}
+      when [$kind = 'U'] { "sel";}
+      when [$kind = 'F'] { "private functor";}
+      when [$kind = 'P'] { "private formula";}
+   }
+}
+
+// translate reference kinds to their mizar/mmlquery names
+tpl refkind(#kind) 
+{
+  choose 
+  { 
+      when [$kind = 'T'] { "th";}
+      when [$kind = 'D'] { "def";}
+      when [$kind = 'S'] { "sch";}
+  }
+}
+
+
+// List utility with additional arg
+tpl ilist(#separ,#elems,#i,#pl) 
+{ 
+  for-each [$elems] 
+  {
+    apply[.](#i=$i,#pl=$pl); 
+    if [not(position()=last())] { $separ; }
+  }
+}
+
+// print Typ elements in #el as loci
+tpl loci(#el,#i,#pl)
+{ 
+  "$loci";
+   if [$el] 
+   { 
+      "("; ilist(#separ=",", #elems=`$el`, #i=$i, #pl=$pl); ")";
+   }
+}
+
+
+// :::::::::::::::::::::  End of utilities :::::::::::::::::::::
+
+
+// :::::::::::::::::::::  Entry to XSL processing ::::::::::::::
+
+tpl [/] 
+{ 
+  if [$mml="0"] 
+  { 
+    for-each [/Article]
+    {
+      // ###TODO: add items here when their processing is defined
+      apply[RegistrationBlock | JustifiedTheorem | DefTheorem];
+    }
+  }
+  else { apply; } 
+}
+
