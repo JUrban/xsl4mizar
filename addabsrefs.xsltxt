@@ -432,9 +432,9 @@ tpl prevprops(#el) { for-each [$el] {
 
 // raise level - Now is handled separately
 // adds the @plevel and @newlevel attributes.
-// Each Definition and Registration inside such blocks create
+// Each Definition, Registration, and IdentifyRegistration inside such blocks create
 // their own block to properly number correctness conditions. 
-tpl [Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration](#s)
+tpl [Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration|IdentifyRegistration](#s)
 { 
    $s0 =  prevblocks(#el=`.`); 
    $s1 = `1 + $s0`;
@@ -467,6 +467,7 @@ tpl prevblocks(#el) { for-each [$el] {
 	or (name() = "CaseBlock") or (name() = "SupposeBlock") or 
 	(name() = "PerCasesReasoning") or (name() = "Definition") or
 	(name() = "Registration") or (name() = "IterEquality") or
+	(name() = "IdentifyRegistration") or
 	(name() = "DefinitionBlock") or (name() = "RegistrationBlock") or 
 	(name() = "NotationBlock") or (name() = "SchemeBlock")]) +
 	count(preceding-sibling::*[(name() = "Conclusion") 
@@ -481,6 +482,7 @@ tpl prevblocks(#el) { for-each [$el] {
 	or (name() = "CaseBlock") or (name() = "SupposeBlock") or 
 	(name() = "PerCasesReasoning") or (name() = "Definition") or
 	(name() = "Registration") or (name() = "IterEquality") or
+	(name() = "IdentifyRegistration") or
 	(name() = "DefinitionBlock") or (name() = "RegistrationBlock") or 
 	(name() = "NotationBlock") or (name() = "SchemeBlock")]) +
          count(preceding-sibling::*[(name() = "Conclusion") 

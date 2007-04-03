@@ -1115,9 +1115,9 @@
 
   <!-- raise level - Now is handled separately -->
   <!-- adds the @plevel and @newlevel attributes. -->
-  <!-- Each Definition and Registration inside such blocks create -->
+  <!-- Each Definition, Registration, and IdentifyRegistration inside such blocks create -->
   <!-- their own block to properly number correctness conditions. -->
-  <xsl:template match="Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration">
+  <xsl:template match="Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration|IdentifyRegistration">
     <xsl:param name="s"/>
     <xsl:variable name="s0">
       <xsl:call-template name="prevblocks">
@@ -1185,6 +1185,7 @@
 	or (name() = &quot;CaseBlock&quot;) or (name() = &quot;SupposeBlock&quot;) or 
 	(name() = &quot;PerCasesReasoning&quot;) or (name() = &quot;Definition&quot;) or
 	(name() = &quot;Registration&quot;) or (name() = &quot;IterEquality&quot;) or
+	(name() = &quot;IdentifyRegistration&quot;) or
 	(name() = &quot;DefinitionBlock&quot;) or (name() = &quot;RegistrationBlock&quot;) or 
 	(name() = &quot;NotationBlock&quot;) or (name() = &quot;SchemeBlock&quot;)]) +
 	count(preceding-sibling::*[(name() = &quot;Conclusion&quot;) 
@@ -1201,6 +1202,7 @@
 	or (name() = &quot;CaseBlock&quot;) or (name() = &quot;SupposeBlock&quot;) or 
 	(name() = &quot;PerCasesReasoning&quot;) or (name() = &quot;Definition&quot;) or
 	(name() = &quot;Registration&quot;) or (name() = &quot;IterEquality&quot;) or
+	(name() = &quot;IdentifyRegistration&quot;) or
 	(name() = &quot;DefinitionBlock&quot;) or (name() = &quot;RegistrationBlock&quot;) or 
 	(name() = &quot;NotationBlock&quot;) or (name() = &quot;SchemeBlock&quot;)]) +
          count(preceding-sibling::*[(name() = &quot;Conclusion&quot;) 
