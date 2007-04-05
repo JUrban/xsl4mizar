@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.86 $
+// $Revision: 1.87 $
 //
 // File: miz.xsltxt - html-ization of Mizar XML, main file
 //
@@ -2297,15 +2297,25 @@ tpl [Let](#fst,#beg) {
    }
  }}
 
-tpl [Assume] { <b { "assume "; }  if [count(*)>1] { <b { "that ";} <br; }
-	       andlist(#elems=`*`);
-               ";"; try_th_exps(); <br; } 
+tpl [Assume] 
+{ 
+  <b { "assume "; }  
+  if [count(*)>1] { <b { "that ";} <br; }
+  andlist(#elems=`*`); ";"; 
+  try_th_exps(); <br; 
+} 
 
-tpl [Given] { $j=`@nr - 1`; <b {"given ";} 
-              jtlist(#j=$j, #sep2=" being ", #elems=`Typ`); 
-	      <b {" such that ";}
-              andlist(#elems=`Proposition`); 
-              ";"; try_th_exps(); <br; }
+// should handle both the new version with the existential statement
+// at the first position, and also the old version without it
+tpl [Given] 
+{ 
+  $j=`@nr - 1`; 
+  <b {"given ";} 
+  jtlist(#j=$j, #sep2=" being ", #elems=`Typ`); 
+  <b {" such that ";}
+  andlist(#elems=`*[(name()="Proposition") and (position() > 1)]`); ";"; 
+  try_th_exps(); <br; 
+}
 
 tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(); <br; }
 tpl [TakeAsVar] 

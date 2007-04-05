@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.36 $ -->
+  <!-- $Revision: 1.37 $ -->
   <!--  -->
   <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -5238,6 +5238,8 @@
     <xsl:element name="br"/>
   </xsl:template>
 
+  <!-- should handle both the new version with the existential statement -->
+  <!-- at the first position, and also the old version without it -->
   <xsl:template match="Given">
     <xsl:variable name="j" select="@nr - 1"/>
     <xsl:element name="b">
@@ -5254,7 +5256,7 @@
       <xsl:text> such that </xsl:text>
     </xsl:element>
     <xsl:call-template name="andlist">
-      <xsl:with-param name="elems" select="Proposition"/>
+      <xsl:with-param name="elems" select="*[(name()=&quot;Proposition&quot;) and (position() &gt; 1)]"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
     <xsl:call-template name="try_th_exps"/>

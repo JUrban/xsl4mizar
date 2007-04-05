@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_frmtrm.xsl"/>
 
-  <!-- $Revision: 1.6 $ -->
+  <!-- $Revision: 1.7 $ -->
   <!--  -->
   <!-- File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items -->
   <!--  -->
@@ -651,6 +651,8 @@
     <xsl:element name="br"/>
   </xsl:template>
 
+  <!-- should handle both the new version with the existential statement -->
+  <!-- at the first position, and also the old version without it -->
   <xsl:template match="Given">
     <xsl:variable name="j" select="@nr - 1"/>
     <xsl:element name="b">
@@ -667,7 +669,7 @@
       <xsl:text> such that </xsl:text>
     </xsl:element>
     <xsl:call-template name="andlist">
-      <xsl:with-param name="elems" select="Proposition"/>
+      <xsl:with-param name="elems" select="*[(name()=&quot;Proposition&quot;) and (position() &gt; 1)]"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
     <xsl:call-template name="try_th_exps"/>
