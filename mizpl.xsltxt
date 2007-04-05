@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.43 $
+// $Revision: 1.44 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -421,7 +421,7 @@ tpl [DefTheorem/Proposition]
 // add the name of the mizar item which introduced the current proposition
 // private - assumes that we are inside Proposition, Now, IterEquality:
 //
-// Assume,Case,Conclusion,Given,PerCases,Suppose,
+// Assume,Case,Conclusion,Given (expanded as assume and consider),PerCases,Suppose,
 // Consider(2 kinds of props),Reconsider,
 // DefTheorem,JustifiedTheorem,SchemeBlock,SchemePremises,
 // Coherence,Compatibility,Consistency,Correctness,Existence,Uniqueness,UnknownCorrCond,
@@ -432,7 +432,7 @@ tpl [DefTheorem/Proposition]
 //
 // ##GRM: Mizar_Item: "mizar_item(" Mizar_Item_Name ")" .
 // ##GRM: Mizar_Item_Name: 
-// ##GRM:       "assume" | "case" | "conclusion" | "given" | "percases" | "suppose"
+// ##GRM:       "assume" | "case" | "conclusion" | "percases" | "suppose"
 // ##GRM:       | "consider_definition" | "consider_justification" | "reconsider"
 // ##GRM:       | "deftheorem" | "justifiedtheorem" | "schemethesis" | "schemepremise"
 // ##GRM:       | "coherence" | "compatibility" | "consistency" | "correctness" 
@@ -454,10 +454,17 @@ tpl add_mizar_item
      { 
        lc(#s = `name(preceding-sibling::*[1])`);
      }
-     when [$parent_nm = "Consider"] 
+     when [$parent_nm = "Consider"]
      { 
-       if [preceding-sibling::Proposition] { "consider_definition"; } 
+       if [preceding-sibling::Typ] { "consider_definition"; } 
        else { "consider_justification"; }
+     }
+     when [$parent_nm = "Given"]
+     {
+       // "given" is intentionally exported as an "assume" followed by a
+       // "consider" - it is just a macro (like e.g. "hereby")
+       if [preceding-sibling::Typ] { "consider_definition"; } 
+       else { "assume"; }
      }
      when [($parent_nm = "Proof") or ($parent_nm = "Now") or 
            ($parent_nm = "Article") or (contains($parent_nm, "Block"))]
