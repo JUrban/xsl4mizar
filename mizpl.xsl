@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" extension-element-prefixes="exsl exsl-str xt" xmlns:exsl="http://exslt.org/common" xmlns:exsl-str="http://exslt.org/strings" xmlns:xt="http://www.jclark.com/xt" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text"/>
-  <!-- $Revision: 1.1 $ -->
+  <!-- $Revision: 1.2 $ -->
   <!--  -->
   <!-- File: mizpl.xsltxt - stylesheet translating Mizar XML terms, -->
   <!-- formulas and types to Prolog TSTP-like format. -->
@@ -67,6 +67,9 @@
   <xsl:param name="eq_s">
     <xsl:text> = </xsl:text>
   </xsl:param>
+  <xsl:param name="derived_lemma">
+    <xsl:text>lemma_conjecture</xsl:text>
+  </xsl:param>
   <!-- this will ensure failure of Prolog parsing -->
   <xsl:param name="fail">
     <xsl:text>zzz k l-**)))))))</xsl:text>
@@ -93,6 +96,8 @@
   <xsl:key name="C" match="Let|Given|TakeAsVar|Consider|Set|Reconsider" use="@plevel"/>
   <!-- lookup for propositions -->
   <xsl:key name="E" match="Proposition|IterEquality|Now" use="concat(@nr,&quot;:&quot;,@plevel)"/>
+  <!-- lookup for JustifiedTheorems' propnr (needed in plname) -->
+  <xsl:key name="JT" match="/Article/JustifiedTheorem/Proposition" use="@propnr"/>
   <!-- lookup for scheme functors and predicates -->
   <xsl:key name="f" match="SchemeFuncDecl" use="concat(@nr,&quot;:&quot;,@plevel)"/>
   <xsl:key name="p" match="SchemePredDecl" use="concat(@nr,&quot;:&quot;,@plevel)"/>
@@ -1067,15 +1072,69 @@
         </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:call-template name="lemmaname">
-          <xsl:with-param name="n" select="$n"/>
-        </xsl:call-template>
+        <xsl:choose>
+          <xsl:when test="key(&quot;JT&quot;,$n)">
+            <xsl:for-each select="key(&quot;JT&quot;,$n)">
+              <xsl:call-template name="absr">
+                <xsl:with-param name="el" select=".."/>
+              </xsl:call-template>
+            </xsl:for-each>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="lemmaname">
+              <xsl:with-param name="n" select="$n"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template name="thesisname">
+    <xsl:param name="n"/>
+    <xsl:param name="pl"/>
+    <xsl:text>i</xsl:text>
+    <xsl:value-of select="$n"/>
+    <xsl:call-template name="addp">
+      <xsl:with-param name="pl" select="$pl"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="Thesis">
+    <xsl:variable name="nr" select="1 + count(preceding-sibling::Thesis)"/>
+    <xsl:variable name="tname">
+      <xsl:call-template name="thesisname">
+        <xsl:with-param name="n" select="$nr"/>
+        <xsl:with-param name="pl" select="@plevel"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:text>fof(</xsl:text>
+    <xsl:value-of select="$tname"/>
+    <xsl:text>,thesis,</xsl:text>
+    <xsl:apply-templates>
+      <xsl:with-param name="pl" select="@plevel"/>
+    </xsl:apply-templates>
+    <xsl:text>,file(</xsl:text>
+    <xsl:value-of select="$anamelc"/>
+    <xsl:text>,</xsl:text>
+    <xsl:value-of select="$tname"/>
+    <xsl:text>),[mptp_info(</xsl:text>
+    <xsl:value-of select="$nr"/>
+    <xsl:text>,[</xsl:text>
+    <xsl:value-of select="translate(@plevel,&quot;_&quot;,&quot;,&quot;)"/>
+    <xsl:text>],thesis,position(0,0),[])]).
+</xsl:text>
+  </xsl:template>
+
   <!-- SchemePremises implies SchemeThesis -->
-  <!-- the proof might rather be 'implication intro' -->
+  <!-- the proof might rather be 'implication intro' - no -->
+  <!-- the proof is standard, the premises are printed, because -->
+  <!-- we just traverse all propositions. Note the following hacks: -->
+  <!-- - scheme functors and preds get empty level (i.e. are defined globally) -->
+  <!-- - the scheme gets empty level (i.e. one level up) -->
+  <!-- - the scheme's proof is raised too (i.e. one number); on that proof level -->
+  <!-- exist only the premises and the thesis (this is standard), the premises are -->
+  <!-- treated as assumptions, the thesis as a proved conclusion -->
   <xsl:template match="SchemeBlock">
     <xsl:variable name="sname" select="concat(&apos;s&apos;,@schemenr,&apos;_&apos;,$anamelc)"/>
     <xsl:text>fof(</xsl:text>
@@ -1114,8 +1173,44 @@
     <xsl:call-template name="try_inference">
       <xsl:with-param name="el" select="*[position() = (last() - 1)]"/>
       <xsl:with-param name="pl" select="@newlevel"/>
+      <xsl:with-param name="nl" select="@newlevel"/>
     </xsl:call-template>
     <xsl:text>]).
+</xsl:text>
+  </xsl:template>
+
+  <!-- SchemePremises implies SchemeThesis -->
+  <xsl:template match="Scheme">
+    <xsl:variable name="sname">
+      <xsl:call-template name="lc">
+        <xsl:with-param name="s" select="concat(&apos;s&apos;,@nr,&apos;_&apos;,@aid)"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:text>fof(</xsl:text>
+    <xsl:value-of select="$sname"/>
+    <xsl:text>,theorem,</xsl:text>
+    <xsl:text>(</xsl:text>
+    <xsl:if test="count(*)&gt;2">
+      <xsl:text>( </xsl:text>
+      <xsl:call-template name="ilist">
+        <xsl:with-param name="separ" select="$and_s"/>
+        <xsl:with-param name="elems" select="*[position() &gt; 2]"/>
+      </xsl:call-template>
+      <xsl:text> ) </xsl:text>
+      <xsl:value-of select="$imp_s"/>
+    </xsl:if>
+    <xsl:apply-templates select="*[position()=2]"/>
+    <xsl:text>)</xsl:text>
+    <xsl:text>,file(</xsl:text>
+    <xsl:call-template name="lc">
+      <xsl:with-param name="s" select="@aid"/>
+    </xsl:call-template>
+    <xsl:text>,</xsl:text>
+    <xsl:value-of select="$sname"/>
+    <xsl:text>),[mptp_info(</xsl:text>
+    <xsl:value-of select="@nr"/>
+    <xsl:text>,[],</xsl:text>
+    <xsl:text>scheme,position(0,0),[0])]).
 </xsl:text>
   </xsl:template>
 
@@ -1150,6 +1245,7 @@
         <xsl:text>0</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:call-template name="add_mizar_item"/>
     <xsl:text>])</xsl:text>
     <xsl:call-template name="try_inference">
       <xsl:with-param name="el" select="../*[2]"/>
@@ -1236,9 +1332,84 @@
         <xsl:text>0</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:call-template name="add_mizar_item"/>
     <xsl:text>]</xsl:text>
     <xsl:text>)]).
 </xsl:text>
+  </xsl:template>
+
+  <!-- add the name of the mizar item which introduced the current proposition -->
+  <!-- private - assumes that we are inside Proposition, Now, IterEquality: -->
+  <!--  -->
+  <!-- Assume,Case,Conclusion,Given (expanded as assume and consider),PerCases,Suppose, -->
+  <!-- Consider(2 kinds of props),Reconsider, -->
+  <!-- DefTheorem,JustifiedTheorem,SchemeBlock,SchemePremises, -->
+  <!-- Coherence,Compatibility,Consistency,Correctness,Existence,Uniqueness,UnknownCorrCond, -->
+  <!-- JustifiedProperty -->
+  <!--  -->
+  <!-- additionally, regular statements can have just block parents, Proof, Now, and Article, -->
+  <!-- and IterStep (never makes it here) gets iterstep -->
+  <!--  -->
+  <!-- ##GRM: Mizar_Item: "mizar_item(" Mizar_Item_Name ")" . -->
+  <!-- ##GRM: Mizar_Item_Name: -->
+  <!-- ##GRM:       "assume" | "case" | "conclusion" | "percases" | "suppose" -->
+  <!-- ##GRM:       | "consider_definition" | "consider_justification" | "reconsider" -->
+  <!-- ##GRM:       | "deftheorem" | "justifiedtheorem" | "schemethesis" | "schemepremise" -->
+  <!-- ##GRM:       | "coherence" | "compatibility" | "consistency" | "correctness" -->
+  <!-- ##GRM:       | "existence" | "uniqueness" | "unknowncorrcond" -->
+  <!-- ##GRM:       | "unexpectedprop" | "symmetry" | "reflexivity" | "irreflexivity" -->
+  <!-- ##GRM:       | "associativity" | "transitivity" | "commutativity" | "connectedness" -->
+  <!-- ##GRM:       | "antisymmetry" | "idempotence" | "involutiveness" | "projectivity" | "abstractness" -->
+  <!-- ##GRM:       | "auxiliary_lemma" | "iterstep" . -->
+  <xsl:template name="add_mizar_item">
+    <!-- temporarily commented to compile -->
+    <xsl:text>,mizar_item(</xsl:text>
+    <xsl:variable name="parent_nm" select="name(..)"/>
+    <xsl:choose>
+      <xsl:when test="$parent_nm = &quot;SchemeBlock&quot;">
+        <xsl:text>schemethesis</xsl:text>
+      </xsl:when>
+      <xsl:when test="$parent_nm = &quot;SchemePremises&quot;">
+        <xsl:text>schemepremise</xsl:text>
+      </xsl:when>
+      <xsl:when test="$parent_nm = &quot;JustifiedProperty&quot;">
+        <xsl:call-template name="lc">
+          <xsl:with-param name="s" select="name(preceding-sibling::*[1])"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:when test="$parent_nm = &quot;Consider&quot;">
+        <xsl:choose>
+          <xsl:when test="preceding-sibling::Typ">
+            <xsl:text>consider_definition</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>consider_justification</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:when test="$parent_nm = &quot;Given&quot;">
+        <!-- "given" is intentionally exported as an "assume" followed by a -->
+        <!-- "consider" - it is just a macro (like e.g. "hereby") -->
+        <xsl:choose>
+          <xsl:when test="preceding-sibling::Typ">
+            <xsl:text>consider_definition</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>assume</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <xsl:when test="($parent_nm = &quot;Proof&quot;) or ($parent_nm = &quot;Now&quot;) or 
+           ($parent_nm = &quot;Article&quot;) or (contains($parent_nm, &quot;Block&quot;))">
+        <xsl:text>auxiliary_lemma</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="lc">
+          <xsl:with-param name="s" select="$parent_nm"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text>)</xsl:text>
   </xsl:template>
 
   <xsl:template match="Proposition">
@@ -1252,12 +1423,19 @@
     <xsl:value-of select="$pname"/>
     <xsl:text>,</xsl:text>
     <xsl:choose>
-      <xsl:when test="following-sibling::*[1][name() = &quot;By&quot; or name() = &quot;From&quot; or
-      name() = &quot;Proof&quot;]">
-        <xsl:text>lemma-derived,</xsl:text>
+      <xsl:when test="following-sibling::*[1][name() = &quot;By&quot; or name() = &quot;From&quot; or name() = &quot;Proof&quot;]">
+        <xsl:value-of select="$derived_lemma"/>
+        <xsl:text>,</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:text>unknown,</xsl:text>
+        <xsl:choose>
+          <xsl:when test="name(..) = &quot;Consider&quot;">
+            <xsl:text>definition,</xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>assumption,</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
     <xsl:apply-templates>
@@ -1284,16 +1462,21 @@
         <xsl:text>0</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:call-template name="add_mizar_item"/>
     <xsl:text>])</xsl:text>
     <xsl:call-template name="try_inference">
       <xsl:with-param name="el" select="following-sibling::*[1]"/>
       <xsl:with-param name="pl" select="@plevel"/>
       <xsl:with-param name="prnr" select="@propnr"/>
     </xsl:call-template>
+    <xsl:call-template name="try_nd_inference">
+      <xsl:with-param name="el" select="."/>
+    </xsl:call-template>
     <xsl:text>]).
 </xsl:text>
   </xsl:template>
 
+  <!-- ###TODO: what about other blocks?? -->
   <xsl:template match="Now">
     <xsl:variable name="pname">
       <xsl:call-template name="plname">
@@ -1304,8 +1487,9 @@
     <xsl:text>fof(</xsl:text>
     <xsl:value-of select="$pname"/>
     <xsl:text>,</xsl:text>
-    <xsl:text>lemma-derived,</xsl:text>
-    <xsl:apply-templates select="BlockThesis/*">
+    <xsl:value-of select="$derived_lemma"/>
+    <xsl:text>,</xsl:text>
+    <xsl:apply-templates select="BlockThesis/*[position() = last()]">
       <xsl:with-param name="pl" select="@plevel"/>
     </xsl:apply-templates>
     <xsl:text>,file(</xsl:text>
@@ -1329,6 +1513,7 @@
         <xsl:text>0</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:call-template name="add_mizar_item"/>
     <xsl:text>]),</xsl:text>
     <xsl:call-template name="proofinfer">
       <xsl:with-param name="el" select="."/>
@@ -1349,7 +1534,8 @@
     <xsl:text>fof(</xsl:text>
     <xsl:value-of select="$pname"/>
     <xsl:text>,</xsl:text>
-    <xsl:text>lemma-derived,</xsl:text>
+    <xsl:value-of select="$derived_lemma"/>
+    <xsl:text>,</xsl:text>
     <xsl:text>( </xsl:text>
     <xsl:apply-templates select="*[1]">
       <xsl:with-param name="pl" select="@plevel"/>
@@ -1380,6 +1566,7 @@
         <xsl:text>0</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:call-template name="add_mizar_item"/>
     <xsl:text>]),</xsl:text>
     <xsl:call-template name="proofinfer">
       <xsl:with-param name="el" select="."/>
@@ -1391,6 +1578,10 @@
     <xsl:apply-templates select="IterStep"/>
   </xsl:template>
 
+  <!-- ###TODO: not sure if IterStep should be treated as just auxiliary_lemma, or -->
+  <!-- as a special kind of skeleton item, which changes the thesis -->
+  <!-- to equality with the next term. So I'll better use iterstep to -->
+  <!-- preserve the info for now. -->
   <xsl:template match="IterStep">
     <xsl:variable name="pname">
       <xsl:call-template name="plname">
@@ -1401,7 +1592,8 @@
     <xsl:text>fof(</xsl:text>
     <xsl:value-of select="$pname"/>
     <xsl:text>,</xsl:text>
-    <xsl:text>lemma-derived,</xsl:text>
+    <xsl:value-of select="$derived_lemma"/>
+    <xsl:text>,</xsl:text>
     <xsl:text>( </xsl:text>
     <xsl:choose>
       <xsl:when test="name(preceding-sibling::*[1])=&quot;IterStep&quot;">
@@ -1441,6 +1633,7 @@
         <xsl:text>0</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:text>,mizar_item(iterstep)</xsl:text>
     <xsl:text>])</xsl:text>
     <xsl:call-template name="try_inference">
       <xsl:with-param name="el" select="*[2]"/>
@@ -1451,10 +1644,42 @@
 </xsl:text>
   </xsl:template>
 
+  <!-- Mizar_ND_Inference = "mizar_nd(" "inference(" Mizar_ND_Rule "," "[" Optional_ND_Info* "]" "," -->
+  <!-- "[" Optional_ND_Axiom NextThesis "]" ")" ")" -->
+  <!-- Mizar_ND_Rule = "let" | "consider" | "take" | "discharge_asm" -->
+  <!-- Optional_ND_Info = AssumptionList | DischargeAsmInfo -->
+  <!-- list of assumptions under which a formula is valid -->
+  <!-- AssumptionList = "assumptions(" "[" References "]" ")" -->
+  <!-- list of discharged assumptions used for inferring this formula; -->
+  <!-- say "Foo implies Poo" (with assumptions(Asms1)) is justified by discharged(Dis2) -->
+  <!-- and "Poo" with assumptions(Asms2), then "Foo" has to be equivalent to /\Dis2, -->
+  <!-- and Asms2 has to be subset of Dis2 \/ Asms1 (i.e. ever y assumption of "Poo" is -->
+  <!-- either discharged, or also an assumption of "Foo implies Poo") -->
+  <!-- DischargeAsmInfo = "discharged(" "[" References "]" ")" -->
+  <!-- Optional_ND_Axiom = Henkin_Axiom_For_Let | -->
+  <!-- SkeletonRuleAndFla = LetRuleAndFla | AssumeRuleAndFla | -->
+  <!--  -->
+  <!-- here it is that "for x1 p(x1)" is justified by -->
+  <!-- "let c1"; translating to the henkin axiom: -->
+  <!-- "p(c1) => for x1 p(x1)" and the next thesis "p(c1)" -->
+  <!-- LetRuleAndFla = "mizar_nd_let(" "henkin_axiom_for_let" -->
+  <!--  -->
+  <!-- "ex x1:T1 st p(x1)" is justified by p(y), and the type of term y -->
+  <!-- only the next thesis is needed -->
+  <!-- TakeRuleAndFla = "mizar_nd_take(" -->
+  <!--  -->
+  <!-- "p implies q" (proved under assumptions Asms1) is justified by "q" proved -->
+  <!-- under assumptions Asms2, where Asms2 c= {p} \/ Asms1 -->
+  <!-- AssumeRuleAndFla = "mizar_nd_assume -->
+  <xsl:template name="try_nd_inference">
+    <xsl:param name="el"/>
+  </xsl:template>
+
   <xsl:template name="try_inference">
     <xsl:param name="el"/>
     <xsl:param name="pl"/>
     <xsl:param name="prnr"/>
+    <xsl:param name="nl"/>
     <xsl:for-each select="$el">
       <xsl:choose>
         <xsl:when test="name() = &quot;By&quot;">
@@ -1483,6 +1708,7 @@
                     <xsl:with-param name="el" select="."/>
                     <xsl:with-param name="pl" select="$pl"/>
                     <xsl:with-param name="prnr" select="$prnr"/>
+                    <xsl:with-param name="nl" select="$nl"/>
                   </xsl:call-template>
                 </xsl:when>
                 <xsl:otherwise>
@@ -1510,6 +1736,7 @@
     <xsl:text>inference(mizar_skipped_proof,[],[])</xsl:text>
   </xsl:template>
 
+  <!-- ##GRM: By_Inference: "inference(" "mizar_by" "," "[" "]" "," "[" References "]" ")". -->
   <!-- assumes By -->
   <xsl:template name="byinfer">
     <xsl:param name="el"/>
@@ -1749,21 +1976,40 @@
 
   <!-- ###TODO: finish the description!! -->
   <!-- assumes Proof, Now or IterEquality, -->
+  <!-- selects all references (no matter what their level is) used for -->
+  <!-- justifying anything inside the proof (so e.g. assumption, which -->
+  <!-- is never used to justify anything willnot be listed). This is a -->
+  <!-- bit arbitrary choice, because in computing background theory for -->
+  <!-- a given proof, this is not sufficient for getting a complete -->
+  <!-- symbol set (all formulas inside the proof have to be collected anyway). -->
+  <!-- Another options would be to encode just the Mizar ND proof's -->
+  <!-- last inference (e.g. "universal intro", if the proof starts with "let"), -->
+  <!-- or to encode only the formulas on the child level. -->
   <!-- ##GRM: Proof_Inference : -->
   <!-- "inference(mizar_proof,[proof_level(" Level ")], -->
   <!-- [ References ] ")" . -->
+  <!-- seems that #pl and #prnr are no longer used, only #nl is used to possibly -->
+  <!-- override #el's own @newlevel (used for schemes) -->
   <xsl:template name="proofinfer">
     <xsl:param name="el"/>
     <xsl:param name="pl"/>
     <xsl:param name="prnr"/>
+    <xsl:param name="nl"/>
     <xsl:for-each select="$el">
       <xsl:text>inference(mizar_proof,[proof_level([</xsl:text>
       <xsl:choose>
-        <xsl:when test="not(@newlevel)">
-          <xsl:value-of select="$fail"/>
+        <xsl:when test="$nl">
+          <xsl:value-of select="translate($nl,&quot;_&quot;,&quot;,&quot;)"/>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:value-of select="translate(@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
+          <xsl:choose>
+            <xsl:when test="@newlevel">
+              <xsl:value-of select="translate(@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$fail"/>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:otherwise>
       </xsl:choose>
       <xsl:text>])],[</xsl:text>
@@ -1824,13 +2070,21 @@
   </xsl:template>
 
   <!-- uncomment apply[Proposition] if not used explicit descent -->
+  <!-- constant arising from "Given" are treated as if they came from "Consider" -->
   <xsl:template match="Let|Given|TakeAsVar|Consider|Set">
     <xsl:variable name="cnr" select="@constnr"/>
     <xsl:variable name="pl" select="@plevel"/>
     <xsl:variable name="rnm">
-      <xsl:call-template name="lc">
-        <xsl:with-param name="s" select="name()"/>
-      </xsl:call-template>
+      <xsl:choose>
+        <xsl:when test="name() = &quot;Given&quot;">
+          <xsl:text>consider</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="lc">
+            <xsl:with-param name="s" select="name()"/>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:variable>
     <xsl:for-each select="Typ">
       <xsl:variable name="nr" select="$cnr + position() - 1"/>
@@ -1894,11 +2148,21 @@
     </xsl:for-each>
   </xsl:template>
 
-  <!-- new reconsider has the same type for each term now - this is -->
-  <!-- hopefully a compatible way for both new and old -->
+  <!-- New reconsider has the same type for each term now - this is -->
+  <!-- hopefully a compatible way for both new and old. -->
+  <!-- The typing is justified by the proposition and the equality def. -->
+  <!-- That should be OK for problem creation using mizar_by - the type -->
+  <!-- statement will be deleted from the axioms, and the rest of BG are just -->
+  <!-- general theorems, nothing specific about the constant. -->
   <xsl:template match="Reconsider">
     <xsl:variable name="cnr" select="@constnr"/>
     <xsl:variable name="pl" select="@plevel"/>
+    <xsl:variable name="prop_nm">
+      <xsl:call-template name="plname">
+        <xsl:with-param name="n" select="Proposition/@propnr"/>
+        <xsl:with-param name="pl" select="Proposition/@plevel"/>
+      </xsl:call-template>
+    </xsl:variable>
     <xsl:for-each select="Var|LocusVar|Const|InfConst|Num|Func|PrivFunc|Fraenkel|
 	      QuaTrm|It|ErrorTrm">
       <xsl:variable name="nr" select="$cnr + position() - 1"/>
@@ -1932,7 +2196,13 @@
       <xsl:text>),[mptp_info(</xsl:text>
       <xsl:value-of select="$nr"/>
       <xsl:value-of select="$levl"/>
-      <xsl:text>constant,position(0,0),[reconsider,type])]).
+      <xsl:text>constant,position(0,0),[reconsider,type]),</xsl:text>
+      <xsl:text>inference(mizar_by,[reconsider],[de_</xsl:text>
+      <xsl:value-of select="$nm"/>
+      <xsl:text>,</xsl:text>
+      <xsl:value-of select="$prop_nm"/>
+      <xsl:text>])</xsl:text>
+      <xsl:text>]).
 </xsl:text>
       <xsl:text>fof(de_</xsl:text>
       <xsl:value-of select="$nm"/>
@@ -1957,10 +2227,19 @@
   </xsl:template>
 
   <!-- The argument types of scheme functors are forgotten by Mizar -->
-  <!-- so we do not use them either and use $true -->
+  <!-- so we do not use them either and use $true. -->
+  <!-- The proof level is just [], to be compatible with scheme -->
+  <!-- proof level. The scheme to which this belongs is remembered -->
+  <!-- instead in the Item_Arguments. -->
   <xsl:template match="SchemeFuncDecl">
     <xsl:variable name="pl" select="@plevel"/>
-    <!-- $nm =  { "f"; `@nr`; addp(#pl=$pl); } -->
+    <xsl:variable name="schnr" select="../@schemenr"/>
+    <!-- $levl = { ",["; `translate($pl,"_",",")`; "],"; } -->
+    <xsl:variable name="levl">
+      <xsl:text>,[],</xsl:text>
+    </xsl:variable>
+    <xsl:variable name="sname" select="concat(&apos;s&apos;,$schnr,&apos;_&apos;,$anamelc)"/>
+    <!-- $nm   =  { "f"; `@nr`; addp(#pl=$pl); } -->
     <xsl:variable name="nm">
       <xsl:call-template name="sch_fpname">
         <xsl:with-param name="k">
@@ -1970,11 +2249,6 @@
         <xsl:with-param name="schnr" select="../@schemenr"/>
         <xsl:with-param name="aid" select="$aname"/>
       </xsl:call-template>
-    </xsl:variable>
-    <xsl:variable name="levl">
-      <xsl:text>,[</xsl:text>
-      <xsl:value-of select="translate($pl,&quot;_&quot;,&quot;,&quot;)"/>
-      <xsl:text>],</xsl:text>
     </xsl:variable>
     <xsl:variable name="l" select="count(ArgTypes/Typ)"/>
     <xsl:text>fof(dt_</xsl:text>
@@ -2018,7 +2292,9 @@
     <xsl:text>),[mptp_info(</xsl:text>
     <xsl:value-of select="@nr"/>
     <xsl:value-of select="$levl"/>
-    <xsl:text>functor,position(0,0),[scheme,type])]).
+    <xsl:text>functor,position(0,0),[scheme,type,</xsl:text>
+    <xsl:value-of select="$sname"/>
+    <xsl:text>])]).
 </xsl:text>
   </xsl:template>
 
@@ -2168,7 +2444,9 @@
       <xsl:call-template name="absc1">
         <xsl:with-param name="el" select="."/>
       </xsl:call-template>
-      <xsl:text>,lemma-derived,</xsl:text>
+      <xsl:text>,</xsl:text>
+      <xsl:value-of select="$derived_lemma"/>
+      <xsl:text>,</xsl:text>
       <xsl:apply-templates select="ArgTypes"/>
       <xsl:variable name="l" select="1 + count(ArgTypes/Typ)"/>
       <xsl:text>? [</xsl:text>
@@ -2848,7 +3126,7 @@
   </xsl:template>
 
   <!-- This needs fixing for structures "over" - then the -->
-  <!-- functor has more args than just the fields! -->
+  <!-- functor has more args than just the fields! - seems fixed now -->
   <xsl:template match="Abstractness">
     <xsl:param name="el"/>
     <xsl:param name="arg1"/>
@@ -3055,7 +3333,10 @@
         <xsl:if test="$mml=&quot;0&quot;">
           <xsl:text>proof_level([</xsl:text>
           <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
-          <xsl:text>])</xsl:text>
+          <xsl:text>]),</xsl:text>
+          <xsl:call-template name="cluster_correctness_conditions">
+            <xsl:with-param name="el" select="../*[position() = last()]"/>
+          </xsl:call-template>
         </xsl:if>
         <xsl:text>])]).
 </xsl:text>
@@ -3063,6 +3344,17 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- sufficient proof refs can be collected from its coherence -->
+  <!-- (correctness) proof (the corr_conds are therefore written here, -->
+  <!-- with the proposition given as argument) -->
+  <!-- generalization of the local consts is however needed for small-step -->
+  <!-- proof export, and the local consts can be re-used for other clusters -->
+  <!-- inside this block; so then their henkin axiom will generally be a conjunction -->
+  <!-- ##GRM: Cluster_Info: "proof_level(" Level ")" "," ( Correctness_Info | By_Inference ) . -->
+  <!-- ##GRM: Correctness_Info: "correctness_conditions(" "[" Correctness_Proposition+ "]" ")" . -->
+  <!-- ##GRM: Correctness_Proposition: Correctness_Condition_Name "(" Proposition_Ref ")" . -->
+  <!-- ##GRM: Correctness_Condition_Name: "unknowncorrcond" | "coherence" | "compatibility" | -->
+  <!-- ##GRM:                             "consistency" | "existence" | "uniqueness" | "correctness" . -->
   <xsl:template match="FCluster">
     <xsl:choose>
       <xsl:when test="ErrorCluster"/>
@@ -3118,7 +3410,10 @@
         <xsl:if test="$mml=&quot;0&quot;">
           <xsl:text>proof_level([</xsl:text>
           <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
-          <xsl:text>])</xsl:text>
+          <xsl:text>]),</xsl:text>
+          <xsl:call-template name="cluster_correctness_conditions">
+            <xsl:with-param name="el" select="../*[position() &gt; 1]"/>
+          </xsl:call-template>
         </xsl:if>
         <xsl:text>])]).
 </xsl:text>
@@ -3126,6 +3421,40 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- private for clusters -->
+  <xsl:template name="cluster_correctness_conditions">
+    <xsl:param name="el"/>
+    <xsl:text>correctness_conditions([</xsl:text>
+    <xsl:for-each select="$el">
+      <xsl:variable name="corr_nm" select="name()"/>
+      <xsl:choose>
+        <xsl:when test="Proposition">
+          <xsl:call-template name="lc">
+            <xsl:with-param name="s" select="$corr_nm"/>
+          </xsl:call-template>
+          <xsl:text>(</xsl:text>
+          <xsl:call-template name="plname">
+            <xsl:with-param name="n" select="Proposition/@propnr"/>
+            <xsl:with-param name="pl" select="Proposition/@plevel"/>
+          </xsl:call-template>
+          <xsl:text>)</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$fail"/>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:if test="not(position()=last())">
+        <xsl:text>,</xsl:text>
+      </xsl:if>
+      <xsl:text>])</xsl:text>
+    </xsl:for-each>
+  </xsl:template>
+
+  <!-- ##NOTE: We need to deal with the RCluster coming from structurel -->
+  <!-- definitions (attribute "strict") specially, since the existence -->
+  <!-- is never proved in Mizar. The current choice is to forge the justification -->
+  <!-- by the type declaration of the appropriate -->
+  <!-- aggregate functor (which is defined to be "strict"). -->
   <xsl:template match="RCluster">
     <xsl:choose>
       <xsl:when test="ErrorCluster"/>
@@ -3191,7 +3520,29 @@
         <xsl:if test="$mml=&quot;0&quot;">
           <xsl:text>proof_level([</xsl:text>
           <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
-          <xsl:text>])</xsl:text>
+          <xsl:text>]),</xsl:text>
+          <!-- forge the correctness of structural "strict" registrations -->
+          <xsl:choose>
+            <xsl:when test="name(../..) = &quot;Definition&quot;">
+              <xsl:choose>
+                <xsl:when test="not(../../Constructor[@kind = &quot;G&quot;])">
+                  <xsl:value-of select="$fail"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text>inference(mizar_by,[strict],[dt_</xsl:text>
+                  <xsl:call-template name="absc1">
+                    <xsl:with-param name="el" select="../../Constructor[@kind = &quot;G&quot;]"/>
+                  </xsl:call-template>
+                  <xsl:text>])</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:call-template name="cluster_correctness_conditions">
+                <xsl:with-param name="el" select="../*[position() = last()]"/>
+              </xsl:call-template>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:if>
         <xsl:text>])]).
 </xsl:text>
@@ -3685,6 +4036,9 @@
   </xsl:template>
 
   <!-- name of private reference - name of the proposition -->
+  <!-- this differs from `plname` in that the #pl is not the -->
+  <!-- proof level to print, but the proof level used to start the -->
+  <!-- search for the reference -->
   <xsl:template name="privname">
     <xsl:param name="nr"/>
     <xsl:param name="pl"/>
@@ -3822,7 +4176,7 @@
         <xsl:apply-templates select="//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster"/>
+	     //CCluster|//FCluster|//RCluster|//Thesis"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates/>
