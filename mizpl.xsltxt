@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.44 $
+// $Revision: 1.45 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -66,6 +66,9 @@ key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
 
 // lookup for propositions
 key "E" [Proposition|IterEquality|Now] `concat(@nr,":",@plevel)` ;
+
+// lookup for JustifiedTheorems' propnr (needed in plname)
+key "JT" [/Article/JustifiedTheorem/Proposition] `@propnr`;
 
 // lookup for scheme functors and predicates
 key "f" [SchemeFuncDecl] `concat(@nr,":",@plevel)` ;
@@ -327,9 +330,16 @@ tpl addp(#pl) { if [string-length($pl)>0] { "_"; $pl; }}
 tpl propname(#n,#pl) { "e"; $n; addp(#pl=$pl); }
 tpl abspropname(#n,#pl) { propname(#n=$n,#pl=$pl); "__"; $anamelc; }
 tpl lemmaname(#n) { "l"; $n; "_"; $anamelc; } 
-tpl plname(#n,#pl) {
+tpl plname(#n,#pl) 
+{
     if [string-length($pl)>0] { propname(#n=$n, #pl=$pl); }
-    else { lemmaname(#n=$n); } }
+    else { if [key("JT",$n)] 
+    {
+      for-each [key("JT",$n)] { absr(#el=`..`); }
+    } 
+    else { lemmaname(#n=$n); }
+    }
+}
 
 tpl thesisname(#n,#pl) { "i"; $n; addp(#pl=$pl); }
 
@@ -760,10 +770,11 @@ tpl sch_instname(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`);
     "__"; abspropname(#n=$prnr,#pl=$pl); }}
 
 // uncomment apply[Proposition] if not used explicit descent
+// constant arising from "Given" are treated as if they came from "Consider"
 tpl [Let|Given|TakeAsVar|Consider|Set] 
 { 
   $cnr = `@constnr`; $pl=`@plevel`; 
-  $rnm = lc(#s=`name()`);
+  $rnm = { if [name() = "Given"] { "consider"; } else { lc(#s=`name()`); } }
   for-each [Typ] 
   {
       $nr   = `$cnr + position() - 1`; 
@@ -1458,23 +1469,41 @@ tpl refname(#el,#pl) { for-each [$el] {
     if [(@kind = "T") or (@kind = "D")] { absr(#el=$el); }
     else { privname(#nr=`@nr`,#pl=$pl); } }}
 
-tpl top_propname(#el) { for-each [$el/..] {
+tpl top_propname(#el) 
+{ 
+  for-each [$el/..] 
+  {
     if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] 
        { absr(#el=`.`); }
-    else { $k1 = `concat($el/@nr,":")`;
-	 lemmaname(#n=`key("E",$k1)/@propnr`); } } }
+    else 
+    { 
+       $k1 = `concat($el/@nr,":")`;
+       lemmaname(#n=`key("E",$k1)/@propnr`); 
+    } 
+  }
+}
 
 // name of private reference - name of the proposition
-tpl privname(#nr,#pl) {
-      $k1 = `concat($nr,":",$pl)`;
-      if [key("E",$k1)] { 
+// this differs from `plname` in that the #pl is not the
+// proof level to print, but the proof level used to start the
+// search for the reference 
+tpl privname(#nr,#pl) 
+{
+   $k1 = `concat($nr,":",$pl)`;
+   if [key("E",$k1)] 
+   { 
 	 if [not(string-length($pl)>0)] { top_propname(#el=`key("E",$k1)`); }
-	 else { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } }
-      else { if [string-length($pl)>0] { 
+	 else { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
+   }
+   else { if [string-length($pl)>0] 
+   { 
 	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
 	 $pl1= mjoin(#el=$ss,#s="_");
-	 privname(#nr=$nr,#pl=$pl1); } else { $fail;}}
- }
+	 privname(#nr=$nr,#pl=$pl1); 
+   } 
+   else { $fail;}
+   }
+}
 
 // name of scheme functor (#k='f') or predicate (#k='p')
 tpl sch_fpname(#k,#nr,#schnr,#aid) 
