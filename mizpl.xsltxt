@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.42 $
+// $Revision: 1.43 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -494,6 +494,7 @@ tpl [Proposition]
     add_mizar_item();
     "])";
     try_inference(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`);
+    try_nd_inference(#el = `.`);
     "]).\n"; 
 }
 
@@ -556,6 +557,56 @@ tpl [IterStep]
    try_inference(#el=`*[2]`,#pl=`@plevel`,#prnr=`@propnr`);
    "]).\n"; 
 }
+
+// Mizar_ND_Inference = "mizar_nd(" "inference(" Mizar_ND_Rule "," "[" Optional_ND_Info* "]" "," 
+//                       "[" Optional_ND_Axiom NextThesis "]" ")" ")"
+// Mizar_ND_Rule = "let" | "consider" | "take" | "discharge_asm"
+// Optional_ND_Info = AssumptionList | DischargeAsmInfo
+
+// list of assumptions under which a formula is valid
+// AssumptionList = "assumptions(" "[" References "]" ")"
+
+// list of discharged assumptions used for inferring this formula;
+// say "Foo implies Poo" (with assumptions(Asms1)) is justified by discharged(Dis2)
+// and "Poo" with assumptions(Asms2), then "Foo" has to be equivalent to /\Dis2,
+// and Asms2 has to be subset of Dis2 \/ Asms1 (i.e. ever y assumption of "Poo" is
+// either discharged, or also an assumption of "Foo implies Poo")
+// DischargeAsmInfo = "discharged(" "[" References "]" ")"
+
+// Optional_ND_Axiom = Henkin_Axiom_For_Let |
+// SkeletonRuleAndFla = LetRuleAndFla | AssumeRuleAndFla |
+//
+// here it is that "for x1 p(x1)" is justified by
+// "let c1"; translating to the henkin axiom: 
+// "p(c1) => for x1 p(x1)" and the next thesis "p(c1)"
+// LetRuleAndFla = "mizar_nd_let(" "henkin_axiom_for_let"
+//
+// "ex x1:T1 st p(x1)" is justified by p(y), and the type of term y
+// only the next thesis is needed
+// TakeRuleAndFla = "mizar_nd_take(" 
+//
+// "p implies q" (proved under assumptions Asms1) is justified by "q" proved 
+// under assumptions Asms2, where Asms2 c= {p} \/ Asms1
+// AssumeRuleAndFla = "mizar_nd_assume
+
+
+tpl try_nd_inference(#el) 
+{ 
+//   for-each [$el] 
+//   {
+//     if [name() = "By"] { ",";
+//        byinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
+//     else { if [name() = "From"] { ",";
+//        frominfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
+//     else { if [name() = "Proof"] { ",";
+//        proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr,#nl=$nl); }
+//     else { if [name() = "SkippedProof"] { ",";
+//        skippedinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
+//   }}}}
+}
+
+
+
 
 tpl try_inference(#el,#pl,#prnr,#nl) 
 { 
