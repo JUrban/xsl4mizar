@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.16 $
+// $Revision: 1.17 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -571,6 +571,8 @@ tpl [PerCases]
   }
 
   apply [*[position()>1]];
+
+  try_th_exps();
 }
 
 
