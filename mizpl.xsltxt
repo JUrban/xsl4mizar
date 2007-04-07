@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.45 $
+// $Revision: 1.46 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -35,6 +35,11 @@ strip-space "*";
 // nr. of clusters in Typ
 // this is set to 1 for processing MML files
 #cluster_nr = { if [$mml = "0"] { "2"; } else { "1"; }}
+
+// include natural deduction explanations (also computes
+// the assumptions of each proposition)
+#do_nd = { "1"; }
+
 // symbols, take care, the spaces are sometimes (e.g. for '~')
 // needed for correct Prolog parsing
 #not_s = { "~ "; }
@@ -343,6 +348,13 @@ tpl plname(#n,#pl)
 
 tpl thesisname(#n,#pl) { "i"; $n; addp(#pl=$pl); }
 
+// thesis is usually justified by following thesis,
+// and some ND rule (and possibly axiom);
+// the corresponding ND item can be 
+// %Let; | %Conclusion; | %Assume; | %Given; | %Take; | %TakeAsVar;
+// for Proofs it immediately precedes the Thesis, while
+// for Now it has to be looked up by having the same position 
+// among skeleton items as the current thesis has among theses
 tpl [Thesis]
 {
    $nr    = `1 + count(preceding-sibling::Thesis)`;
@@ -351,8 +363,141 @@ tpl [Thesis]
    apply(#pl=`@plevel`); 
    ",file("; $anamelc; ","; $tname; 
    "),[mptp_info("; $nr; ",["; `translate(@plevel,"_",",")`; 
-   "],thesis,position(0,0),[])]).\n";
+   "],thesis,position(0,0),[])";
+   try_nd_inference(#el = `.`, #thes_nr = $nr);
+   "]).\n";
 }
+
+// the henkin axioms will be created by MPTP (for each const. separately);
+// doing it here would mean that we either have to cheat a bit (just 
+// imply previous thesis by thenext one, and call it axiom), or instantiate
+// or generalize - which is much either to do in prolog
+tpl henkin_ax_nm(#cnm)  { "dh_"; $cnm; }
+
+// can be empty string or more than one (separated by commas)
+// private for Let, Consider, and Given
+tpl get_henkin_axioms
+{
+   $cnr = `@constnr`; $pl=`@plevel`;
+   for-each [Typ] 
+   {
+      $nr   = `$cnr + position() - 1`; 
+      $nm   =  { "c"; $nr; addp(#pl = $pl); }
+      henkin_ax_nm(#cnm = $nm);
+      if [not(position() = last())] { ","; }
+   }
+}
+
+
+// ###GRM:
+// Mizar_ND_Inference = "mizar_nd(" "inference(" Mizar_ND_Rule "," "[" Optional_ND_Info* "]" "," 
+//                       "[" Optional_Ref* Optional_NextThesis "]" ")" ")"
+// Mizar_ND_Rule = "let" | "consider" | "take" | "assume" | "discharge_asm" | "conclusion" | "trivial"
+// Optional_ND_Info = AssumptionList | DischargeAsmInfo
+
+// list of assumptions under which a formula is valid
+// AssumptionList = "assumptions(" "[" References "]" ")"
+
+// list of discharged assumptions used for inferring this formula;
+// say "Foo implies Poo" (with assumptions(Asms1)) is justified by discharged(Dis2)
+// and "Poo" with assumptions(Asms2), then "Foo" has to be equivalent to /\Dis2,
+// and Asms2 has to be subset of Dis2 \/ Asms1 (i.e. ever y assumption of "Poo" is
+// either discharged, or also an assumption of "Foo implies Poo")
+// DischargeAsmInfo = "discharged(" "[" References "]" ")"
+
+
+// "let": Henkin_Axiom_For_Let: here it is that "for x1 p(x1)" is justified by
+// "let c1"; translating to the henkin axiom: 
+// "p(c1) => for x1 p(x1)" and the next thesis "p(c1)"
+// "consider": Henkin_Axiom_For_Consider: here "p(c1)" is justified by 
+// "ex x1 st p(x1)"; translating to the axiom:
+//  "(ex x1 st p(x1)) => p(c1)" (note that having Henkin_Axiom_For_Let is enough
+// to justify Henkin_Axiom_For_Consider, and vice versa (use negated formulas))
+// "take": no special axiom is needed, since "take" justifies "ex x1 st p(x1)"
+// by reference to "p(c1)", which is implicit in ATP systems
+// "assume": no axiom needed, only check that the fof name is among its AssumptionList
+// "discharge_asm": no axiom needed
+// "conclusion" : Concluded_Proposition: "p & q" is justified by "thus p;" and next thesis "q"
+// "trivial": this is the last thesis, and it must be trivial (i.e. $true)
+// Optional_Ref = Henkin_Axiom_For_Let | Henkin_Axiom_For_Consider | Concluded_Proposition
+// SkeletonRuleAndFla = LetRuleAndFla | AssumeRuleAndFla |
+
+// #thes_nr gives a number of thesis for which this is created
+tpl try_nd_inference(#el,#thes_nr) 
+{ 
+   $next_skel = 
+   {
+     if [name($el/..) = "BlockThesis"] // we are inside diffuse theses
+     {
+       for-each [$el/../..] { `Let|Conclusion|Assume|Given|Take|TakeAsVar[$thes_nr + 1]`; }
+     }
+     else
+     {
+       for-each [$el] { `following-sibling::Let|Conclusion|Assume|Given|Take|TakeAsVar[1]`; }
+     }
+   }
+
+   // ###TODO: what about percases here?? 
+   //          if this is the last thesis, then the inference is "trivial"     
+   "mizar_nd("; "inference(";  
+   if [not($next_skel)]
+   {
+      "trivial"; ","; "[]"; ","; "[]";
+   }
+   else
+   {
+      for-each [$next_skel]
+      {
+        $inm = `name()`;
+	choose 
+	{ 
+	   when [($inm = "Let")]
+	   {
+	     "let"; ","; "[]"; ","; "[";
+	     get_henkin_axioms(#el = `.`); ",";
+	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+           }
+	   when [($inm = "Take") or ($inm = "TakeAsVar")]
+	   {
+	     "take"; ","; "[]"; ","; "[";
+	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+	   }
+	   when [($inm = "Assume")]
+	   {
+	     "discharge_asm"; ","; "["; 
+	     // ###TODO: write this and uncomment!
+//	     get_assumptions(#el = `.`); ",";
+	     "discharged(["; 
+	     for-each [Proposition] 
+	     { 
+	       plname(#n=`@propnr`, #pl=`@plevel`);
+	       if [not(position() = last())] { ","; }
+	     } 
+	     "])"; "]"; ","; "[";
+	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+	   }
+	   when [($inm = "Given")]
+	   {
+	     "discharge_asm"; ","; "["; 
+	     get_assumptions(#el = `.`); ",";
+	     "discharged(["; 
+	     for-each [Proposition[1]] { plname(#n=`@propnr`, #pl=`@plevel`); }
+	     "])"; "]"; ","; "[";
+	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+	   }
+	   when [($inm = "Conclusion")]
+	   {
+	     "conclusion"; ","; "[]"; ","; "[";
+	     plname(#n=`*[1]/@propnr`, #pl=`*[1]/@plevel`); ",";
+	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+	   }
+	   otherwise { $fail; }
+	}
+      }
+   }
+   "))";
+}
+
 
 // SchemePremises implies SchemeThesis
 // the proof might rather be 'implication intro' - no
@@ -511,7 +656,7 @@ tpl [Proposition]
     add_mizar_item();
     "])";
     try_inference(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`);
-    try_nd_inference(#el = `.`);
+//    try_nd_inference(#el = `.`);
     "]).\n"; 
 }
 
@@ -574,56 +719,6 @@ tpl [IterStep]
    try_inference(#el=`*[2]`,#pl=`@plevel`,#prnr=`@propnr`);
    "]).\n"; 
 }
-
-// Mizar_ND_Inference = "mizar_nd(" "inference(" Mizar_ND_Rule "," "[" Optional_ND_Info* "]" "," 
-//                       "[" Optional_ND_Axiom NextThesis "]" ")" ")"
-// Mizar_ND_Rule = "let" | "consider" | "take" | "discharge_asm"
-// Optional_ND_Info = AssumptionList | DischargeAsmInfo
-
-// list of assumptions under which a formula is valid
-// AssumptionList = "assumptions(" "[" References "]" ")"
-
-// list of discharged assumptions used for inferring this formula;
-// say "Foo implies Poo" (with assumptions(Asms1)) is justified by discharged(Dis2)
-// and "Poo" with assumptions(Asms2), then "Foo" has to be equivalent to /\Dis2,
-// and Asms2 has to be subset of Dis2 \/ Asms1 (i.e. ever y assumption of "Poo" is
-// either discharged, or also an assumption of "Foo implies Poo")
-// DischargeAsmInfo = "discharged(" "[" References "]" ")"
-
-// Optional_ND_Axiom = Henkin_Axiom_For_Let |
-// SkeletonRuleAndFla = LetRuleAndFla | AssumeRuleAndFla |
-//
-// here it is that "for x1 p(x1)" is justified by
-// "let c1"; translating to the henkin axiom: 
-// "p(c1) => for x1 p(x1)" and the next thesis "p(c1)"
-// LetRuleAndFla = "mizar_nd_let(" "henkin_axiom_for_let"
-//
-// "ex x1:T1 st p(x1)" is justified by p(y), and the type of term y
-// only the next thesis is needed
-// TakeRuleAndFla = "mizar_nd_take(" 
-//
-// "p implies q" (proved under assumptions Asms1) is justified by "q" proved 
-// under assumptions Asms2, where Asms2 c= {p} \/ Asms1
-// AssumeRuleAndFla = "mizar_nd_assume
-
-
-tpl try_nd_inference(#el) 
-{ 
-//   for-each [$el] 
-//   {
-//     if [name() = "By"] { ",";
-//        byinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
-//     else { if [name() = "From"] { ",";
-//        frominfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
-//     else { if [name() = "Proof"] { ",";
-//        proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr,#nl=$nl); }
-//     else { if [name() = "SkippedProof"] { ",";
-//        skippedinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
-//   }}}}
-}
-
-
-
 
 tpl try_inference(#el,#pl,#prnr,#nl) 
 { 
