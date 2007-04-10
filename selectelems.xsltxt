@@ -1,0 +1,29 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
+// selecting only given elements from the xml
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL selectelems.xsltxt > selectelems.xsl
+
+// Then e.g.: xsltproc selectelems.xsl ordinal2.xml > ordinal2.xml1
+
+
+output method=xml;
+
+#selected = { "Pattern"; }
+
+tpl [*](#in) 
+{ 
+  if [(name() = $selected) or ($in = 1)] 
+  { 
+    copy { apply [@*](#in="1"); apply(#in="1"); }
+    if [(name() = $selected)] { "
+
+"; }
+  }
+  else { apply(#in=$in); }
+}
+
+tpl [@*](#in) { if [$in = 1 ] {copy-of `.`; }}
+tpl [text()](#in) { if [$in = 1 ] {copy-of `.`; }}
