@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.46 $
+// $Revision: 1.47 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -363,7 +363,7 @@ tpl [Thesis]
    apply(#pl=`@plevel`); 
    ",file("; $anamelc; ","; $tname; 
    "),[mptp_info("; $nr; ",["; `translate(@plevel,"_",",")`; 
-   "],thesis,position(0,0),[])";
+   "],thesis,position(0,0),[])"; ",";
    try_nd_inference(#el = `.`, #thes_nr = $nr);
    "]).\n";
 }
@@ -371,7 +371,7 @@ tpl [Thesis]
 // the henkin axioms will be created by MPTP (for each const. separately);
 // doing it here would mean that we either have to cheat a bit (just 
 // imply previous thesis by thenext one, and call it axiom), or instantiate
-// or generalize - which is much either to do in prolog
+// or generalize - which is much easier to do in prolog
 tpl henkin_ax_nm(#cnm)  { "dh_"; $cnm; }
 
 // can be empty string or more than one (separated by commas)
@@ -392,7 +392,8 @@ tpl get_henkin_axioms
 // ###GRM:
 // Mizar_ND_Inference = "mizar_nd(" "inference(" Mizar_ND_Rule "," "[" Optional_ND_Info* "]" "," 
 //                       "[" Optional_Ref* Optional_NextThesis "]" ")" ")"
-// Mizar_ND_Rule = "let" | "consider" | "take" | "assume" | "discharge_asm" | "conclusion" | "trivial"
+// Mizar_ND_Rule = "let" | "consider" | "take" | "assume" | "discharge_asm" | "conclusion" 
+//                 | "trivial" | "iterative_eq"
 // Optional_ND_Info = AssumptionList | DischargeAsmInfo
 
 // list of assumptions under which a formula is valid
@@ -414,86 +415,96 @@ tpl get_henkin_axioms
 //  "(ex x1 st p(x1)) => p(c1)" (note that having Henkin_Axiom_For_Let is enough
 // to justify Henkin_Axiom_For_Consider, and vice versa (use negated formulas))
 // "take": no special axiom is needed, since "take" justifies "ex x1 st p(x1)"
-// by reference to "p(c1)", which is implicit in ATP systems
+// by reference to "p(c1)", which is implicit in ATP systems; no bg should be needed
 // "assume": no axiom needed, only check that the fof name is among its AssumptionList
 // "discharge_asm": no axiom needed
-// "conclusion" : Concluded_Proposition: "p & q" is justified by "thus p;" and next thesis "q"
+// "conclusion" : Concluded_Proposition: "p & q" is justified by "thus p;" and next thesis "q"; no bg needed
 // "trivial": this is the last thesis, and it must be trivial (i.e. $true)
-// Optional_Ref = Henkin_Axiom_For_Let | Henkin_Axiom_For_Consider | Concluded_Proposition
+// "iterative_eq": is justified by conjunction of the iterative steps; note that no background is needed
+// Optional_Ref = Henkin_Axiom_For_Let | Henkin_Axiom_For_Consider | Concluded_Proposition | Iterative_Step
 // SkeletonRuleAndFla = LetRuleAndFla | AssumeRuleAndFla |
 
 // #thes_nr gives a number of thesis for which this is created
 tpl try_nd_inference(#el,#thes_nr) 
 { 
-   $next_skel = 
+   $res =
    {
-     if [name($el/..) = "BlockThesis"] // we are inside diffuse theses
+     if [name($el/..) = "BlockThesis"] // we are inside diffuse theses (also the normal block's thesis allowed)
      {
-       for-each [$el/../..] { `Let|Conclusion|Assume|Given|Take|TakeAsVar[$thes_nr + 1]`; }
+         for-each [$el/../../*[(name()="Let") or (name()="Conclusion") or (name()="Assume") or 
+	 (name()="Given") or (name()="Take") or (name()="TakeAsVar")][$thes_nr + 1]]
+	 {
+	   do_nd(#thes_nr = $thes_nr);
+	 }
      }
      else
-     {
-       for-each [$el] { `following-sibling::Let|Conclusion|Assume|Given|Take|TakeAsVar[1]`; }
+     { 
+         for-each [$el/following-sibling::*[(name()="Let") or (name()="Conclusion") or (name()="Assume") or 
+                               (name()="Given") or (name()="Take") or (name()="TakeAsVar")][1]]
+         {
+	   do_nd(#thes_nr = $thes_nr);
+	 }
      }
    }
 
-   // ###TODO: what about percases here?? 
-   //          if this is the last thesis, then the inference is "trivial"     
-   "mizar_nd("; "inference(";  
-   if [not($next_skel)]
-   {
-      "trivial"; ","; "[]"; ","; "[]";
-   }
+   // if none of above existed, export as trivial (this is the case for last thesis)
+   if [substring($res, 1, 8) = 'mizar_nd'] { $res; }
    else
    {
-      for-each [$next_skel]
-      {
-        $inm = `name()`;
-	choose 
-	{ 
-	   when [($inm = "Let")]
-	   {
-	     "let"; ","; "[]"; ","; "[";
-	     get_henkin_axioms(#el = `.`); ",";
-	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
-           }
-	   when [($inm = "Take") or ($inm = "TakeAsVar")]
-	   {
-	     "take"; ","; "[]"; ","; "[";
-	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
-	   }
-	   when [($inm = "Assume")]
-	   {
-	     "discharge_asm"; ","; "["; 
-	     // ###TODO: write this and uncomment!
-//	     get_assumptions(#el = `.`); ",";
-	     "discharged(["; 
-	     for-each [Proposition] 
-	     { 
-	       plname(#n=`@propnr`, #pl=`@plevel`);
-	       if [not(position() = last())] { ","; }
-	     } 
-	     "])"; "]"; ","; "[";
-	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
-	   }
-	   when [($inm = "Given")]
-	   {
-	     "discharge_asm"; ","; "["; 
-	     get_assumptions(#el = `.`); ",";
-	     "discharged(["; 
-	     for-each [Proposition[1]] { plname(#n=`@propnr`, #pl=`@plevel`); }
-	     "])"; "]"; ","; "[";
-	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
-	   }
-	   when [($inm = "Conclusion")]
-	   {
-	     "conclusion"; ","; "[]"; ","; "[";
-	     plname(#n=`*[1]/@propnr`, #pl=`*[1]/@plevel`); ",";
-	     thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
-	   }
-	   otherwise { $fail; }
-	}
-      }
+     "mizar_nd("; "inference("; "trivial"; ","; "[]"; ","; "[]"; "))";
+   }
+}
+
+// ###TODO: what about percases here?? 
+//          if this is the last thesis, then the inference is "trivial"     
+// private for try_nd_inference()
+tpl do_nd(#thes_nr) 
+{
+   "mizar_nd("; "inference(";  
+   $inm = `name()`;
+   choose 
+   { 
+       when [($inm = "Let")]
+       {
+         "let"; ","; "[]"; ","; "[";
+         get_henkin_axioms(#el = `.`); ",";
+         thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+       }
+       when [($inm = "Take") or ($inm = "TakeAsVar")]
+       {
+         "take"; ","; "[]"; ","; "[";
+         thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+       }
+       when [($inm = "Assume")]
+       {
+         "discharge_asm"; ","; "["; 
+         // ###TODO: write this and uncomment!
+//         get_assumptions(#el = `.`); ",";
+         "discharged(["; 
+         for-each [Proposition] 
+         { 
+           plname(#n=`@propnr`, #pl=`@plevel`);
+           if [not(position() = last())] { ","; }
+         } 
+         "])"; "]"; ","; "[";
+         thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+       }
+       when [($inm = "Given")]
+       {
+         "discharge_asm"; ","; "["; 
+//         get_assumptions(#el = `.`); ",";
+         "discharged(["; 
+         for-each [Proposition[1]] { plname(#n=`@propnr`, #pl=`@plevel`); }
+         "])"; "]"; ","; "[";
+         thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+       }
+       when [($inm = "Conclusion")]
+       {
+         "conclusion"; ","; "[]"; ","; "[";
+         plname(#n=`*[1]/@propnr`, #pl=`*[1]/@plevel`); ",";
+         thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+       }
+       otherwise { $fail; $inm; }
    }
    "))";
 }
@@ -656,7 +667,6 @@ tpl [Proposition]
     add_mizar_item();
     "])";
     try_inference(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`);
-//    try_nd_inference(#el = `.`);
     "]).\n"; 
 }
 
@@ -672,7 +682,8 @@ tpl [Now]
    if [@nr] { `@nr`;} else { "0";} 
    add_mizar_item();
    "]),"; 
-   proofinfer(#el=`.`,#pl=`@plevel`,#prnr=`@propnr`);
+   proofinfer(#el=`.`,#pl=`@plevel`,#prnr=`@propnr`); ",";
+   try_nd_inference(#el = `BlockThesis/*[position() = last()]`, #thes_nr = "0");
    "]).\n"; 
 }
 
@@ -688,15 +699,25 @@ tpl [IterEquality]
    `@col`; "),["; if [@nr] { `@nr`;} else { "0";} 
    add_mizar_item();
    "]),"; 
-   proofinfer(#el=`.`,#pl=`@plevel`,#prnr=`@propnr`);
+   proofinfer(#el=`.`,#pl=`@plevel`,#prnr=`@propnr`); ",";
+   "mizar_nd("; "inference("; "iterative_eq"; ","; "[]"; ","; "[";
+   for-each [IterStep] 
+   { 
+      plname(#n=`@propnr`, #pl=`@plevel`);
+      if [not(position() = last())] { ","; }
+   }
+   "]"; "))";
    "]).\n"; 
    apply[IterStep]; 
 }
 
-// ###TODO: not sure if IterStep should be treated as just auxiliary_lemma, or
+// ##NOTE: not sure if IterStep should be treated as just auxiliary_lemma, or
 //          as a special kind of skeleton item, which changes the thesis
 //          to equality with the next term. So I'll better use iterstep to 
 //          preserve the info for now.
+// ##SOLUTION: currently the IterEquality is justified by mizar_proof, and also
+//             by "mizar_nd(iterative_eq,...", which just contains all the internal
+//             Iterstep equalities.
 tpl [IterStep] 
 { 
    $pname = plname(#n=`@propnr`, #pl=`@plevel`);
@@ -729,7 +750,9 @@ tpl try_inference(#el,#pl,#prnr,#nl)
     else { if [name() = "From"] { ",";
        frominfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
     else { if [name() = "Proof"] { ",";
-       proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr,#nl=$nl); }
+       proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr,#nl=$nl); ",";
+       try_nd_inference(#el = `BlockThesis/*[position() = last()]`, #thes_nr = "0");
+    }
     else { if [name() = "SkippedProof"] { ",";
        skippedinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
   }}}}
