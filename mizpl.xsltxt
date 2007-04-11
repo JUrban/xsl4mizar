@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.49 $
+// $Revision: 1.50 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -434,7 +434,7 @@ tpl get_henkin_axioms
 // Mizar_ND_Inference = "mizar_nd(" "inference(" Mizar_ND_Rule "," "[" Optional_ND_Info* "]" "," 
 //                       "[" Optional_Ref* Optional_NextThesis "]" ")" ")"
 // Mizar_ND_Rule = "let" | "consider" | "take" | "assume" | "discharge_asm" | "conclusion" 
-//                 | "trivial" | "iterative_eq"
+//                 | "trivial" | "iterative_eq" | "percases"
 // Optional_ND_Info = AssumptionList | DischargeAsmInfo
 
 // list of assumptions under which a formula is valid
@@ -462,8 +462,9 @@ tpl get_henkin_axioms
 // "conclusion" : Concluded_Proposition: "p & q" is justified by "thus p;" and next thesis "q"; no bg needed
 // "trivial": this is the last thesis, and it must be trivial (i.e. $true)
 // "iterative_eq": is justified by conjunction of the iterative steps; note that no background is needed
+// "percases": is justified by all the subblocks implications, and the truth of disjucntion of all cases - propositional
 // Optional_Ref = Henkin_Axiom_For_Let | Henkin_Axiom_For_Consider | Concluded_Proposition | Iterative_Step
-// SkeletonRuleAndFla = LetRuleAndFla | AssumeRuleAndFla |
+//                | CaseThesis
 
 // #thes_nr gives a number of thesis for which this is created
 // here we come from the "previous thesis", and look for the 
@@ -502,7 +503,6 @@ tpl try_nd_inference(#el,#thes_nr)
    }
 }
 
-// ###TODO: what about percases here?? 
 //          if this is the last thesis, then the inference is "trivial"     
 // private for try_nd_inference()
 tpl do_nd(#thes_nr) 
@@ -621,7 +621,8 @@ tpl [SchemeBlock]
 }
 
 // SchemePremises implies SchemeThesis
-tpl [Scheme] { 
+tpl [Scheme] 
+{ 
     $sname = lc(#s=`concat('s',@nr,'_',@aid)`);
     "fof("; $sname; ",theorem,"; "(";
     if [count(*)>2] { "( "; 
@@ -629,10 +630,13 @@ tpl [Scheme] {
 	      " ) "; $imp_s; }
     apply[*[position()=2]]; ")";
     ",file("; lc(#s=`@aid`); ","; $sname; "),[mptp_info("; 
-    `@nr`; ",[],"; "scheme,position(0,0),[0])]).\n"; }
+    `@nr`; ",[],"; "scheme,position(0,0),[0])]).\n"; 
+}
 
 
-tpl [JustifiedTheorem/Proposition] { "fof("; absr(#el=`..`); ",theorem,";
+tpl [JustifiedTheorem/Proposition] 
+{ 
+    "fof("; absr(#el=`..`); ",theorem,";
     apply(#pl=`@plevel`);
     ",file("; $anamelc; ","; absr(#el=`..`); "),[mptp_info("; 
     `../@nr`; ",[],"; "theorem,position("; `@line`; ","; 
@@ -640,15 +644,19 @@ tpl [JustifiedTheorem/Proposition] { "fof("; absr(#el=`..`); ",theorem,";
     add_mizar_item();
     "])"; 
     try_inference(#el=`../*[2]`,#pl=`@plevel`, #prnr=`@propnr`);
-    "]).\n"; }
+    "]).\n"; 
+}
 
-tpl [Theorem] { "fof("; absr(#el=`.`); ",";
+tpl [Theorem] 
+{ 
+    "fof("; absr(#el=`.`); ",";
     $kword = { if [@kind="T"] { "theorem"; } else {
        if [@kind="D"] { "definition"; } else { $fail; } } }
     $kword; ",";
     apply; ",file("; lc(#s=`@aid`); ",";
     absr(#el=`.`); "),[mptp_info("; `@nr`; ",[],"; $kword; 
-    ",position(0,0),[0])]).\n"; }
+    ",position(0,0),[0])]).\n"; 
+}
 
 
 // ##GRM: Mptp_Info : "mptp_info(" 
@@ -752,7 +760,6 @@ tpl [Proposition]
     "]).\n"; 
 }
 
-// ###TODO: what about other blocks??
 tpl [Now] 
 { 
    $pname = plname(#n=`@propnr`, #pl=`@plevel`);
@@ -1731,7 +1738,8 @@ tpl abs_fp(#k,#el) { for-each [$el] {
 // definition of private functor (#k='pf') or predicate (#k='pp'); 
 // either a term with LocusVars or a formula with LocusVars
 // the list of arguments is printed first, to know their order
-tpl priv_def(#k,#nr,#pl) {
+tpl priv_def(#k,#nr,#pl) 
+{
       $k1 = `concat($nr,":",$pl)`;
       if [key($k,$k1)] { 
 	 for-each [key($k,$k1)] { 
@@ -1741,7 +1749,7 @@ tpl priv_def(#k,#nr,#pl) {
 	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
 	 $pl1= mjoin(#el=$ss,#s="_");
 	 priv_def(#k=$k,#nr=$nr,#pl=$pl1); } else { $fail;}}
- }
+}
 
 
 
