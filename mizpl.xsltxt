@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.48 $
+// $Revision: 1.49 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -601,7 +601,22 @@ tpl [SchemeBlock]
     `@schemenr`; ",[],"; "scheme,position("; `@line`; ","; 
     `@col`; "),["; `@schemenr`; "])"; 
     // only Proof and SkippedProof
-    try_inference( #el=`*[position() = (last() - 1)]`,#pl=`@newlevel`,#nl=`@newlevel`); 
+    try_inference( #el=`*[position() = (last() - 1)]`,#pl=`@newlevel`,#nl=`@newlevel`); ",";
+
+// the ND stuff
+    "mizar_nd("; "inference("; "discharge_asm"; ","; "["; 
+// ###TODO: write this and uncomment!
+//         get_assumptions(#el = `.`); ",";
+    "discharged(["; 
+    for-each [SchemePremises/Proposition] 
+    { 
+      plname(#n=`@propnr`, #pl=`@plevel`);
+      if [not(position() = last())] { ","; }
+    }
+    "])"; "]"; ","; "[";
+    plname(#n=`Proposition/@propnr`, #pl=`Proposition/@plevel`);
+    "]"; "))";
+
     "]).\n"; 
 }
 
@@ -808,6 +823,8 @@ tpl [IterStep]
    "]).\n"; 
 }
 
+// #nl is only passsed to proofinfer when dealing with schemes;
+// it is also used to prevent trying ND for schemes
 tpl try_inference(#el,#pl,#prnr,#nl) 
 { 
   for-each [$el] 
@@ -817,8 +834,12 @@ tpl try_inference(#el,#pl,#prnr,#nl)
     else { if [name() = "From"] { ",";
        frominfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
     else { if [name() = "Proof"] { ",";
-       proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr,#nl=$nl); ",";
-       try_nd_inference(#el = `BlockThesis/*[position() = last()]`, #thes_nr = "0");
+       proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr,#nl=$nl); 
+       if [not($nl)] 
+       {
+         ",";
+	 try_nd_inference(#el = `BlockThesis/*[position() = last()]`, #thes_nr = "0");
+       }
     }
     else { if [name() = "SkippedProof"] { ",";
        skippedinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
