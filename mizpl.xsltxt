@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.47 $
+// $Revision: 1.48 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -351,22 +351,63 @@ tpl thesisname(#n,#pl) { "i"; $n; addp(#pl=$pl); }
 // thesis is usually justified by following thesis,
 // and some ND rule (and possibly axiom);
 // the corresponding ND item can be 
-// %Let; | %Conclusion; | %Assume; | %Given; | %Take; | %TakeAsVar;
+// %Let; | %Conclusion; | %Assume; | %Given; | %Take; | %TakeAsVar; | %Suppose; | %Case;
 // for Proofs it immediately precedes the Thesis, while
 // for Now it has to be looked up by having the same position 
 // among skeleton items as the current thesis has among theses
+
+// ##NOTE: this is the same for  Suppose and Case, however for
+// PerCases the thesis follows only if not diffuse - we hack it there anyway,
+// and avoid its processing here
 tpl [Thesis]
 {
-   $nr    = `1 + count(preceding-sibling::Thesis)`;
-   $tname = { thesisname(#n = $nr, #pl = `@plevel`); }
-   "fof("; $tname; ",thesis,";
-   apply(#pl=`@plevel`); 
-   ",file("; $anamelc; ","; $tname; 
-   "),[mptp_info("; $nr; ",["; `translate(@plevel,"_",",")`; 
-   "],thesis,position(0,0),[])"; ",";
-   try_nd_inference(#el = `.`, #thes_nr = $nr);
-   "]).\n";
+   $prec_nm = `name(preceding-sibling::*[1])`;
+   if [not($prec_nm = "PerCases")]
+   {
+     $nr    = `1 + count(preceding-sibling::Thesis)`;
+     $tname = { thesisname(#n = $nr, #pl = `@plevel`); }
+     "fof("; $tname; ",thesis,";
+     apply(#pl=`@plevel`); 
+     ",file("; $anamelc; ","; $tname; 
+     "),[mptp_info("; $nr; ",["; `translate(@plevel,"_",",")`; 
+     "],thesis,position(0,0),[])"; ",";
+     try_nd_inference(#el = `.`, #thes_nr = $nr);
+     "]).\n";
+   }
 }
+
+// no thesis only subblock theses used
+// usage of plevel in subblocks (instead of their newlevel) is correct
+tpl [PerCasesReasoning]
+{
+  for-each [CaseBlock|SupposeBlock]
+  {
+    $nr = `position()`;
+    $tname = { thesisname(#n = $nr, #pl = `@plevel`); }
+    "fof("; $tname; ",thesis,";
+    apply[BlockThesis/*[position() = last()]](#pl=`@plevel`);
+    ",file("; $anamelc; ","; $tname; 
+    "),[mptp_info("; $nr; ",["; `translate(@plevel,"_",",")`; 
+    "],thesis,position(0,0),[])"; ",";
+    try_nd_inference(#el = `BlockThesis/*[position() = last()]`, #thes_nr = "0");
+   "]).\n";
+  }
+}
+
+
+// tpl [CaseBlock/BlockThesis|SupposeBlock/BlockThesis]
+// {
+//    $nr    = `1 + count(../../preceding-sibling::Thesis)`;
+//    $tname = { thesisname(#n = $nr, #pl = `@plevel`); }
+//    "fof(bl"; $tname; ",blockthesis,";
+//    apply(#pl=`@plevel`); 
+//    ",file("; $anamelc; ",bl"; $tname; 
+//    "),[mptp_info("; $nr; ",["; `translate(@plevel,"_",",")`; 
+//    "],thesis,position(0,0),[])"; ",";
+// //   try_nd_inference(#el = `.`, #thes_nr = $nr);
+//    "]).\n";
+// }
+
 
 // the henkin axioms will be created by MPTP (for each const. separately);
 // doing it here would mean that we either have to cheat a bit (just 
@@ -425,22 +466,28 @@ tpl get_henkin_axioms
 // SkeletonRuleAndFla = LetRuleAndFla | AssumeRuleAndFla |
 
 // #thes_nr gives a number of thesis for which this is created
+// here we come from the "previous thesis", and look for the 
+// "next skeleton item" (which justifies the previous thesis)
 tpl try_nd_inference(#el,#thes_nr) 
 { 
    $res =
    {
-     if [name($el/..) = "BlockThesis"] // we are inside diffuse theses (also the normal block's thesis allowed)
+     if [name($el/..) = "BlockThesis"] // we are inside diffuse theses (also any BlockThesis/Formula allowed)
      {
-         for-each [$el/../../*[(name()="Let") or (name()="Conclusion") or (name()="Assume") or 
-	 (name()="Given") or (name()="Take") or (name()="TakeAsVar")][$thes_nr + 1]]
+         for-each [$el/../../*[
+	    (name()="Let") or (name()="Conclusion") or (name()="Assume") or (name()="Given") or 
+	    (name()="Take") or (name()="TakeAsVar") or (name()="Case") or (name()="Suppose") or 
+	    (name()="PerCasesReasoning")][$thes_nr + 1]]
 	 {
 	   do_nd(#thes_nr = $thes_nr);
 	 }
      }
      else
      { 
-         for-each [$el/following-sibling::*[(name()="Let") or (name()="Conclusion") or (name()="Assume") or 
-                               (name()="Given") or (name()="Take") or (name()="TakeAsVar")][1]]
+         for-each [$el/following-sibling::*[
+            (name()="Let") or (name()="Conclusion") or (name()="Assume") or (name()="Given") or 
+	    (name()="Take") or (name()="TakeAsVar") or (name()="Case") or (name()="Suppose") or 
+	    (name()="PerCasesReasoning")][1]]
          {
 	   do_nd(#thes_nr = $thes_nr);
 	 }
@@ -475,7 +522,7 @@ tpl do_nd(#thes_nr)
          "take"; ","; "[]"; ","; "[";
          thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
        }
-       when [($inm = "Assume")]
+       when [($inm = "Assume") or ($inm = "Case") or ($inm = "Suppose")]
        {
          "discharge_asm"; ","; "["; 
          // ###TODO: write this and uncomment!
@@ -503,6 +550,26 @@ tpl do_nd(#thes_nr)
          "conclusion"; ","; "[]"; ","; "[";
          plname(#n=`*[1]/@propnr`, #pl=`*[1]/@plevel`); ",";
          thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
+       }
+
+// ##NOTE: the thesis numbering in PerCasesReasoning is following:
+// $thes_nr+1+PCR's plevel: the thesis preceding the whole block (justified by implications, and PerCases)
+// 1+PCR's newlevel: the first cases BlockThesis (i.e. implication, justified by discharging
+//                     the first cases' assumptions and its thesis)
+// ...
+// N+PCR's newlevel: the last cases BlockThesis (i.e. implication)
+       when [($inm = "PerCasesReasoning")]
+       {
+         "percases"; ","; "[]"; ","; "[";
+	 for-each [CaseBlock|SupposeBlock]
+	 {
+	   thesisname(#n = `position()`, #pl = `@plevel`); ",";
+	 }
+	 for-each [PerCases/Proposition]
+	 {
+	   plname(#n=`@propnr`, #pl=`@plevel`);
+	 }
+	 "]";
        }
        otherwise { $fail; $inm; }
    }
@@ -1661,7 +1728,7 @@ tpl priv_def(#k,#nr,#pl) {
 tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//Thesis]; }
+	     //CCluster|//FCluster|//RCluster|//Thesis|//PerCasesReasoning]; }
 	  else { apply; } }
 
 
