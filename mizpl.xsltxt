@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.51 $
+// $Revision: 1.52 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -770,15 +770,21 @@ tpl add_mizar_item
 tpl [Proposition] 
 { 
     $pname = plname(#n=`@propnr`, #pl=`@plevel`);
+    $consider_kind =
+    { 
+      if [((name(..) = "Consider") or (name(..) = "Given"))]
+      {
+        if [preceding-sibling::Typ] { "1"; } else { "2"; }
+      }
+      else { "0"; }
+    }
+
     "fof(";  $pname; ","; 
     if [following-sibling::*[1][name() = "By" or name() = "From" or name() = "Proof"]] 
     { 
       $derived_lemma;
     } 
-    else { if [name(..) = "Consider"]
-    {
-      $derived_lemma;
-    }
+    else { if [$consider_kind = 1] { $derived_lemma; } // derived in ND-sense
     else
     {
       "assumption"; 
@@ -789,10 +795,22 @@ tpl [Proposition]
     `translate(@plevel,"_",",")`; "],proposition,position("; `@line`; ","; 
     `@col`; "),["; if [@nr] { `@nr`;} else { "0";} 
     add_mizar_item();
+    if [$consider_kind = 2] // keep a list of all considered constants here for easy lookup
+    {
+        ","; "considered_constants([";
+        $cnr = `../@constnr`; $pl=`@plevel`; 
+	for-each [../Typ] 
+	{
+	  $pos1 = `position()`; 
+	  $nr   = `$cnr + $pos1 - 1`; 
+	  "c"; $nr; addp(#pl=$pl);
+	  if [not(position()=last())] { ","; }
+        }
+	"])";
+    }
     "])";
     try_inference(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`);
-    if [((name(..) = "Consider") or (name(..) = "Given")) 
-         and (preceding-sibling::Proposition)]
+    if [$consider_kind = 1]
     {
       ","; "mizar_nd("; "inference(";
       "consider"; ","; "[]"; ","; "[";
