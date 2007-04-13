@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.50 $
+// $Revision: 1.51 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -417,15 +417,17 @@ tpl henkin_ax_nm(#cnm)  { "dh_"; $cnm; }
 
 // can be empty string or more than one (separated by commas)
 // private for Let, Consider, and Given
-tpl get_henkin_axioms
+// #tpos optionally tells to use only first #tpos Typs
+tpl get_henkin_axioms(#tpos)
 {
    $cnr = `@constnr`; $pl=`@plevel`;
-   for-each [Typ] 
+   $pos = { if [not($tpos)] { `count(Typ)`; } else { $tpos; } }
+   for-each [Typ[position() <= $pos]]
    {
       $nr   = `$cnr + position() - 1`; 
       $nm   =  { "c"; $nr; addp(#pl = $pl); }
       henkin_ax_nm(#cnm = $nm);
-      if [not(position() = last())] { ","; }
+      if [not(position() = $pos)] { ","; }
    }
 }
 
@@ -435,7 +437,7 @@ tpl get_henkin_axioms
 //                       "[" Optional_Ref* Optional_NextThesis "]" ")" ")"
 // Mizar_ND_Rule = "let" | "consider" | "take" | "assume" | "discharge_asm" | "conclusion" 
 //                 | "trivial" | "iterative_eq" | "percases"
-// Optional_ND_Info = AssumptionList | DischargeAsmInfo
+// Optional_ND_Info = AssumptionList | DischargeAsmInfo | ThesisExpansions
 
 // list of assumptions under which a formula is valid
 // AssumptionList = "assumptions(" "[" References "]" ")"
@@ -446,6 +448,10 @@ tpl get_henkin_axioms
 // and Asms2 has to be subset of Dis2 \/ Asms1 (i.e. ever y assumption of "Poo" is
 // either discharged, or also an assumption of "Foo implies Poo")
 // DischargeAsmInfo = "discharged(" "[" References "]" ")"
+
+// expansions used to infer this thesis, note that these can only be definitions,
+// and they have to appear among the standard inferences too
+// ThesisExpansions = "thesis_expansions(" "[" References "]" ")"
 
 
 // "let": Henkin_Axiom_For_Let: here it is that "for x1 p(x1)" is justified by
@@ -505,26 +511,49 @@ tpl try_nd_inference(#el,#thes_nr)
 
 //          if this is the last thesis, then the inference is "trivial"     
 // private for try_nd_inference()
-tpl do_nd(#thes_nr) 
+// we look for an expansion in the following thesis
+tpl do_nd(#thes_nr,#do_th_exps) 
 {
-   "mizar_nd("; "inference(";  
+   "mizar_nd("; "inference(";
+   $thexps0 =
+   {
+     if [(following-sibling::*[1]/ThesisExpansions/Ref)]
+     {
+       for-each [following-sibling::*[1]/ThesisExpansions/Ref] 
+       { 
+         refname(#el=`.`,#pl="");
+	 if [not(position()=last())] { ","; }
+       }
+     }
+   }
+
+   $thexps = { if [string-length($thexps0) > 0] { $thexps0; ","; } }
+
+   $thexps1 = 
+   {
+      if [string-length($thexps0) > 0] { "thesis_expansions(["; $thexps0; "])"; }
+   }
+
    $inm = `name()`;
    choose 
    { 
        when [($inm = "Let")]
        {
-         "let"; ","; "[]"; ","; "[";
-         get_henkin_axioms(#el = `.`); ",";
+         "let"; ","; "["; $thexps1; "]"; ","; "[";
+	 $thexps;
+         get_henkin_axioms(); ",";
          thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
        }
        when [($inm = "Take") or ($inm = "TakeAsVar")]
        {
-         "take"; ","; "[]"; ","; "[";
+         "take"; ","; "["; $thexps1; "]"; ","; "[";
+	 $thexps;
          thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
        }
        when [($inm = "Assume") or ($inm = "Case") or ($inm = "Suppose")]
        {
-         "discharge_asm"; ","; "["; 
+         "discharge_asm"; ","; "["; $thexps1;
+	 if [string-length($thexps1) > 0] { ","; }
          // ###TODO: write this and uncomment!
 //         get_assumptions(#el = `.`); ",";
          "discharged(["; 
@@ -534,11 +563,13 @@ tpl do_nd(#thes_nr)
            if [not(position() = last())] { ","; }
          } 
          "])"; "]"; ","; "[";
+	 $thexps;
          thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
        }
        when [($inm = "Given")]
        {
-         "discharge_asm"; ","; "["; 
+         "discharge_asm"; ","; "["; $thexps1;
+	 if [string-length($thexps1) > 0] { ","; }
 //         get_assumptions(#el = `.`); ",";
          "discharged(["; 
          for-each [Proposition[1]] { plname(#n=`@propnr`, #pl=`@plevel`); }
@@ -547,15 +578,17 @@ tpl do_nd(#thes_nr)
        }
        when [($inm = "Conclusion")]
        {
-         "conclusion"; ","; "[]"; ","; "[";
+         "conclusion"; ","; "["; $thexps1;
+	 "]"; ","; "[";
+	 $thexps;
          plname(#n=`*[1]/@propnr`, #pl=`*[1]/@plevel`); ",";
          thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
        }
 
 // ##NOTE: the thesis numbering in PerCasesReasoning is following:
 // $thes_nr+1+PCR's plevel: the thesis preceding the whole block (justified by implications, and PerCases)
-// 1+PCR's newlevel: the first cases BlockThesis (i.e. implication, justified by discharging
-//                     the first cases' assumptions and its thesis)
+// 1+PCR's newlevel: the first cases BlockThesis - i.e. implication, justified by discharging
+//                     the first cases' assumptions and its thesis
 // ...
 // N+PCR's newlevel: the last cases BlockThesis (i.e. implication)
        when [($inm = "PerCasesReasoning")]
@@ -740,16 +773,17 @@ tpl [Proposition]
     "fof(";  $pname; ","; 
     if [following-sibling::*[1][name() = "By" or name() = "From" or name() = "Proof"]] 
     { 
-      $derived_lemma; ",";
+      $derived_lemma;
     } 
     else { if [name(..) = "Consider"]
     {
-      "definition,";
+      $derived_lemma;
     }
     else
     {
-      "assumption,"; 
+      "assumption"; 
     }}
+    ",";
     apply(#pl=`@plevel`); ",file("; $anamelc; 
     ","; $pname; "),[mptp_info("; `@propnr`; ",["; 
     `translate(@plevel,"_",",")`; "],proposition,position("; `@line`; ","; 
@@ -757,6 +791,15 @@ tpl [Proposition]
     add_mizar_item();
     "])";
     try_inference(#el=`following-sibling::*[1]`,#pl=`@plevel`,#prnr=`@propnr`);
+    if [((name(..) = "Consider") or (name(..) = "Given")) 
+         and (preceding-sibling::Proposition)]
+    {
+      ","; "mizar_nd("; "inference(";
+      "consider"; ","; "[]"; ","; "[";
+      for-each [..] { get_henkin_axioms(); } ",";
+      for-each [../Proposition[1]] { plname(#n=`@propnr`, #pl=`@plevel`); }
+      "]))";
+    }
     "]).\n"; 
 }
 
@@ -984,19 +1027,37 @@ tpl sch_instname(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`);
 
 // uncomment apply[Proposition] if not used explicit descent
 // constant arising from "Given" are treated as if they came from "Consider"
+// Let typing is treated as an assumption, the rest of typings are derived,
+// in case of Consider (and thus also Given) by an ND argument
 tpl [Let|Given|TakeAsVar|Consider|Set] 
 { 
   $cnr = `@constnr`; $pl=`@plevel`; 
   $rnm = { if [name() = "Given"] { "consider"; } else { lc(#s=`name()`); } }
   for-each [Typ] 
   {
-      $nr   = `$cnr + position() - 1`; 
+      $pos1 = `position()`; 
+      $nr   = `$cnr + $pos1 - 1`; 
       $nm   =  { "c"; $nr; addp(#pl=$pl); }
       $levl = { ",["; `translate($pl,"_",",")`; "],";}
-      "fof(dt_";  $nm; ",sort,"; $srt_s; "("; $nm; ",";
+      "fof(dt_";  $nm; ","; 
+      if [$rnm = "let"] { "assumption"; } else { $derived_lemma; }
+      ","; $srt_s; "("; $nm; ",";
       apply[.](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
       "),[mptp_info("; $nr; $levl; "constant,position(0,0),["; $rnm; 
-      ",type])]).\n"; 
+      ",type])";
+      if [($rnm = "takeasvar") or ($rnm = "set")]
+      {
+        ","; "inference(mizar_by,["; $rnm; "],[de_"; $nm; "])";
+      }
+      else { if [($rnm = "consider")]
+      {
+        ","; "mizar_nd("; "inference(";
+        "consider"; ","; "[]"; ","; "[";
+	for-each [..] { get_henkin_axioms(#tpos = $pos1); } ",";
+	for-each [../Proposition[1]] { plname(#n=`@propnr`, #pl=`@plevel`); }
+	"]))";
+      }}
+      "]).\n"; 
       if [($rnm = "takeasvar") or ($rnm = "set")] 
       {
 	 "fof(de_";  $nm; ",definition,"; "( "; $nm; $eq_s; 
@@ -1025,7 +1086,7 @@ tpl [Reconsider]
       $nr   = `$cnr + position() - 1`; 
       $nm   =  { "c"; $nr; addp(#pl=$pl); }
       $levl = { ",["; `translate($pl,"_",",")`; "],";}
-      "fof(dt_";  $nm; ",sort,"; $srt_s; "("; $nm; ",";
+      "fof(dt_";  $nm; ","; $derived_lemma; ","; $srt_s; "("; $nm; ",";
       apply[../Typ[position() = 1]](#pl=$pl); ")"; ",file("; $anamelc; ","; $nm;
       "),[mptp_info("; $nr; $levl; 
       "constant,position(0,0),[reconsider,type]),";
@@ -1054,7 +1115,7 @@ tpl [SchemeFuncDecl]
     $nm   = { sch_fpname(#k="f",#nr=`@nr`,#schnr=`../@schemenr`,#aid=$aname); }
     $l    = `count(ArgTypes/Typ)`;
 
-    "fof(dt_";  $nm; ",sort,"; 
+    "fof(dt_";  $nm; ",assumption,"; 
     if [$l > 0] 
     { 
        "!["; 
@@ -1079,6 +1140,7 @@ tpl [SchemeFuncDecl]
 
 
 // "M" | "L" | "V" | "R" | "K" | "U" | "G"
+// ###TODO: add the inference, do the properties
 tpl [Constructor] 
 { 
     $lkind = { lc(#s=`@kind`); } 
@@ -1086,7 +1148,7 @@ tpl [Constructor]
     if [(@kind='M') or (@kind='L') or (@kind='K') or 
         (@kind='U') or (@kind='G')] 
     {
-      "fof(dt_";  absc1(#el=`.`); ",sort,";
+      "fof(dt_";  absc1(#el=`.`); ","; $derived_lemma; ",";
       apply[ArgTypes];
       $l = `1 + count(ArgTypes/Typ)`;
       if [(@kind='M') or (@kind='L')] 
@@ -1435,7 +1497,7 @@ tpl [CCluster]
 { 
   if [ErrorCluster] { } else 
   {
-    "fof("; absk(#el=`.`,#kind="cc"); ",sort,";
+    "fof("; absk(#el=`.`,#kind="cc"); ",theorem,";
     $l = `1 + count(ArgTypes/Typ)`;
     apply[ArgTypes];
     "!["; ploci(#nr=$l); " : "; apply[Typ]; "]: ("; 
@@ -1477,7 +1539,7 @@ tpl [FCluster]
   if [ErrorCluster] { } 
   else 
   {
-    "fof("; absk(#el=`.`,#kind="fc"); ",sort,";
+    "fof("; absk(#el=`.`,#kind="fc"); ",theorem,";
     apply[ArgTypes];
     $succ = { `count(Cluster/*)`; }
     $srt_s; "("; apply[*[2]];  ",";
@@ -1526,7 +1588,7 @@ tpl [RCluster]
 { 
   if [ErrorCluster] { } else 
   {
-    "fof("; absk(#el=`.`,#kind="rc"); ",sort,";
+    "fof("; absk(#el=`.`,#kind="rc"); ",theorem,";
     $l = `1 + count(ArgTypes/Typ)`;
     apply[ArgTypes];
     "?["; ploci(#nr=$l); " : "; apply[Typ]; "]: "; 
