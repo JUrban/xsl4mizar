@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.37 $ -->
+  <!-- $Revision: 1.38 $ -->
   <!--  -->
   <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -5531,7 +5531,7 @@
         </xsl:for-each>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:if test="((name(..) = &quot;Now&quot;) or (name(..) = &quot;Case&quot;) or (name(..) = &quot;Suppose&quot;))
+        <xsl:if test="((name(..) = &quot;Now&quot;) or (name(..) = &quot;CaseBlock&quot;) or (name(..) = &quot;SupposeBlock&quot;))
               and (../BlockThesis/Thesis)">
           <xsl:variable name="prev_thesis_changes" select="count(./preceding-sibling::*[(name()=&quot;Let&quot;) or (name()=&quot;Take&quot;) 
 	                               or (name()=&quot;TakeAsVar&quot;) or (name()=&quot;Assume&quot;) 
@@ -5628,6 +5628,7 @@
       <xsl:apply-templates select="*[1]"/>
     </xsl:element>
     <xsl:apply-templates select="*[position()&gt;1]"/>
+    <xsl:call-template name="try_th_exps"/>
   </xsl:template>
 
   <!--  -->

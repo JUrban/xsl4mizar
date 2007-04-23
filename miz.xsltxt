@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.87 $
+// $Revision: 1.88 $
 //
 // File: miz.xsltxt - html-ization of Mizar XML, main file
 //
@@ -2476,7 +2476,7 @@ tpl try_th_exps
       do_thesis(); 
     }
   }
-  else { if [((name(..) = "Now") or (name(..) = "Case") or (name(..) = "Suppose"))
+  else { if [((name(..) = "Now") or (name(..) = "CaseBlock") or (name(..) = "SupposeBlock"))
               and (../BlockThesis/Thesis)]
   {
     $prev_thesis_changes 
@@ -2542,6 +2542,8 @@ tpl [PerCases]
   }
 
   apply [*[position()>1]];
+
+  try_th_exps();
 }
 
 
