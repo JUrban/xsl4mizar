@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.88 $
+// $Revision: 1.89 $
 //
 // File: miz.xsltxt - html-ization of Mizar XML, main file
 //
@@ -2445,11 +2445,11 @@ tpl [DefPred] { <b { "defpred ";} pppred(#nr=`@nr`); "[";
 // forbid as default
 tpl [Thesis] { }
 
-tpl do_thesis
+tpl do_thesis(#nd)
 {
   apply[ThesisExpansions];
   
-  if [$display_thesis = 1] 
+  if [($display_thesis = 1) and (not($nd = 1))] 
   {
         " ";
         <a 
@@ -2467,13 +2467,15 @@ tpl try_th_exps_old
      apply[./following-sibling::*[1][name()="Thesis"]/ThesisExpansions]; 
   }
 
-tpl try_th_exps
+// #nd overrides the $display_thesis parameter in do_thesis,
+// used to supress the incorrect PerCases thesis now
+tpl try_th_exps(#nd)
 { 
   if [./following-sibling::*[1][name()="Thesis"]]
   {  
     for-each [./following-sibling::*[1][name()="Thesis"]]
     {
-      do_thesis(); 
+      do_thesis(#nd=$nd); 
     }
   }
   else { if [((name(..) = "Now") or (name(..) = "CaseBlock") or (name(..) = "SupposeBlock"))
@@ -2481,11 +2483,12 @@ tpl try_th_exps
   {
     $prev_thesis_changes 
       = `count(./preceding-sibling::*[(name()="Let") or (name()="Take") 
-	                               or (name()="TakeAsVar") or (name()="Assume") 
+	                               or (name()="TakeAsVar") or (name()="Assume")
+	                               or (name()="Case") or (name()="Suppose")
 				       or (name()="Given") or (name()="Conclusion")])`;
     for-each [ ../BlockThesis/Thesis[$prev_thesis_changes + 1]]
     {
-      do_thesis();
+      do_thesis(#nd=$nd);
     }
   }}
 }
@@ -2523,7 +2526,13 @@ tpl [Case|Suppose]
     <b { "that "; }
   }
    
-  andlist(#elems = `*`); ";"; <br;
+  andlist(#elems = `*`); ";"; 
+  // this will break the thesis display in diffuse statements 
+  // for earlier kernel (analyzer v. < 1.94) - mea culpa, 
+  // the only reasonable backward-compatibility fix would be to 
+  // keep the kernel version as a parameter and check it here
+  try_th_exps();
+  <br;
 }
 
 // element PerCases { Proposition, Inference } 
@@ -2543,7 +2552,10 @@ tpl [PerCases]
 
   apply [*[position()>1]];
 
-  try_th_exps();
+  // thesis after per cases is broken yet and would have 
+  // to be reconstructed from subblocks' theses;
+  // don't display it, only display the expansions
+  try_th_exps(#nd="1");
 }
 
 

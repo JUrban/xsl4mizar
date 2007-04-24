@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.38 $ -->
+  <!-- $Revision: 1.39 $ -->
   <!--  -->
   <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -5498,8 +5498,9 @@
   <xsl:template match="Thesis"/>
 
   <xsl:template name="do_thesis">
+    <xsl:param name="nd"/>
     <xsl:apply-templates select="ThesisExpansions"/>
-    <xsl:if test="$display_thesis = 1">
+    <xsl:if test="($display_thesis = 1) and (not($nd = 1))">
       <xsl:text> </xsl:text>
       <xsl:element name="a">
         <xsl:call-template name="add_hs_attrs"/>
@@ -5523,21 +5524,29 @@
     <xsl:apply-templates select="./following-sibling::*[1][name()=&quot;Thesis&quot;]/ThesisExpansions"/>
   </xsl:template>
 
+  <!-- #nd overrides the $display_thesis parameter in do_thesis, -->
+  <!-- used to supress the incorrect PerCases thesis now -->
   <xsl:template name="try_th_exps">
+    <xsl:param name="nd"/>
     <xsl:choose>
       <xsl:when test="./following-sibling::*[1][name()=&quot;Thesis&quot;]">
         <xsl:for-each select="./following-sibling::*[1][name()=&quot;Thesis&quot;]">
-          <xsl:call-template name="do_thesis"/>
+          <xsl:call-template name="do_thesis">
+            <xsl:with-param name="nd" select="$nd"/>
+          </xsl:call-template>
         </xsl:for-each>
       </xsl:when>
       <xsl:otherwise>
         <xsl:if test="((name(..) = &quot;Now&quot;) or (name(..) = &quot;CaseBlock&quot;) or (name(..) = &quot;SupposeBlock&quot;))
               and (../BlockThesis/Thesis)">
           <xsl:variable name="prev_thesis_changes" select="count(./preceding-sibling::*[(name()=&quot;Let&quot;) or (name()=&quot;Take&quot;) 
-	                               or (name()=&quot;TakeAsVar&quot;) or (name()=&quot;Assume&quot;) 
+	                               or (name()=&quot;TakeAsVar&quot;) or (name()=&quot;Assume&quot;)
+	                               or (name()=&quot;Case&quot;) or (name()=&quot;Suppose&quot;)
 				       or (name()=&quot;Given&quot;) or (name()=&quot;Conclusion&quot;)])"/>
           <xsl:for-each select=" ../BlockThesis/Thesis[$prev_thesis_changes + 1]">
-            <xsl:call-template name="do_thesis"/>
+            <xsl:call-template name="do_thesis">
+              <xsl:with-param name="nd" select="$nd"/>
+            </xsl:call-template>
           </xsl:for-each>
         </xsl:if>
       </xsl:otherwise>
@@ -5610,6 +5619,11 @@
       <xsl:with-param name="elems" select="*"/>
     </xsl:call-template>
     <xsl:text>;</xsl:text>
+    <!-- this will break the thesis display in diffuse statements -->
+    <!-- for earlier kernel (analyzer v. < 1.94) - mea culpa, -->
+    <!-- the only reasonable backward-compatibility fix would be to -->
+    <!-- keep the kernel version as a parameter and check it here -->
+    <xsl:call-template name="try_th_exps"/>
     <xsl:element name="br"/>
   </xsl:template>
 
@@ -5628,7 +5642,14 @@
       <xsl:apply-templates select="*[1]"/>
     </xsl:element>
     <xsl:apply-templates select="*[position()&gt;1]"/>
-    <xsl:call-template name="try_th_exps"/>
+    <!-- thesis after per cases is broken yet and would have -->
+    <!-- to be reconstructed from subblocks' theses; -->
+    <!-- don't display it, only display the expansions -->
+    <xsl:call-template name="try_th_exps">
+      <xsl:with-param name="nd">
+        <xsl:text>1</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
 
   <!--  -->
