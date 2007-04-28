@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" extension-element-prefixes="exsl exsl-str xt" xmlns:exsl="http://exslt.org/common" xmlns:exsl-str="http://exslt.org/strings" xmlns:xt="http://www.jclark.com/xt" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text"/>
-  <!-- $Revision: 1.3 $ -->
+  <!-- $Revision: 1.4 $ -->
   <!--  -->
   <!-- File: mizpl.xsltxt - stylesheet translating Mizar XML terms, -->
   <!-- formulas and types to Prolog TSTP-like format. -->
@@ -1329,26 +1329,49 @@
 
   <!-- if this is the last thesis, then the inference is "trivial" -->
   <!-- private for try_nd_inference() -->
-  <!-- we look for an expansion in the following thesis -->
+  <!-- we look for an expansion in the following thesis (only for PerCasesReasoning for -->
+  <!-- the expansion of the thesis following its PerCases item) -->
   <xsl:template name="do_nd">
     <xsl:param name="thes_nr"/>
     <xsl:param name="do_th_exps"/>
     <xsl:text>mizar_nd(</xsl:text>
     <xsl:text>inference(</xsl:text>
+    <xsl:variable name="inm" select="name()"/>
     <xsl:variable name="thexps0">
-      <xsl:if test="(following-sibling::*[1]/ThesisExpansions/Ref)">
-        <xsl:for-each select="following-sibling::*[1]/ThesisExpansions/Ref">
-          <xsl:call-template name="refname">
-            <xsl:with-param name="el" select="."/>
-            <xsl:with-param name="pl">
-              <xsl:text/>
-            </xsl:with-param>
-          </xsl:call-template>
-          <xsl:if test="not(position()=last())">
-            <xsl:text>,</xsl:text>
+      <xsl:choose>
+        <xsl:when test="($inm = &quot;PerCasesReasoning&quot;)">
+          <xsl:for-each select="PerCases">
+            <xsl:if test="(following-sibling::*[1]/ThesisExpansions/Ref)">
+              <xsl:for-each select="following-sibling::*[1]/ThesisExpansions/Ref">
+                <xsl:call-template name="refname">
+                  <xsl:with-param name="el" select="."/>
+                  <xsl:with-param name="pl">
+                    <xsl:text/>
+                  </xsl:with-param>
+                </xsl:call-template>
+                <xsl:if test="not(position()=last())">
+                  <xsl:text>,</xsl:text>
+                </xsl:if>
+              </xsl:for-each>
+            </xsl:if>
+          </xsl:for-each>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:if test="(following-sibling::*[1]/ThesisExpansions/Ref)">
+            <xsl:for-each select="following-sibling::*[1]/ThesisExpansions/Ref">
+              <xsl:call-template name="refname">
+                <xsl:with-param name="el" select="."/>
+                <xsl:with-param name="pl">
+                  <xsl:text/>
+                </xsl:with-param>
+              </xsl:call-template>
+              <xsl:if test="not(position()=last())">
+                <xsl:text>,</xsl:text>
+              </xsl:if>
+            </xsl:for-each>
           </xsl:if>
-        </xsl:for-each>
-      </xsl:if>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:variable>
     <xsl:variable name="thexps">
       <xsl:if test="string-length($thexps0) &gt; 0">
@@ -1363,7 +1386,6 @@
         <xsl:text>])</xsl:text>
       </xsl:if>
     </xsl:variable>
-    <xsl:variable name="inm" select="name()"/>
     <xsl:choose>
       <xsl:when test="($inm = &quot;Let&quot;)">
         <xsl:text>let</xsl:text>
@@ -1480,12 +1502,17 @@
       <!-- the first cases' assumptions and its thesis -->
       <!-- ... -->
       <!-- N+PCR's newlevel: the last cases BlockThesis (i.e. implication) -->
+      <!-- ##NOTE: the possible ThesisExpansions are now kept at the thesis following -->
+      <!-- PerCases -->
       <xsl:when test="($inm = &quot;PerCasesReasoning&quot;)">
         <xsl:text>percases</xsl:text>
         <xsl:text>,</xsl:text>
-        <xsl:text>[]</xsl:text>
+        <xsl:text>[</xsl:text>
+        <xsl:value-of select="$thexps1"/>
+        <xsl:text>]</xsl:text>
         <xsl:text>,</xsl:text>
         <xsl:text>[</xsl:text>
+        <xsl:value-of select="$thexps"/>
         <xsl:for-each select="CaseBlock|SupposeBlock">
           <xsl:call-template name="thesisname">
             <xsl:with-param name="n" select="position()"/>

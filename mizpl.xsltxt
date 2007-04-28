@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.52 $
+// $Revision: 1.53 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -511,20 +511,37 @@ tpl try_nd_inference(#el,#thes_nr)
 
 //          if this is the last thesis, then the inference is "trivial"     
 // private for try_nd_inference()
-// we look for an expansion in the following thesis
+// we look for an expansion in the following thesis (only for PerCasesReasoning for
+// the expansion of the thesis following its PerCases item)
 tpl do_nd(#thes_nr,#do_th_exps) 
 {
    "mizar_nd("; "inference(";
+   $inm = `name()`;
+
    $thexps0 =
    {
-     if [(following-sibling::*[1]/ThesisExpansions/Ref)]
+     if [($inm = "PerCasesReasoning")]
+     {
+        for-each [PerCases]
+	{
+	  if [(following-sibling::*[1]/ThesisExpansions/Ref)]
+	  {
+	    for-each [following-sibling::*[1]/ThesisExpansions/Ref] 
+	    { 
+              refname(#el=`.`,#pl="");
+	      if [not(position()=last())] { ","; }
+            }
+          }
+        }
+     }
+     else { if [(following-sibling::*[1]/ThesisExpansions/Ref)]
      {
        for-each [following-sibling::*[1]/ThesisExpansions/Ref] 
        { 
          refname(#el=`.`,#pl="");
 	 if [not(position()=last())] { ","; }
        }
-     }
+     }}
    }
 
    $thexps = { if [string-length($thexps0) > 0] { $thexps0; ","; } }
@@ -534,7 +551,6 @@ tpl do_nd(#thes_nr,#do_th_exps)
       if [string-length($thexps0) > 0] { "thesis_expansions(["; $thexps0; "])"; }
    }
 
-   $inm = `name()`;
    choose 
    { 
        when [($inm = "Let")]
@@ -591,9 +607,12 @@ tpl do_nd(#thes_nr,#do_th_exps)
 //                     the first cases' assumptions and its thesis
 // ...
 // N+PCR's newlevel: the last cases BlockThesis (i.e. implication)
+// ##NOTE: the possible ThesisExpansions are now kept at the thesis following 
+//         PerCases 
        when [($inm = "PerCasesReasoning")]
        {
-         "percases"; ","; "[]"; ","; "[";
+         "percases"; ","; "["; $thexps1; "]"; ","; "[";
+	 $thexps;
 	 for-each [CaseBlock|SupposeBlock]
 	 {
 	   thesisname(#n = `position()`, #pl = `@plevel`); ",";
