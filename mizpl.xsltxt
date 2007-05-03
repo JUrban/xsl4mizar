@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.53 $
+// $Revision: 1.54 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -1152,7 +1152,7 @@ tpl [SchemeFuncDecl]
     $nm   = { sch_fpname(#k="f",#nr=`@nr`,#schnr=`../@schemenr`,#aid=$aname); }
     $l    = `count(ArgTypes/Typ)`;
 
-    "fof(dt_";  $nm; ",assumption,"; 
+    "fof(dt_";  $nm; ",axiom,"; 
     if [$l > 0] 
     { 
        "!["; 
