@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.54 $
+// $Revision: 1.55 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -590,6 +590,7 @@ tpl do_nd(#thes_nr,#do_th_exps)
          "discharged(["; 
          for-each [Proposition[1]] { plname(#n=`@propnr`, #pl=`@plevel`); }
          "])"; "]"; ","; "[";
+	 $thexps;
          thesisname(#n = `$thes_nr + 1`, #pl = `@plevel`); "]";
        }
        when [($inm = "Conclusion")]
