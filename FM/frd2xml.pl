@@ -5,10 +5,53 @@ my ($kind, $symbolnr, $leftargnr, $rest);
 my ($rightsymbolnr, $rightsymbolvoc);
 my ($rightargnr, $argnr);
 my ($symbolkind, $symbol, $rightsymbol);
-my ($texmode, $bracketability, $defstyle, $opkind, $arg1, $arg2, $priority);
-my (@forsing, @contexts);
+my ($texmode, $bracketability, $defstyle, $opkind, $arg1, $arg2, $priority, $bracketdisab, $pattern);
+my (@forsing, @contexts, @bracketdisab, @patt_str_ints);
 undef $kind;  # defined by the first format line
 my $line = 0; # state variable
+
+## quote a string for xml
+sub xml_quote
+{
+    my ($s) = @_;
+    my @ch = split( //, $s);
+    my $res = "";
+    my $c;
+
+    foreach $c (@ch)
+    {
+	if($c eq '"') { $res = $res . '&quot;'; }
+	elsif($c eq '&')  { $res = $res . '&amp;'; }
+	elsif($c eq '<')  { $res = $res . '&lt;'; }
+	elsif($c eq '>')  { $res = $res . '&gt;'; }
+	elsif(ord($c) > 127) { $res = $res . '&#' . ord($c) . ';'; }
+	else { $res = $res . $c; }
+
+    }
+    return $res;
+}
+
+## print the translation patern as a series of strings and integers
+sub transl_pattern
+{
+    my ($pattstrints) = @_;
+    my $piece;
+
+    print "<FMTranslPattern>";
+    foreach $piece (@$pattstrints)
+    {
+	if ($piece =~ m/#(\d)/)
+	{
+	    print ("<Int x=\"", $1, "\"/>");
+	}
+	else
+	{
+	    print ("<Str s=\"", xml_quote($piece), "\"/>");
+	}
+    }
+    print "</FMTranslPattern>";
+}
+
 while(<>)
 {
     # the article header
@@ -97,8 +140,10 @@ while(<>)
 	    undef @forsing;
 	    undef $priority;
 	    undef @contexts;
-
-	    my ($opchar, $nrchar, $forschar, $priochar, $contextchar);
+	    undef @bracketdisab;
+	    undef $pattern;
+	    undef @patt_str_ints;
+	    my ($opchar, $nrchar, $forschar, $priochar, $contextchar, $disabchar);
 
 	    ($texmode, $bracketability, $defstyle) =
 		($chars[0], $chars[1], $chars[2]);
@@ -179,7 +224,7 @@ while(<>)
 
 		    ($chars[$cntpriochar - 1] eq ")") or die "Bad opkind args: $_";
 		}
-		else { $cntpriochar = $contextchar; }
+		else { $cntpriochar = $contextchar + 1; }
 
 		# parse priority
 		if ($chars[$cntpriochar] eq "@")
@@ -192,6 +237,20 @@ while(<>)
 		$contextchar = $cntpriochar;
 		push(@contexts, \%ch);
 	    }
+
+	    # parse List-of-bracket-disabled-arguments
+	    $disabchar = $contextchar;
+	    while ($chars[$disabchar] eq "#")
+	    {
+		push( @bracketdisab, $chars[++$disabchar]);
+		$disabchar++;
+	    }
+	    ($chars[$disabchar] eq ";") or die "Bad control header line: $_:$disabchar:$chars[$disabchar]";
+
+	    $pattern = substr( $_, $disabchar + 1);
+	    # this (having brackets around #\d) causes the #\d strings to be included
+	    # in the result array
+	    @patt_str_ints = split( /(#\d)/, $pattern);
 	    print ("texmode=\"", $texmode,
 		   "\" bracketability=\"", $bracketability,
 		   "\" defstyle=\"", $defstyle,
@@ -201,8 +260,16 @@ while(<>)
 	    if (defined @forsing) { print ("\" forsing=\"", @forsing); }
 	    if (defined $priority) { print ("\" priority=\"", $priority); }
 	    if (defined @contexts) { print ("\" contexts=\"", @contexts); }
+	    if (defined @bracketdisab) { print ("\" bracketdisab=\"", @bracketdisab); }
+	    if (defined @patt_str_ints) { print ("\" patt_str_ints=\"", @patt_str_ints); }
+	    transl_pattern( \@patt_str_ints);
 	    print "\"\n";
 	}
+	elsif ($kind eq "R")
+	{
+	    
+	}
+
     }
 
 }
