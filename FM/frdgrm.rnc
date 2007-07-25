@@ -1,0 +1,113 @@
+# $Revision: 1.1 $
+# File: frdgrm.rnc - Relax NG compact spec for the data needed for 
+#                    translation of Mizar to TeX (FM); derived from
+#                    the BNF spec at http://fm.uwb.edu.pl/proof-read/fm.ps.
+#
+# Authors: Josef Urban, Grzegorz Bancerek, ....
+#
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+## File with formats for natural language translation
+## (replacement for pub.frd)
+FMFormatMaps = 
+ element FMFormatMaps { FMFormatMap* }
+
+## Mapping between a Mizar format and an FM format.
+## It should allow fast lookup of an FMFormat by the
+## Mizar format, i.e. by the symbol name and argnumbers
+## (the symbol kind is probably redundant for lookup, given the
+## current Mizar .voc-based technology).
+## 
+FMFormatMap =
+ element FMFormatMap {
+   attribute kind {'G'|'K'|'J'|'L'|'M'|'O'|'R'|'U'|'V'},
+   attribute symbol { xsd:string },
+   attribute aid { xsd:string },
+   attribute symbolnr { xsd:integer },
+   attribute argnr { xsd:integer },
+   attribute leftargnr { xsd:integer }?,
+   attribute rightsymbolnr { xsd:integer }?,
+   attribute rightsymbolvoc { xsd:string }?,
+   FMFormat
+}
+
+## FMFormat for natural language translation.
+## This is a work in progress which should reasonably merge the
+## four format kinds semiautomatically generated below.
+## suggestions:
+## - Functor-control-header/@texmode should be just optional 
+##   boolean, the definite article should be merged with article, articlekind and also
+##   defstyle
+## - why have all the extra translation features only for functors - why not e.g.
+##   for predicates too?
+## - merge validity, and adjective and predicate kinds
+FMFormat = 
+ element FMFormat {
+   attribute kind {'G'|'K'|'J'|'L'|'M'|'O'|'R'|'U'|'V'}
+ }
+
+## Operation kind with arguments
+## This option determines the operation kind of the pattern and
+## argument contexts. The context is the position of an argument w.r.t. 
+## the operation symbol and is indicated by one of the operation kinds. 
+## Moreover, the context includes the priority of the
+## pattern/operation. The given operation kind is assigned by default as
+## a context for argument 1 unless the operation is of an infix
+## kind. Then the context of argument 1 is a postfix operation and the
+## context of argument 2 is a prefix operation (with given or standard
+## priority). If a context should be assigned to other arguments, it may
+## be indicated in brackets after the letter of the operation kind (e.g.,"i(2,1)").
+OpKind =
+ element OpKind {
+   attribute kind { 'prefix' | 'upperprefix' | 'lowerprefix' | 'postfix' | 'upperpostfix' | 'lowerpostfix' | 'overfix' | 'underfix' | 'infix' | 'nonassociativeinfix' | 'rightassociativeinfix' | 'circumfix' | 'otheroperation' }, 
+   attribute arg1 { xsd:integer }?,
+   attribute arg2 { xsd:integer }?
+}
+
+## the priority attribute - probably should be just the one-letter codes
+Priority =    
+ attribute priority { 'very-weak' | 'weak-1' | 'weak-w' | 'weak-additive' | 'additive-3' | 'additive-a' | 'strong-additive' | 'weak-multiplicative' | 'multiplicative-6' | 'multiplicative-m' | 'strong-multiplicative' | 'strong' | 'very-strong' }
+
+## context of args
+ArgumentContext =
+ element ArgumentContext {
+   attribute nr { xsd:integer },
+   Priority?,
+   OpKind
+}
+
+## note that Forcing is included in the OpKind+ syntax - any problems it might cause?
+## The final Int* models the List-of-bracket-disabled-arguments
+FunctorControlHeader =
+ element FunctorControlHeader {
+   attribute texmode {'symbolic' | 'the' | 'nonthe'},
+   attribute bracketability { 'open' | 'closed'},
+   attribute defstyle { 'normal' | 'asingular' | 'ansingular' | 'plural' },
+   Priority?,
+   OpKind+,
+   ArgumentContext*,
+   Int*
+}
+   
+## I wonder why this is so simple in comparison with functors?
+PredicateControlHeader =
+ element PredicateControlHeader {
+   attribute predicatekind { 'symbolic' | 'simple-phrase' | 'is-phrase' | 'has-phrase' | 'sat-phrase' },
+   attribute predicatevalidity { 'predicate-valid' | 'predicate-repeated' }
+}
+
+## merge article e.g. with FunctorControlHeader/@defstyle (and do something about texmode too)
+## merge typevalidity and predicatevalidity
+TypeControlHeader =
+ element TypeControlHeader { 
+   attribute texmode {'symbolic' | 'the' | 'nonthe'},
+   attribute article  { 'a-article' | 'an-article' },
+   attribute typevalidity { 'type-valid' | 'type-repeated' | 'type-abbreviation' } 
+}
+
+## merge predicatekind and adjectivekind
+## what is the difference between 'has-adjective-w' and 'has-adjective-x'?
+AdjectiveControlHeader =
+ element AdjectiveControlHeader {
+   attribute adjectivekind { 'a-adjective' | 'an-adjective' | 'empty-adjective' | 'has-adjective-w' | 'has-adjective-x' | 'sat-adjective' | 'noun-adjective' }
+} 
