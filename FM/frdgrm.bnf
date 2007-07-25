@@ -1,0 +1,69 @@
+Functor-control-header == TeX-mode Bracket-ability Definition-style Operation-kind Forcing Priority Argument-context List-of-bracket-disabled-arguments ";" .
+Predicate-control-header == Predicate-kind Predicate-validity . 
+Type-control-header == TeX-mode Article Type-validity . 
+Adjective-control-header == Adjective-kind . 
+TeX-mode == Math-mode | Horizontal-mode . 
+Math-mode == "m" . 
+Horizontal-mode == "h" | "H" .
+Bracket-ability == Open | Closed . 
+Open == "o" . 
+Closed == "c" .
+Definition-style == Normal-functor | A-singular-functor | AN-singular-functor | Plural-functor . 
+Normal-functor == . 
+A-singular-functor == "s" . 
+AN-singular-functor == "n" . 
+Plural-functor == "p" .
+Operation-kind ==( Prefix | Upper-prefix | Lower-prefix | Postfix | Upper-postfix | Lower-postfix | Overfix | Underfix | Infix | Non-associative-infix | Right-associative-infix | Circumfix | Other-operation ) [ "(" Number [ "," Number ] ")" ] . 
+Prefix == "l" . 
+Upper-prefix == "k" . 
+Lower-prefix == "m" . 
+Postfix == "r" . 
+Upper-postfix == "q" . 
+Lower-postfix == "w" . 
+Overfix == "t" . 
+Underfix == "b" . 
+Infix == "i" .
+Non-associative-infix == "x" . 
+Right-associative-infix == "y" . 
+Circumfix == "c" . 
+Other-operation == .
+Forcing == | "-" List-of-operation-kinds """" . 
+List-of-operation-kinds == - Operation-kind "" .
+Priority == | "@" ( Very-weak | Weak | Weak-additive | Additive | Strong-additive | Weak-multiplicative | Multiplicative | Strong-multiplicative | Strong | Very-strong ) . 
+Very-weak == "0" . 
+Weak-multiplicative == "5" . 
+Weak == "1" | "w" . 
+Multiplicative == "6" | "m" . 
+Weak-additive == "2" . 
+Strong-multiplicative == "7" . 
+Additive == "3" | "a" . 
+Strong == "8" | "s" . 
+Strong-additive == "4" . 
+Very-strong == "9" .
+Argument-context == - "/" Number Operation-kind Priority "" . 
+Number == "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" .
+List-of-bracket-disabled-arguments == - "#" Number "" . 
+Predicate-kind == Symbolic | Language-phrase . 
+Language-Phrase == Simple-phrase | IS-phrase | HAS-phrase | SAT-phrase . 
+Symbolic == "m" . 
+Simple-phrase == "h" . 
+IS-phrase == "i" . 
+HAS-phrase == "j" . 
+SAT-phrase == "s" .
+Predicate-validity == Predicate-valid | Predicate-repeated . 
+Predicate-valid == | "y" . 
+Predicate-repeated == "n" .
+Article == A-article | AN-article . 
+A-article == "a" . 
+AN-article == "n" .
+Type-validity == Type-valid | Type-repeated | Type-abbreviation . 
+Type-valid == . 
+Type-repeated == "%" . 
+Type-abbreviation == "@" .
+Adjective-kind == A-adjective | AN-adjective | Empty-adjective | HAS-adjective | SAT-adjective | Noun-adjective . 
+A-adjective == "a" . 
+AN-adjective == "n" . 
+Empty-adjective == "e" . 
+HAS-adjective == "w" | "x" . 
+SAT-adjective == "s" . 
+Noun-adjective == "b" .
