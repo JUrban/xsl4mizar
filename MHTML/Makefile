@@ -1,4 +1,4 @@
-## $Revision: 1.2 $
+## $Revision: 1.3 $
 
 JAVA = java
 XSLTXT = /home/urban/xsltxt/xsltxt.jar
@@ -26,6 +26,9 @@ miz.xsltxt: $(MIZXSLDEPS) mhtml_main.xsl
 
 TAGS: $(MIZXSLTXTDEPS)
 	etags   --language=none  --regex='/^tpl *\[? *\([^]({\n]+\) *\]?.*/\1/' $(MIZXSLTXTDEPS)
+
+clean: 
+	rm -rf $(MIZXSLDEPS) mhtml_main.xsl miz.xsltxt miz.xsl
 
 ## Unrelated stuff, ignore the rest of this file
 
