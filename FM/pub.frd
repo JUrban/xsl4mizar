@@ -1716,7 +1716,7 @@ Oseq_logn
 mow; \{\log_2 n\}_{n\in\mathbb N}
 O3 0 1
 Oseq_n^
-mow1; \{n^{#1}\}_{n\in\mathbb N}
+mow#1; \{n^{#1}\}_{n\in\mathbb N}
 O4 0 1
 Oseq_const
 mol#1; \{#1\}_{n\in\mathbb N}
@@ -2916,10 +2916,10 @@ a coretraction
 #CAT_4
 G1 10
 GProdCatStr
-mc#1#2#3#4#5#6#7#8#9#10; \langle #1, #2, #3, #4, #5, #6, #7, #8, #9, #10\rangle
+mc#1#2#3#4#5#6#7#8#9#1; \langle #1, #2, #3, #4, #5, #6, #7, #8, #9, #10\rangle
 G2 10
 GCoprodCatStr
-mc#1#2#3#4#5#6#7#8#9#10; \langle #1, #2, #3, #4, #5, #6, #7, #8, #9, #10\rangle
+mc#1#2#3#4#5#6#7#8#9#1; \langle #1, #2, #3, #4, #5, #6, #7, #8, #9, #10\rangle
 J1 1
 GProdCatStr
 hol#1; Cartesian category structure of #1
@@ -15171,7 +15171,7 @@ ha quadrangle #0 of #1
 quadrangles #0 of #1
 R1 1 1
 R|'
-mn #21 \nmid #2
+mn #1 \nmid #2
 #1 \mid #2
 R1 2 1
 R|'
