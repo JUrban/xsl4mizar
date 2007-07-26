@@ -1,4 +1,4 @@
-# $Revision: 1.1 $
+# $Revision: 1.2 $
 # File: frdgrm.rnc - Relax NG compact spec for the data needed for 
 #                    translation of Mizar to TeX (FM); derived from
 #                    the BNF spec at http://fm.uwb.edu.pl/proof-read/fm.ps.
@@ -43,8 +43,26 @@ FMFormatMap =
 ## - merge validity, and adjective and predicate kinds
 FMFormat = 
  element FMFormat {
-   attribute kind {'G'|'K'|'J'|'L'|'M'|'O'|'R'|'U'|'V'}
+     FMControlHeader,
+     FMTranslPattern
  }
+
+## Control Header
+FMControlHeader = ( FunctorControlHeader | PredicateControlHeader | TypeControlHeader | AdjectiveControlHeader )
+
+## the translation pattern is a series of strings (encoding TeX writing)
+## and integers (encoding the arguments substituted at their place)
+FMTranslPattern = 
+ element FMTranslPattern {
+     ( Str | Int)+
+ }
+
+## String
+Str = 
+ element Str { 
+     attribute s { xsd:string }
+ }
+
 
 ## Operation kind with arguments
 ## This option determines the operation kind of the pattern and
@@ -57,6 +75,7 @@ FMFormat =
 ## context of argument 2 is a prefix operation (with given or standard
 ## priority). If a context should be assigned to other arguments, it may
 ## be indicated in brackets after the letter of the operation kind (e.g.,"i(2,1)").
+## kind values: l,k,m,r,q,w,t,b,i,x,y,c or other (should be marked somehow)
 OpKind =
  element OpKind {
    attribute kind { 'prefix' | 'upperprefix' | 'lowerprefix' | 'postfix' | 'upperpostfix' | 'lowerpostfix' | 'overfix' | 'underfix' | 'infix' | 'nonassociativeinfix' | 'rightassociativeinfix' | 'circumfix' | 'otheroperation' }, 
@@ -64,11 +83,25 @@ OpKind =
    attribute arg2 { xsd:integer }?
 }
 
-## the priority attribute - probably should be just the one-letter codes
+## the priority attribute - probably should be just the one-letter codes;
+## TODO: The four additional codes used now should be turned to decimal numbers.
+## This option classifies operations into 4 groups: weak (0, 1), additive
+## (2-4), multiplicative (5-7), and strong (8, 9). If a weaker
+## operation is an argument of a stronger one, it indicates a possible
+## argument to be taken into parentheses. If this option is omitted, the
+## standard priority is assigned as follows:
+## l Prefix strong if Math-mode else weak additive; k Upper-prefix strong
+## multiplicative; m Lower-prefix strong multiplicative; r Postfix strong; q
+## Upper-postfix strong; w Lower-postfix strong; t Overfix very strong; b
+## Underfix very strong; i Infix additive; x Not-associative-infix additive;
+## y Right-associative-infix additive; c Circumfix very strong; Other-operation weak
 Priority =    
  attribute priority { 'very-weak' | 'weak-1' | 'weak-w' | 'weak-additive' | 'additive-3' | 'additive-a' | 'strong-additive' | 'weak-multiplicative' | 'multiplicative-6' | 'multiplicative-m' | 'strong-multiplicative' | 'strong' | 'very-strong' }
 
 ## context of args
+## TODO: What is the meaning of nr??
+## TODO: How is this used??
+## TOD: are the ways of overriding othogonal? - i.e. the forcing, defaults for priority, and this?
 ArgumentContext =
  element ArgumentContext {
    attribute nr { xsd:integer },
@@ -77,7 +110,20 @@ ArgumentContext =
 }
 
 ## note that Forcing is included in the OpKind+ syntax - any problems it might cause?
-## The final Int* models the List-of-bracket-disabled-arguments
+## The final Int* models the List-of-bracket-disabled-arguments.
+## texmode: is either symbolic (math-mode (m) - between dollars) or verbal (horizontal) 
+##   which either uses 'the' (h) before the functor or not (H).
+##   This should be changed to two optional boolean attributes: 'symbolic' and 'the' - no:
+##   most of them are symbolic
+## bracketability: if 'closed' (c), brackets are not needed, 
+##   while if open (o) brackets may be used
+##   This should be changed into an optional boolean attribute 'closed' (because much more are open)
+## defstyle: normal (no character) uses 'yields'; 'asingular' (s) and 'ansingular' (n)
+##   uses 'is'; 'plural' (p) uses 'constitute'
+##   This should be also optional, with default value 'normal' (l) (most of them)
+## What says the first OpKind?: the position of an argument w.r.t. the operation symbol
+## The optional OpKinds (i.e. the second and more) give additional contexts which force brackets;
+## it seems that they do not use the potional numerical arguments
 FunctorControlHeader =
  element FunctorControlHeader {
    attribute texmode {'symbolic' | 'the' | 'nonthe'},
@@ -90,6 +136,10 @@ FunctorControlHeader =
 }
    
 ## I wonder why this is so simple in comparison with functors?
+## predicatekind: m,h,i,j,s
+##  TODO: how is this used??
+## predicatevalidity: valid (nothing or y), repeated (n)
+##  TODO: what is this used for??
 PredicateControlHeader =
  element PredicateControlHeader {
    attribute predicatekind { 'symbolic' | 'simple-phrase' | 'is-phrase' | 'has-phrase' | 'sat-phrase' },
