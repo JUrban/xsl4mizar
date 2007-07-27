@@ -1,4 +1,6 @@
-# transform pub.frd to XML format
+# transform pub.frd (specified by frdgrm.bnf)
+# to XML format (specified by frdgrm.rnc)
+
 use strict;
 my $article;
 my ($kind, $symbolnr, $leftargnr, $rest);
@@ -32,7 +34,7 @@ sub xml_quote
     return $res;
 }
 
-## print the translation patern as a series of strings and integers
+## print the translation pattern (@$pattstrints) as a series of strings and integers
 sub transl_pattern
 {
     my ($pattstrints) = @_;
@@ -52,6 +54,8 @@ sub transl_pattern
     }
     print "</FMTranslPattern>\n";
 }
+
+print "<?xml version=\"1.0\"?>\n<FMFormatMaps>\n";
 
 while(<>)
 {
@@ -134,6 +138,9 @@ while(<>)
 	$line = 3;
 	chop;
 	my @chars = split(//, $_);
+	undef @patt_str_ints;
+	undef $pattern;
+	undef $texmode;
 
 	# functors
 	if (($kind eq "O") or ($kind eq "U")
@@ -146,8 +153,7 @@ while(<>)
 	    undef $priority;
 	    undef @contexts;
 	    undef @bracketdisab;
-	    undef $pattern;
-	    undef @patt_str_ints;
+
 	    my ($opchar, $nrchar, $forschar, $priochar, $contextchar, $disabchar);
 
 	    ($texmode, $bracketability, $defstyle) =
@@ -263,7 +269,11 @@ while(<>)
 	    if (defined $arg1) { print ("\" arg1=\"", $arg1); }
 	    if (defined $arg2) { print ("\" arg2=\"", $arg2); }
 	    if (defined $priority) { print ("\" priority=\"", $priority); }
-	    print "\">\n";
+	    if ((defined @forcing) | (defined @contexts) | (defined @bracketdisab))
+	    {
+		print "\">\n";
+	    }
+	    else { print "\"/>\n"; }
 	    if (defined @forcing)
 	    {
 		foreach $item (@forcing)
@@ -285,13 +295,73 @@ while(<>)
 		# print ("\" bracketdisab=\"", @bracketdisab); 
 	    }
 	    # if (defined @patt_str_ints) { print ("\" patt_str_ints=\"", @patt_str_ints); }
+	    if ((defined @forcing) | (defined @contexts) | (defined @bracketdisab))
+	    {
+		print "</FunctorControlHeader>\n";
+	    }
+
 	    transl_pattern( \@patt_str_ints);
 	}
 	elsif ($kind eq "R")
 	{
-	    
+	    my $predvalidity;
+
+	    if ($chars[1] eq " ") 
+	    {
+		$predvalidity = "y";
+		$pattern = substr( $_, 1);
+	    }
+	    else
+	    {
+		($chars[2] eq " ") or die "Bad predicate control header line: $_";
+		$predvalidity = $chars[1];
+		$pattern = substr( $_, 2);
+	    }
+
+	    ($predvalidity =~ m/[yn]/) or die "Bad predicate control header line: $_";
+	    print ("<PredicateControlHeader predicatekind=\"", $chars[0],
+		   "\" predicatevalidity=\"", $predvalidity,
+		   "\"/>\n");
+	    @patt_str_ints = split( /(#\d)/, $pattern);
+	    transl_pattern( \@patt_str_ints);
+	}
+	elsif (($kind eq "M") or ($kind eq "L"))
+	{
+	    my $typevalidity;
+
+	    if ($chars[2] eq " ") 
+	    {
+		$typevalidity = "y";
+		$pattern = substr( $_, 2);
+	    }
+	    else
+	    {
+		($chars[3] eq " ") or die "Bad type control header line: $_";
+		$typevalidity = $chars[2];
+		$pattern = substr( $_, 3);
+	    }
+
+	    ($typevalidity =~ m/[y%@]/) or die "Bad type control header line: $_";
+	    print ("<TypeControlHeader texmode=\"", $chars[0],
+		   "\" article=\"", $chars[1],
+		   "\" typevalidity=\"", $typevalidity,
+		   "\"/>\n");
+	    @patt_str_ints = split( /(#\d)/, $pattern);
+	    transl_pattern( \@patt_str_ints);
+	}
+	elsif ($kind eq "V")
+	{
+	    ## TODO: added kinds 'c','i', and 'h' here - what do they mean?
+	    ($chars[0] =~ m/[anewxsbchi]/) or die "Bad adjective control header line: $_";
+	    print ("<AdjectiveControlHeader adjectivekind=\"", $chars[0], "\"/>\n");
+	    $pattern = substr( $_, 1);
+	    @patt_str_ints = split( /(#\d)/, $pattern);
+	    transl_pattern( \@patt_str_ints);
 	}
 
     }
 
 }
+
+print "</FMFormatMap>\n";
+print "</FMFormatMaps>\n";
