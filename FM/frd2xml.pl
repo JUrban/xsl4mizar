@@ -6,9 +6,10 @@ my ($rightsymbolnr, $rightsymbolvoc);
 my ($rightargnr, $argnr);
 my ($symbolkind, $symbol, $rightsymbol);
 my ($texmode, $bracketability, $defstyle, $opkind, $arg1, $arg2, $priority, $bracketdisab, $pattern);
-my (@forsing, @contexts, @bracketdisab, @patt_str_ints);
+my (@forcing, @contexts, @bracketdisab, @patt_str_ints);
 undef $kind;  # defined by the first format line
 my $line = 0; # state variable
+my $item;
 
 ## quote a string for xml
 sub xml_quote
@@ -49,7 +50,7 @@ sub transl_pattern
 	    print ("<Str s=\"", xml_quote($piece), "\"/>");
 	}
     }
-    print "</FMTranslPattern>";
+    print "</FMTranslPattern>\n";
 }
 
 while(<>)
@@ -62,6 +63,9 @@ while(<>)
     # the first format line, $kind has to be undefined here
     elsif (m/^([A-Z])([0-9]+) ([0-9]+) *(.*)/)
     {
+	# close previous FMFormatMap
+	if ($line != 0) { print "</FMFormatMap>\n"; }
+
 	$line = 1;
 
 	undef $rightsymbolnr;
@@ -70,11 +74,10 @@ while(<>)
 
 	($kind, $symbolnr, $leftargnr, $rest) =
 	    ($1,$2,$3,$4);
-	print ("<Format",
+	print ("<FMFormatMap",
 	       " kind=\"", $kind,
 	       "\" symbolnr=\"", $symbolnr,
-               "\" aid=\"", $article,
-	       "\"");
+               "\" aid=\"", $article);
 	if ($kind eq "K")
 	{
 	    $rest =~ m/L([0-9]+) v([A-Z0-9_]+)/ or
@@ -82,17 +85,16 @@ while(<>)
 	    ($rightsymbolnr, $rightsymbolvoc) = ($1,$2);
 	    $argnr = $leftargnr;
 	    print (
-		   " argnr=\"", $argnr,
+		   "\" argnr=\"", $argnr,
 		   "\" rightsymbolnr=\"", $rightsymbolnr,
-		   "\" rightsymbolvoc=\"", $rightsymbolvoc,
-		   "\"");
+		   "\" rightsymbolvoc=\"", $rightsymbolvoc);
 	}
 	elsif (($kind eq "G") or ($kind eq "M") or ($kind eq "J")
 	       or ($kind eq "V") or ($kind eq "L") or ($kind eq "U"))
 	{
 	    $rest eq "" or die "Bad symbol info: $_";
 	    $argnr = $leftargnr;
-	    print (" argnr=\"", $argnr, "\"");
+	    print ("\" argnr=\"", $argnr);
 	}
 	elsif (($kind eq "O") or ($kind eq "R"))
 	{
@@ -100,12 +102,10 @@ while(<>)
 		die "Bad symbol info: $_";
 	    $rightargnr = $1;
 	    $argnr = $leftargnr + $rightargnr;
-	    print (" argnr=\"", $argnr, 
-		   "\" leftargnr=\"",$leftargnr,
-		   "\"");
+	    print ("\" argnr=\"", $argnr,
+		   "\" leftargnr=\"",$leftargnr);
 	}
 	else { die "Unknown symbol: $_"; }
-	print ">\n";
     }
     # the second (and possibly third) format line, $kind has to be defined here
     elsif ($line == 1)
@@ -114,6 +114,7 @@ while(<>)
 
 	m/^([A-Z])(.*)/ or die "Bad second format line: $_";
 	($symbolkind, $symbol) = ($1, $2);
+	print ("\" symbol=\"", xml_quote($symbol));
 
 	# optional third line for brackets
 	if ($kind eq "K")
@@ -121,7 +122,11 @@ while(<>)
 	    $_ = <>;
 	    m/^L(.*)/ or die "Bad third format line: $_";
 	    $rightsymbol = $1;
+	    print ("\" rightsymbol=\"", xml_quote($rightsymbol));
 	}
+
+	# close the FMFormatMap attributes
+	print "\">\n";
     }
     # the third (first control header) line, most info is here
     elsif ($line == 2)
@@ -137,7 +142,7 @@ while(<>)
 	{
 	    undef $arg1;
 	    undef $arg2;
-	    undef @forsing;
+	    undef @forcing;
 	    undef $priority;
 	    undef @contexts;
 	    undef @bracketdisab;
@@ -172,16 +177,16 @@ while(<>)
 	    }
 	    else { $forschar = $nrchar; }
 
-	    # parse the forsing characters
+	    # parse the forcing characters
 	    if ($chars[$forschar] eq "{")
 	    {
 		$forschar++;
 		while ($chars[$forschar] =~ m/[lkmrqwtbixyc]/)
 		{
-		    push( @forsing, $chars[$forschar] );
+		    push( @forcing, $chars[$forschar] );
 		    $forschar++;
 		}
-		($chars[$forschar] eq "}") or die "Bad forsing args: $_";
+		($chars[$forschar] eq "}") or die "Bad forcing args: $_";
 		$forschar++;
 	    }
 
@@ -251,19 +256,36 @@ while(<>)
 	    # this (having brackets around #\d) causes the #\d strings to be included
 	    # in the result array
 	    @patt_str_ints = split( /(#\d)/, $pattern);
-	    print ("texmode=\"", $texmode,
+	    print ("<FunctorControlHeader texmode=\"", $texmode,
 		   "\" bracketability=\"", $bracketability,
 		   "\" defstyle=\"", $defstyle,
 		   "\" opkind=\"", $opkind);
 	    if (defined $arg1) { print ("\" arg1=\"", $arg1); }
 	    if (defined $arg2) { print ("\" arg2=\"", $arg2); }
-	    if (defined @forsing) { print ("\" forsing=\"", @forsing); }
 	    if (defined $priority) { print ("\" priority=\"", $priority); }
-	    if (defined @contexts) { print ("\" contexts=\"", @contexts); }
-	    if (defined @bracketdisab) { print ("\" bracketdisab=\"", @bracketdisab); }
-	    if (defined @patt_str_ints) { print ("\" patt_str_ints=\"", @patt_str_ints); }
+	    print "\">\n";
+	    if (defined @forcing)
+	    {
+		foreach $item (@forcing)
+		{
+		    print "<Forcing opkind=\"$item\"/>\n"
+		}
+	    }
+	    # print ("\" forcing=\"", @forcing); }
+	    # TODO: print the context
+	    # if (defined @contexts) { print ("\" contexts=\"", @contexts); }
+	    if (defined @bracketdisab)
+	    {
+		print "<BracketDisabled>";
+		foreach $item (@bracketdisab)
+		{
+		    print "<Int x=\"$item\"/>"
+		}
+		print "</BracketDisabled>\n";
+		# print ("\" bracketdisab=\"", @bracketdisab); 
+	    }
+	    # if (defined @patt_str_ints) { print ("\" patt_str_ints=\"", @patt_str_ints); }
 	    transl_pattern( \@patt_str_ints);
-	    print "\"\n";
 	}
 	elsif ($kind eq "R")
 	{
