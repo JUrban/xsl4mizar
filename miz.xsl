@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.39 $ -->
+  <!-- $Revision: 1.40 $ -->
   <!--  -->
   <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -149,6 +149,10 @@
   <!-- relevant only if $generate_items>0 -->
   <!-- tells if proofs of selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items_proofs">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- add IDV links and icons -->
+  <xsl:param name="idv">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <xsl:variable name="lcletters">
@@ -6027,6 +6031,14 @@
         <xsl:text> interestingness: </xsl:text>
         <xsl:value-of select="@interesting"/>
       </xsl:if>
+      <xsl:if test="$idv &gt; 0">
+        <xsl:call-template name="idv_for_item">
+          <xsl:with-param name="k">
+            <xsl:text>t</xsl:text>
+          </xsl:with-param>
+          <xsl:with-param name="nr" select="$nr1"/>
+        </xsl:call-template>
+      </xsl:if>
       <xsl:element name="br"/>
     </xsl:element>
     <xsl:choose>
@@ -6061,6 +6073,65 @@
         </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="idv_for_item">
+    <xsl:param name="k"/>
+    <xsl:param name="nr"/>
+    <xsl:variable name="idv_html">
+      <xsl:text>http://www.cs.miami.edu/~tptp/MizarTPTP/</xsl:text>
+    </xsl:variable>
+    <!-- "http://lipa.ms.mff.cuni.cz/~urban/idvtest/"; -->
+    <!-- $idv_html = "file:///home/urban/mptp0.2/idvhtml/"; -->
+    <xsl:variable name="tptp_file" select="concat($idv_html,&quot;problems/&quot;,$anamelc,&quot;/&quot;,$anamelc, &quot;__&quot;,$k, $nr, &quot;_&quot;, $anamelc)"/>
+    <xsl:text> </xsl:text>
+    <xsl:element name="img">
+      <xsl:call-template name="add_hs2_attrs"/>
+      <xsl:attribute name="src">
+        <xsl:text>PalmTree.jpg</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="title">
+        <xsl:text>Show IDV graph</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="alt">
+        <xsl:text>Show IDV graph</xsl:text>
+      </xsl:attribute>
+    </xsl:element>
+    <!-- <a -->
+    <!-- { -->
+    <!-- //    add_ajax_attrs(#u = $th); -->
+    <!-- add_hs2_attrs(); -->
+    <!-- @title="Show IDV graph"; -->
+    <!-- <b { " IDV graph "; } -->
+    <!-- } -->
+    <xsl:element name="span">
+      <xsl:attribute name="style">
+        <xsl:text>display:none</xsl:text>
+      </xsl:attribute>
+      <xsl:text>:: Showing IDV graph ... (Click the Palm Tree again to close it)</xsl:text>
+      <xsl:element name="APPLET">
+        <xsl:attribute name="CODE">
+          <xsl:text>IDVApplet.class</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="ARCHIVE">
+          <xsl:text>http://www.cs.miami.edu/students/strac/test/IDV/IDV.jar,http://www.cs.miami.edu/students/strac/test/IDV/TptpParser.jar,http://www.cs.miami.edu/students/strac/test/IDV/antlr-2.7.5.jar</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="WIDTH">
+          <xsl:text>0</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="HEIGHT">
+          <xsl:text>0</xsl:text>
+        </xsl:attribute>
+        <xsl:element name="PARAM">
+          <xsl:attribute name="NAME">
+            <xsl:text>URL</xsl:text>
+          </xsl:attribute>
+          <xsl:attribute name="VALUE">
+            <xsl:value-of select="$tptp_file"/>
+          </xsl:attribute>
+        </xsl:element>
+      </xsl:element>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="DefTheorem">
@@ -6880,6 +6951,62 @@
     </xsl:element>
   </xsl:template>
 
+  <xsl:template name="idv_for_top">
+    <xsl:variable name="idv_html">
+      <xsl:text>http://lipa.ms.mff.cuni.cz/~urban/idvtest/</xsl:text>
+    </xsl:variable>
+    <!-- $idv_html = "file:///home/urban/mptp0.2/idvhtml/"; -->
+    <xsl:variable name="tptp_file" select="concat($idv_html,&quot;top/&quot;,$anamelc,&quot;.top.rated&quot;)"/>
+    <xsl:text> </xsl:text>
+    <xsl:element name="img">
+      <xsl:call-template name="add_hs2_attrs"/>
+      <xsl:attribute name="src">
+        <xsl:text>hammock.jpg</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="title">
+        <xsl:text>Show IDV graph for whole article</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="alt">
+        <xsl:text>Show IDV graph for whole article</xsl:text>
+      </xsl:attribute>
+    </xsl:element>
+    <!-- <a -->
+    <!-- { -->
+    <!-- //    add_ajax_attrs(#u = $th); -->
+    <!-- add_hs2_attrs(); -->
+    <!-- @title="Show IDV graph"; -->
+    <!-- <b { " IDV graph "; } -->
+    <!-- } -->
+    <xsl:element name="span">
+      <xsl:attribute name="style">
+        <xsl:text>display:none</xsl:text>
+      </xsl:attribute>
+      <xsl:text>:: Showing IDV graph ... (Click the Palm Trees again to close it)</xsl:text>
+      <xsl:element name="APPLET">
+        <xsl:attribute name="CODE">
+          <xsl:text>IDVApplet.class</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="ARCHIVE">
+          <xsl:text>IDV.jar,TptpParser.jar,antlr-2.7.5.jar</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="WIDTH">
+          <xsl:text>0</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="HEIGHT">
+          <xsl:text>0</xsl:text>
+        </xsl:attribute>
+        <xsl:element name="PARAM">
+          <xsl:attribute name="NAME">
+            <xsl:text>URL</xsl:text>
+          </xsl:attribute>
+          <xsl:attribute name="VALUE">
+            <xsl:value-of select="$tptp_file"/>
+          </xsl:attribute>
+        </xsl:element>
+      </xsl:element>
+    </xsl:element>
+  </xsl:template>
+
   <!-- tpl [Now](#nkw) { -->
   <!-- <div { <b { if [not($nkw="1")] { "now ";} } -->
   <!-- <div { @class="add"; apply[BlockThesis]; -->
@@ -6887,9 +7014,14 @@
   <!-- <b { "end;"; } } } -->
   <!-- separate top-level items by additional newline -->
   <xsl:template match="Article">
-    <xsl:call-template name="pcomment">
-      <xsl:with-param name="str" select="concat($aname, &quot;  semantic presentation&quot;)"/>
-    </xsl:call-template>
+    <xsl:element name="div">
+      <xsl:call-template name="pcomment0">
+        <xsl:with-param name="str" select="concat($aname, &quot;  semantic presentation&quot;)"/>
+      </xsl:call-template>
+      <xsl:if test="$idv &gt; 0">
+        <xsl:call-template name="idv_for_top"/>
+      </xsl:if>
+    </xsl:element>
     <xsl:element name="br"/>
     <xsl:for-each select="*">
       <xsl:apply-templates select="."/>
