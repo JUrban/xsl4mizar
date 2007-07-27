@@ -9,7 +9,7 @@ import ../MHTML/mhtml_block_top.xsl;  // ##INCLUDE HERE
 output method=html;
 
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
 // File: fm_main.xsltxt - TeX-ization of Mizar XML, main file
 //
@@ -24,7 +24,7 @@ output method=html;
 // the FM specific code:
 
 // XML file containing FM formats
-#fmformats=  { "fm_formats.fmx"; }
+#fmformats=  { "file:///home/urban/xsltxt/xsl4mizar/FM/fm_formats.fmx"; }
 
 // lookup of the FMFormat based on the symbol, kind,argnr and leftargnr - 
 // TODO: add the rightsymbol too (otherwise probably not unique)
