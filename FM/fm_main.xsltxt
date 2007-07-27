@@ -1,0 +1,248 @@
+
+stylesheet 1.0;
+
+// the import directive is useful because anything 
+// imported can be later overrriden - we'll use it for
+// the pretty-printing funcs
+import ../MHTML/mhtml_block_top.xsl;  // ##INCLUDE HERE
+
+output method=html;
+
+
+// $Revision: 1.1 $
+//
+// File: fm_main.xsltxt - TeX-ization of Mizar XML, main file
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+// include fm_print_complex.xsl;
+
+// include mhtml_block_top.xsl;  // ##INCLUDE HERE
+
+// the FM specific code:
+
+// XML file containing FM formats
+#fmformats=  { "fm_formats.fmx"; }
+
+// lookup of the FMFormat based on the symbol, kind,argnr and leftargnr - 
+// TODO: add the rightsymbol too (otherwise probably not unique)
+key "FM" [FMFormatMap] `concat( @symbol, "::", @kind, ':', @argnr, ':', @leftargnr)`;
+
+// Get symbol of kind #sk and number #nr .
+// If $sk is K and $r=1, get the rightbracketsymbol with #rsnr instead.
+tpl get_vocsymbol(#sk, #snr, #r, #rsnr)
+{
+   $dkey = `concat('D_',$sk)`;
+
+   for-each [document($vocs,/)] 
+   {
+      if [key($dkey,$snr)] 
+      {
+          for-each [key($dkey,$snr)] 
+          { 
+             if [($sk='K') and ($r='1')] 
+             { 
+                for-each [key('D_L',$rsnr)] { `@name`; } 
+             }
+             else 
+             {  
+                `@name`; 
+             }
+          } 
+      }
+      // try the built-in symbols
+      else 
+      { 
+          choose 
+          { 
+             when [($snr='1') and ($sk='M')] { "set"; }
+             when [($snr='1') and ($sk='R')] { "="; }
+             when [($snr='1') and ($sk='K')] 
+             { 
+                if [$r='1'] { "]"; } else { "["; } 
+             } 
+             when [($snr='2') and ($sk='K')] 
+             { 
+                if [$r='1'] { "}"; } else { "{"; } 
+             }
+	     otherwise { `concat("FAILEDVOC:",$k,$nr)`; }
+          } 
+      }
+   }
+}
+
+// given an aticle-relative format number #fnr, return
+// the lookup key for the corresponding FMFormatMap
+tpl get_fmformat_key(#fnr)
+{
+  for-each [document($formats,/)] 
+  {
+      for-each [key('F',$fnr)] 
+      {
+          $snr  = `@symbolnr`; 
+	  $sk1  = `@kind`; 
+	  $sk   = { if [$sk1="L"] { "G";} else { $sk1; } }
+          $rsnr = { if [$sk='K'] { `@rightsymbolnr`; } }
+	  $sym  = { get_vocsymbol(#sk = $sk, #snr = $snr); }
+	  `concat($sym, '::', $sk1, ':', @argnr, ':', @leftargnr)`;
+      }
+  }
+}
+
+// rudimentary pp2 version for TeX (see mhtml_print_complex for the pretty 
+// printing equivalent html stuff, which this overrides)
+// currently just prints the strings and arguments given 
+// by their order in FMTranslPattern corresponding to format #fnr
+// TODO: how is texmode used? what are the rules of its application to arguments?
+tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
+{
+   $fmkey = { get_fmformat_key(#fnr = $fnr); }
+
+   if [starts-with($fmkey,'FAILEDVOC')]  { $fmkey; }
+   else
+   {
+     // ":#"; $fmkey; ":#";
+     for-each [document($fmformats,/)] 
+     {
+        for-each [key('FM',$fmkey)] 
+        {
+          for-each [FMTranslPattern/*]
+	  {
+	     if [name()="Str"] { `@s`; }
+	     else
+	     {
+	        // TODO: do the numbering of arguments in FMTranslPattern refer 
+		//       to only visible arguments, or all?? -taking visible now:
+                $x = `@x`;
+		$y = `$vis[position() = $x]/@x`;
+		apply[$args[position() = $y]](#p = $np, #i = $i);
+	     }
+	  }
+        }
+     }
+   }
+}
+
+
+
+// Default
+tpl [/] { 
+
+<html { 
+
+// output the css defaults for div and p (for indenting)
+        <style { @type="text/css";  "
+div { padding: 0 0 0 0; margin: 0 0 0 0; } 
+div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
+p { margin: 0 0 0 0; } 
+a {text-decoration:none} a:hover { color: red; } 
+a.ref { font-size:x-small; }
+a.ref:link { color:green; } 
+a.ref:hover { color: red; } 
+a.txt:link { color:black; } 
+a.txt:hover { color: red; } 
+span.hide { display: none; }
+span.p1:hover { color : inherit; background-color : #BAFFFF; } 
+span.p2:hover { color : inherit; background-color : #FFCACA; }
+span.p3:hover { color : inherit; background-color : #FFFFBA; }
+span.p4:hover { color : inherit; background-color : #CACAFF; }
+span.p5:hover { color : inherit; background-color : #CAFFCA; }
+span.p0:hover { color : inherit; background-color : #FFBAFF; }
+.default { background-color: white; color: black; } 
+.default:hover { background-color: white; color: black; }
+";
+	                } 
+        <head {  
+<script { @type="text/javascript";
+"
+<!-- 
+function hs(obj)
+{
+// document.getElementById('myimage').nextSibling.style.display = 'block';
+if (obj.nextSibling.style.display == 'inline')
+ { obj.nextSibling.style.display = 'none'; }
+else { if (obj.nextSibling.style.display == 'none')
+ { obj.nextSibling.style.display = 'inline'; }
+ else { obj.nextSibling.style.display = 'inline';  }}
+return false;
+}
+
+function hs2(obj)
+{
+if (obj.nextSibling.style.display == 'block')
+ { obj.nextSibling.style.display = 'none'; }
+else { if (obj.nextSibling.style.display == 'none')
+ { obj.nextSibling.style.display = 'block'; }
+ else { obj.nextSibling.style.display = 'none';  }}
+return false;
+}
+function hsNdiv(obj)
+{
+var ndiv = obj;
+while (ndiv.nextSibling.nodeName != 'DIV') { ndiv = ndiv.nextSibling; }
+return hs2(ndiv);
+}
+
+// explorer7 implements XMLHttpRequest in some strange way
+function makeRequest(obj,url) {
+        var http_request = false;
+        if (window.XMLHttpRequest && !(window.ActiveXObject)) { // Mozilla, Safari,...
+            http_request = new XMLHttpRequest();
+            if (http_request.overrideMimeType) {
+                http_request.overrideMimeType('text/xml');
+            }
+        } else if (window.ActiveXObject) { // IE
+            try {
+                http_request = new ActiveXObject('Msxml2.XMLHTTP');
+            } catch (e) {
+                try {
+                    http_request = new ActiveXObject('Microsoft.XMLHTTP');
+                } catch (e) {}
+            }
+        }
+        if (!http_request) {
+            alert('Giving up :( Cannot create an XMLHTTP instance');
+            return false;
+        }
+        http_request.onreadystatechange = function() { insertRequest(obj,http_request); };
+        http_request.open('GET', url, true);
+        http_request.send(null);
+    }
+// commented the 200 state to have local requests too
+function insertRequest(obj,http_request) {
+        if (http_request.readyState == 4) {
+//            if (http_request.status == 200) {
+	    var ndiv = obj;
+	    while (ndiv.nodeName != 'SPAN') { ndiv = ndiv.nextSibling; }
+	    ndiv.innerHTML = http_request.responseText;
+	    obj.onclick = function(){ return hs2(obj) };
+//            } else {
+//                alert('There was a problem with the request.');
+//		alert(http_request.status);
+//            }
+	    }}
+// End -->
+"; }
+<base { 
+if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} } 
+// <!-- 
+// var browse_url = \"http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry=\"
+// function l1(c) { location = browse_url + c }
+// // End -->
+// "; }
+}
+        <body {  
+
+// first read the keys for imported stuff
+//          apply[document($constrs,/)/Constructors/Constructor]; 
+//          apply[document($thms,/)/Theorems/Theorem]; 
+//          apply[document($schms,/)/Schemes/Scheme];
+ 
+// then process the whole document
+          apply; }} }
+  
+// tpl [*] { copy { apply [@*]; apply; } }
+// tpl [@*] { copy-of `.`; }
+
