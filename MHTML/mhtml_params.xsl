@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.2 $ -->
+  <!-- $Revision: 1.3 $ -->
   <!--  -->
   <!-- File: params.xsltxt - html-ization of Mizar XML, top-level parameters -->
   <!--  -->
@@ -106,8 +106,21 @@
   <xsl:param name="ajax_proofs">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- tells to display thesis after skeleton items -->
+  <xsl:param name="display_thesis">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- tells if only selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- relevant only if $generate_items>0 -->
+  <!-- tells if proofs of selected items are generated to subdirs; default is off -->
+  <xsl:param name="generate_items_proofs">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- add IDV links and icons -->
+  <xsl:param name="idv">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <xsl:variable name="lcletters">
