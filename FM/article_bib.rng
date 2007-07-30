@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <define name="ARTICLE_BIB">
+    <a:documentation>XML (RNC) specification of Mizar Bib files.
+They should live in files with extension .bbx,
+e.g. abcmiz_0.bbx .</a:documentation>
+    <element name="ARTICLE_BIB">
+      <attribute name="aid">
+        <a:documentation>article identifier (uppercase)</a:documentation>
+        <data type="string"/>
+      </attribute>
+      <oneOrMore>
+        <element name="AUTHOR">
+          <a:documentation>one or more authors</a:documentation>
+          <text/>
+          <zeroOrMore>
+            <element name="NOTE">
+              <text/>
+            </element>
+          </zeroOrMore>
+          <oneOrMore>
+            <element name="ADDRESS">
+              <text/>
+            </element>
+          </oneOrMore>
+        </element>
+      </oneOrMore>
+      <element name="TITLE">
+        <text/>
+        <zeroOrMore>
+          <element name="NOTE">
+            <text/>
+          </element>
+        </zeroOrMore>
+      </element>
+      <optional>
+        <element name="ACKNOWLEDGEMENT">
+          <text/>
+        </element>
+      </optional>
+      <zeroOrMore>
+        <element name="SECTION">
+          <text/>
+        </element>
+      </zeroOrMore>
+      <element name="DATE">
+        <a:documentation>month is a string (e.g. March)</a:documentation>
+        <attribute name="day">
+          <data type="integer"/>
+        </attribute>
+        <attribute name="month">
+          <data type="string"/>
+        </attribute>
+        <attribute name="year">
+          <data type="integer"/>
+        </attribute>
+      </element>
+      <optional>
+        <element name="SUMMARY">
+          <text/>
+        </element>
+      </optional>
+    </element>
+  </define>
+</grammar>
