@@ -15,9 +15,7 @@
   <ACKNOWLEDGEMENT>Thank you, folks.</ACKNOWLEDGEMENT>
   <SECTION>The Title of the First Section</SECTION>
   <SECTION> = {The Title of the Second Section</SECTION>
-  <DAY>27</DAY>
-  <MONTH>March</MONTH>
-  <YEAR>2007</YEAR>
+  <DATE day="27" month="3" year="2007"/>
   <SUMMARY>This is a very long summary. At least one external bibliography
   item such as \cite{Author:1969} is needed</SUMMARY>
 </ARTICLE_BIB>
