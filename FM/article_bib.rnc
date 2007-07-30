@@ -1,20 +1,27 @@
+## XML (RNC) specification of Mizar Bib files.
+## They should live in files with extension .bbx,
+## e.g. abcmiz_0.bbx .
 ARTICLE_BIB =
 element ARTICLE_BIB {
+  ## article identifier (uppercase)
+  attribute aid { xsd:string },
+  ## one or more authors
   element AUTHOR { 
-      CDATA,
-    element NOTE { CDATA; }*,
-    element ADDRESS { CDATA; }+
+      text,
+    element NOTE { text }*,
+    element ADDRESS { text }+
   }+,
   element TITLE {
-     CDATA,
-   element NOTE { CDATA }*
+     text,
+   element NOTE { text }*
   },
-  element ACKNOWLEDGEMENT { CDATA }?,
-  element SECTION { CDATA }*, 
+  element ACKNOWLEDGEMENT { text }?,
+  element SECTION { text }*, 
+  ## month is a string (e.g. March)
   element DATE { 
     attribute day { xsd:integer},
-    attribute month { xsd:integer},
+    attribute month { xsd:string },
     attribute year { xsd:integer}
   },
-  element SUMMARY { CDATA }?
+  element SUMMARY { text }?
 }
