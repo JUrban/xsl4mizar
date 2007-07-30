@@ -1,3 +1,5 @@
+start = ARTICLE_BIB
+
 ## XML (RNC) specification of Mizar Bib files.
 ## They should live in files with extension .bbx,
 ## e.g. abcmiz_0.bbx .

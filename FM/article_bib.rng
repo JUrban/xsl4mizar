@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <start>
+    <ref name="ARTICLE_BIB"/>
+  </start>
   <define name="ARTICLE_BIB">
     <a:documentation>XML (RNC) specification of Mizar Bib files.
 They should live in files with extension .bbx,
