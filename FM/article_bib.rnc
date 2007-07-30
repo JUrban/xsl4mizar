@@ -1,0 +1,20 @@
+ARTICLE_BIB =
+element ARTICLE_BIB {
+  element AUTHOR { 
+      CDATA,
+    element NOTE { CDATA; }*,
+    element ADDRESS { CDATA; }+
+  }+,
+  element TITLE {
+     CDATA,
+   element NOTE { CDATA }*
+  },
+  element ACKNOWLEDGEMENT { CDATA }?,
+  element SECTION { CDATA }*, 
+  element DATE { 
+    attribute day { xsd:integer},
+    attribute month { xsd:integer},
+    attribute year { xsd:integer}
+  },
+  element SUMMARY { CDATA }?
+}
