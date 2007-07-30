@@ -9,13 +9,20 @@ import ../MHTML/mhtml_block_top.xsl;  // ##INCLUDE HERE
 output method=html;
 
 
-// $Revision: 1.2 $
+// $Revision: 1.3 $
 //
 // File: fm_main.xsltxt - TeX-ization of Mizar XML, main file
 //
 // Author: Josef Urban
 //
 // License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// XML terms, formulas and types to FM format.
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar ../xsltxt.jar toXSL fm_main.xsltxt >fm_main.xsl
+
 
 // include fm_print_complex.xsl;
 
@@ -125,6 +132,182 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
    }
 }
 
+tpl [Adjective](#i) 
+{ 
+     $pi    = { patt_info(#k="V", #nr=`@nr`, #pid =`@pid`); }
+     $fnr   = car(#l = $pi);
+     $anto  = cadr(#l = $pi);
+     $plink = third(#l = $pi);
+
+     $pid   = { if [$plink="1"] { `@pid`; } else { "0";} }
+     $neg   = { if [@value="false"] { `($anto + 1) mod 2`; } else { `$anto mod 2`; }}
+
+     if [$neg="1"] 
+     { 
+        "non ";
+     }
+
+     pp2(#k = "V", #nr=`@nr`, #i=$i, #vis="", #la="", #args="", #np="0", #fnr=$fnr, #pid=`@pid`);
+//     abs(#k="V", #nr=`@nr`, 
+//         #sym=abs1(#k="V", #nr=`@nr`, #fnr=$fnr, #pid=$pid), #pid = $pid); 
+}
+
+
+tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i) 
+{
+    $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
+            else { for-each [document($formats,/)] {
+                     for-each [key('F',$fnr)] { 
+                       if [@leftargnr] { `@leftargnr`;} else { "0";} }}} }
+    // try if right bracket - returns '' if not
+    $rsym = { if [($k='K') and ($la='0')] { abs1(#k=$k, #nr=$nr, #r="1"); } }
+    $np = { if [not($vis) or ($k='G')] { "0"; } else {
+               if [$parenth>0] { $parenth; } else { 
+                  if [not($rsym='')] { "1"; } else { "0";} } } }
+    $paren_color = `$np mod $pcolors_nr`;
+
+    // print spanned paranthesis or left bracket
+    if [($parenspans = 1) and ($np > 0)] 
+    { 
+       <span 
+       { 
+          @class=`concat("p",$paren_color)`;
+
+	  if [$rsym=''] 
+	  { 
+	     "("; 
+	  } 
+	  else 
+	  { 
+             abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
+	  }
+
+	  <span 
+	  { 
+             @class="default";
+	     pp2(#k = $k, #nr = $nr, #i = $i, #vis = $vis, #la = $la, #loci = $loci, #args = $args, 
+	         #np = $np, #rsym = $rsym, #parenth = $parenth, #fnr = $fnr, #pid = $pid);
+          }
+
+	  if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym, #pid=$pid); } 
+       }
+    } 
+    else 
+    {
+       if[($np > 0)]
+       {
+          if [$rsym=''] { "("; } 
+	  else 
+	  { 
+//             abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
+	  }
+       }
+
+       pp2(#k = $k, #nr = $nr, #i = $i, #vis = $vis, #la = $la, #loci = $loci, #args = $args, 
+           #np = $np, #rsym = $rsym, #parenth = $parenth, #fnr = $fnr, #pid = $pid);
+
+       if[($np > 0)]
+       {
+          if [$rsym=''] { ")"; } else { 
+// abs(#k=$k, #nr=$nr, #sym=$rsym, #pid=$pid); 
+}
+       }
+    }
+}
+
+
+tpl [Proposition] 
+{ 
+    if [following-sibling::*[1][(name()="By") and (@linked="true")]] 
+    { 
+       if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
+           or (name(..) = "Conclusion"))] 
+       { 
+          "then ";
+       }
+    }
+
+    if [@nr>0] 
+    { 
+       if [($proof_links>0) and ($print_lab_identifiers = 0) 
+            and not(string-length(@plevel)>0)]
+       { 
+	  plab1(#nr=`@nr`,#txt="Lemma"); 
+       }
+       else { pplab(#nr=`@nr`, #vid = `@vid`); }
+
+       ": ";
+    }
+
+    "$"; apply; " "; "$";
+}
+
+tpl add_hs_attrs { }
+
+tpl add_hs2_attrs { }
+
+tpl add_hsNdiv_attrs { }
+
+tpl add_ajax_attrs(#u) { }
+
+tpl mkref(#aid, #nr, #k, #c, #nm) 
+{
+  $mk  =  { refkind(#kind = $k); }
+  $alc =  { lc(#s = $aid); }
+
+      if [$nm] 
+      { 
+        $nm; 
+      }
+      else 
+      {
+        $aid; ":";
+
+        if [not($k="T")] 
+	{
+          $mk; " ";
+        }
+
+        $nr;
+      }
+
+}
+
+
+
+
+// add the constructor/pattern href, $c tells if it is from current article
+// #sym is optional Mizar symbol
+// #pid links to  patterns instead of constructors
+tpl absref(#elems, #c, #sym, #pid)
+{ 
+   $n1 = { if [($pid > 0)] { "N"; } else { ""; } }
+
+   for-each [$elems] 
+   { 
+      $mk0  = mkind(#kind = `@kind`); 
+      $mk   = { if [($pid > 0)] { `concat($mk0, "not")`; } else { $mk0; } }
+      $alc  = lc(#s=`@aid`);
+
+
+	 if [$sym] 
+	 { 
+	    $sym; 
+	 }
+	 else 
+	 { 
+	    if [$relnames > 0]
+	    { 
+	       $n1; `@kind`; `@relnr`; 
+	    }
+	    else 
+	    { 
+	       $n1; `@kind`; `@nr`; "_"; `@aid`;  
+	    } 
+	 }
+      
+   } 
+}
 
 
 // Default
