@@ -1,4 +1,4 @@
-# $Revision: 1.2 $
+# $Revision: 1.3 $
 # File: frdgrm.rnc - Relax NG compact spec for the data needed for 
 #                    translation of Mizar to TeX (FM); derived from
 #                    the BNF spec at http://fm.uwb.edu.pl/proof-read/fm.ps.
@@ -17,7 +17,8 @@ FMFormatMaps =
 ## Mizar format, i.e. by the symbol name and argnumbers
 ## (the symbol kind is probably redundant for lookup, given the
 ## current Mizar .voc-based technology).
-## 
+## The attributes additinaly contain the symbols directly -
+## lookup via th .dcx file is not used here.
 FMFormatMap =
  element FMFormatMap {
    attribute kind {'G'|'K'|'J'|'L'|'M'|'O'|'R'|'U'|'V'},
@@ -28,10 +29,12 @@ FMFormatMap =
    attribute leftargnr { xsd:integer }?,
    attribute rightsymbolnr { xsd:integer }?,
    attribute rightsymbolvoc { xsd:string }?,
-   FMFormat
+   FMControlHeader,
+   FMTranslPattern,
+   MathMLPattern?
 }
 
-## FMFormat for natural language translation.
+## FMFormat for natural language translation - not used
 ## This is a work in progress which should reasonably merge the
 ## four format kinds semiautomatically generated below.
 ## suggestions:
@@ -41,11 +44,7 @@ FMFormatMap =
 ## - why have all the extra translation features only for functors - why not e.g.
 ##   for predicates too?
 ## - merge validity, and adjective and predicate kinds
-FMFormat = 
- element FMFormat {
-     FMControlHeader,
-     FMTranslPattern
- }
+
 
 ## Control Header
 FMControlHeader = ( FunctorControlHeader | PredicateControlHeader | TypeControlHeader | AdjectiveControlHeader )
@@ -54,6 +53,13 @@ FMControlHeader = ( FunctorControlHeader | PredicateControlHeader | TypeControlH
 ## and integers (encoding the arguments substituted at their place)
 FMTranslPattern = 
  element FMTranslPattern {
+     ( Str | Int)+
+ }
+
+## the MathML translation pattern is a series of strings (encoding MathML writing)
+## and integers (encoding the arguments substituted at their place)
+MathMLPattern = 
+ element MathMLPattern {
      ( Str | Int)+
  }
 
@@ -76,12 +82,16 @@ Str =
 ## priority). If a context should be assigned to other arguments, it may
 ## be indicated in brackets after the letter of the operation kind (e.g.,"i(2,1)").
 ## kind values: l,k,m,r,q,w,t,b,i,x,y,c or other (should be marked somehow)
-OpKind =
- element OpKind {
-   attribute kind { 'prefix' | 'upperprefix' | 'lowerprefix' | 'postfix' | 'upperpostfix' | 'lowerpostfix' | 'overfix' | 'underfix' | 'infix' | 'nonassociativeinfix' | 'rightassociativeinfix' | 'circumfix' | 'otheroperation' }, 
+Forcing =
+ element Forcing {
+   Opkind,
    attribute arg1 { xsd:integer }?,
    attribute arg2 { xsd:integer }?
 }
+
+## the opkind attribute
+Opkind =
+ attribute opkind { 'prefix' | 'upperprefix' | 'lowerprefix' | 'postfix' | 'upperpostfix' | 'lowerpostfix' | 'overfix' | 'underfix' | 'infix' | 'nonassociativeinfix' | 'rightassociativeinfix' | 'circumfix' | 'otheroperation' }
 
 ## the priority attribute - probably should be just the one-letter codes;
 ## TODO: The four additional codes used now should be turned to decimal numbers.
@@ -109,8 +119,13 @@ ArgumentContext =
    OpKind
 }
 
-## note that Forcing is included in the OpKind+ syntax - any problems it might cause?
-## The final Int* models the List-of-bracket-disabled-arguments.
+## Bracket disabled arguments
+BracketDisabled =
+ element BracketDisabled {
+   Int+
+}
+
+## Functor Control Header:
 ## texmode: is either symbolic (math-mode (m) - between dollars) or verbal (horizontal) 
 ##   which either uses 'the' (h) before the functor or not (H).
 ##   This should be changed to two optional boolean attributes: 'symbolic' and 'the' - no:
@@ -129,10 +144,13 @@ FunctorControlHeader =
    attribute texmode {'symbolic' | 'the' | 'nonthe'},
    attribute bracketability { 'open' | 'closed'},
    attribute defstyle { 'normal' | 'asingular' | 'ansingular' | 'plural' },
+   Opkind,
+   attribute arg1 { xsd:integer }?,
+   attribute arg2 { xsd:integer }?,
    Priority?,
-   OpKind+,
+   Forcing*,
    ArgumentContext*,
-   Int*
+   BracketDisabled?
 }
    
 ## I wonder why this is so simple in comparison with functors?
