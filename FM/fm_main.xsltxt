@@ -9,7 +9,7 @@ import ../MHTML/mhtml_block_top.xsl;  // ##INCLUDE HERE
 output method=html;
 
 
-// $Revision: 1.3 $
+// $Revision: 1.4 $
 //
 // File: fm_main.xsltxt - TeX-ization of Mizar XML, main file
 //
@@ -32,6 +32,9 @@ output method=html;
 
 // XML file containing FM formats
 #fmformats=  { "file:///home/urban/xsltxt/xsl4mizar/FM/fm_formats.fmx"; }
+
+// .bxx file with the bibtex info in xml (see article_bib.rnc)
+#bibtex=  { `concat($anamelc, '.bbx')`; }
 
 // lookup of the FMFormat based on the symbol, kind,argnr and leftargnr - 
 // TODO: add the rightsymbol too (otherwise probably not unique)
@@ -309,114 +312,32 @@ tpl absref(#elems, #c, #sym, #pid)
    } 
 }
 
+tpl [AUTHOR|TITLE|ACKNOWLEDGEMENT|SUMMARY|NOTE|ADDRESS]
+{ 
+  pcomment(#str=`text()`); 
+  apply;
+}
+
+
+
+tpl [DATE]
+{ 
+  pcomment(#str=`concat("Received ", @month," ", @day, ", ", @year)`); 
+}
+
+
+tpl [ARTICLE_BIB] { apply; }
+
+
 
 // Default
 tpl [/] { 
 
-<html { 
+for-each [document($bibtex,/)] 
+     {
+        apply[ARTICLE_BIB];
+     }
 
-// output the css defaults for div and p (for indenting)
-        <style { @type="text/css";  "
-div { padding: 0 0 0 0; margin: 0 0 0 0; } 
-div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
-p { margin: 0 0 0 0; } 
-a {text-decoration:none} a:hover { color: red; } 
-a.ref { font-size:x-small; }
-a.ref:link { color:green; } 
-a.ref:hover { color: red; } 
-a.txt:link { color:black; } 
-a.txt:hover { color: red; } 
-span.hide { display: none; }
-span.p1:hover { color : inherit; background-color : #BAFFFF; } 
-span.p2:hover { color : inherit; background-color : #FFCACA; }
-span.p3:hover { color : inherit; background-color : #FFFFBA; }
-span.p4:hover { color : inherit; background-color : #CACAFF; }
-span.p5:hover { color : inherit; background-color : #CAFFCA; }
-span.p0:hover { color : inherit; background-color : #FFBAFF; }
-.default { background-color: white; color: black; } 
-.default:hover { background-color: white; color: black; }
-";
-	                } 
-        <head {  
-<script { @type="text/javascript";
-"
-<!-- 
-function hs(obj)
-{
-// document.getElementById('myimage').nextSibling.style.display = 'block';
-if (obj.nextSibling.style.display == 'inline')
- { obj.nextSibling.style.display = 'none'; }
-else { if (obj.nextSibling.style.display == 'none')
- { obj.nextSibling.style.display = 'inline'; }
- else { obj.nextSibling.style.display = 'inline';  }}
-return false;
-}
-
-function hs2(obj)
-{
-if (obj.nextSibling.style.display == 'block')
- { obj.nextSibling.style.display = 'none'; }
-else { if (obj.nextSibling.style.display == 'none')
- { obj.nextSibling.style.display = 'block'; }
- else { obj.nextSibling.style.display = 'none';  }}
-return false;
-}
-function hsNdiv(obj)
-{
-var ndiv = obj;
-while (ndiv.nextSibling.nodeName != 'DIV') { ndiv = ndiv.nextSibling; }
-return hs2(ndiv);
-}
-
-// explorer7 implements XMLHttpRequest in some strange way
-function makeRequest(obj,url) {
-        var http_request = false;
-        if (window.XMLHttpRequest && !(window.ActiveXObject)) { // Mozilla, Safari,...
-            http_request = new XMLHttpRequest();
-            if (http_request.overrideMimeType) {
-                http_request.overrideMimeType('text/xml');
-            }
-        } else if (window.ActiveXObject) { // IE
-            try {
-                http_request = new ActiveXObject('Msxml2.XMLHTTP');
-            } catch (e) {
-                try {
-                    http_request = new ActiveXObject('Microsoft.XMLHTTP');
-                } catch (e) {}
-            }
-        }
-        if (!http_request) {
-            alert('Giving up :( Cannot create an XMLHTTP instance');
-            return false;
-        }
-        http_request.onreadystatechange = function() { insertRequest(obj,http_request); };
-        http_request.open('GET', url, true);
-        http_request.send(null);
-    }
-// commented the 200 state to have local requests too
-function insertRequest(obj,http_request) {
-        if (http_request.readyState == 4) {
-//            if (http_request.status == 200) {
-	    var ndiv = obj;
-	    while (ndiv.nodeName != 'SPAN') { ndiv = ndiv.nextSibling; }
-	    ndiv.innerHTML = http_request.responseText;
-	    obj.onclick = function(){ return hs2(obj) };
-//            } else {
-//                alert('There was a problem with the request.');
-//		alert(http_request.status);
-//            }
-	    }}
-// End -->
-"; }
-<base { 
-if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} } 
-// <!-- 
-// var browse_url = \"http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry=\"
-// function l1(c) { location = browse_url + c }
-// // End -->
-// "; }
-}
-        <body {  
 
 // first read the keys for imported stuff
 //          apply[document($constrs,/)/Constructors/Constructor]; 
@@ -424,7 +345,7 @@ if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} }
 //          apply[document($schms,/)/Schemes/Scheme];
  
 // then process the whole document
-          apply; }} }
+          apply; }
   
 // tpl [*] { copy { apply [@*]; apply; } }
 // tpl [@*] { copy-of `.`; }
