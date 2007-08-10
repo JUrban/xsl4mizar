@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.3 $ -->
+  <!-- $Revision: 1.4 $ -->
   <!--  -->
   <!-- File: params.xsltxt - html-ization of Mizar XML, top-level parameters -->
   <!--  -->
@@ -30,7 +30,7 @@
     <xsl:value-of select="string(/*/@mizfiles)"/>
   </xsl:param>
   <xsl:param name="mizhtml">
-    <xsl:value-of select="concat($mizfiles,&quot;html/&quot;)"/>
+    <xsl:value-of select="concat(&quot;file://&quot;,$mizfiles,&quot;html/&quot;)"/>
   </xsl:param>
   <!-- extension for linking to other articles - either xml or html -->
   <xsl:param name="ext">
@@ -108,7 +108,7 @@
   </xsl:param>
   <!-- tells to display thesis after skeleton items -->
   <xsl:param name="display_thesis">
-    <xsl:text>0</xsl:text>
+    <xsl:text>1</xsl:text>
   </xsl:param>
   <!-- tells if only selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items">
