@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.40 $ -->
+  <!-- $Revision: 1.41 $ -->
   <!--  -->
   <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -62,7 +62,7 @@
     <xsl:value-of select="string(/*/@mizfiles)"/>
   </xsl:param>
   <xsl:param name="mizhtml">
-    <xsl:value-of select="concat($mizfiles,&quot;html/&quot;)"/>
+    <xsl:value-of select="concat(&quot;file://&quot;,$mizfiles,&quot;html/&quot;)"/>
   </xsl:param>
   <!-- extension for linking to other articles - either xml or html -->
   <xsl:param name="ext">
@@ -140,7 +140,7 @@
   </xsl:param>
   <!-- tells to display thesis after skeleton items -->
   <xsl:param name="display_thesis">
-    <xsl:text>0</xsl:text>
+    <xsl:text>1</xsl:text>
   </xsl:param>
   <!-- tells if only selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items">
@@ -5174,6 +5174,7 @@
                 <xsl:text> be </xsl:text>
                 <xsl:apply-templates select="Typ"/>
                 <xsl:text>;</xsl:text>
+                <xsl:call-template name="try_th_exps"/>
                 <xsl:element name="br"/>
                 <xsl:apply-templates select="following-sibling::*[position()=$it_step][name()=&quot;Let&quot;]">
                   <xsl:with-param name="fst">
@@ -7509,6 +7510,26 @@ function insertRequest(obj,http_request) {
 // End --&gt;
 </xsl:text>
             </xsl:element>
+            <xsl:if test="$idv&gt;0">
+              <xsl:element name="script">
+                <xsl:attribute name="type">
+                  <xsl:text>text/javascript</xsl:text>
+                </xsl:attribute>
+                <xsl:text>
+&lt;!--
+var tstp_dump;
+function openSoTSTP (dump) {
+var tstp_url = &apos;http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTSTP&apos;;
+var tstp_browser = window.open(tstp_url, &apos;_blank&apos;);
+tstp_dump = dump;
+}
+function getTSTPDump () {
+return tstp_dump;
+}
+// End --&gt;
+</xsl:text>
+              </xsl:element>
+            </xsl:if>
             <xsl:element name="base">
               <xsl:choose>
                 <xsl:when test="$linking = &quot;s&quot;">

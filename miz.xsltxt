@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.90 $
+// $Revision: 1.91 $
 //
 // File: miz.xsltxt - html-ization of Mizar XML, main file
 //
@@ -73,7 +73,7 @@ output method=html;
 
 // needed for local linking, document("") gives the sylesheet as a document
 #mizfiles = { `string(/*/@mizfiles)`; }
-#mizhtml  = { `concat($mizfiles,"html/")`; }
+#mizhtml  = { `concat("file://",$mizfiles,"html/")`; }
 
 // extension for linking to other articles - either xml or html
 #ext = { "html"; }
@@ -136,7 +136,7 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 #ajax_proofs = { "0"; }
 
 // tells to display thesis after skeleton items
-#display_thesis = { "0"; }
+#display_thesis = { "1"; }
 
 // tells if only selected items are generated to subdirs; default is off
 #generate_items = { "0"; }
@@ -2278,7 +2278,7 @@ tpl [Let](#fst,#beg) {
        }
        else // or ends here - print the type, deal with following
        { 
-          " be "; apply[Typ]; ";"; <br;
+          " be "; apply[Typ]; ";"; try_th_exps(); <br;
 	  apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1"); 
        }
    }
@@ -3717,6 +3717,23 @@ function insertRequest(obj,http_request) {
 	    }}
 // End -->
 "; }
+if [$idv>0]
+{
+<script { @type="text/javascript";
+"
+<!--
+var tstp_dump;
+function openSoTSTP (dump) {
+var tstp_url = 'http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTSTP';
+var tstp_browser = window.open(tstp_url, '_blank');
+tstp_dump = dump;
+}
+function getTSTPDump () {
+return tstp_dump;
+}
+// End -->
+";
+}}
 <base { 
 if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} } 
 // <!-- 
