@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.3 $ -->
+  <!-- $Revision: 1.4 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -38,9 +38,10 @@
     <xsl:choose>
       <xsl:when test="$generate_items = &quot;1&quot;">
         <xsl:apply-templates select="/*/JustifiedTheorem|/*/DefTheorem|/*/SchemeBlock"/>
-        <xsl:apply-templates select="//RCluster|//CCluster|//FCluster|//Definition"/>
+        <xsl:apply-templates select="//RCluster|//CCluster|//FCluster|//Definition|//IdentifyWithExp"/>
+        <!-- top-level lemmas -->
         <xsl:for-each select="/*/Proposition">
-          <xsl:document href="items/{$anamelc}/lemma_{@propnr}" format="html"> 
+          <xsl:document href="proofhtml/lemma/{$anamelc}.{@propnr}" format="html"> 
           <xsl:apply-templates select="."/>
           </xsl:document> 
           <xsl:variable name="bogus" select="1"/>
@@ -149,6 +150,26 @@ function insertRequest(obj,http_request) {
 // End --&gt;
 </xsl:text>
             </xsl:element>
+            <xsl:if test="$idv&gt;0">
+              <xsl:element name="script">
+                <xsl:attribute name="type">
+                  <xsl:text>text/javascript</xsl:text>
+                </xsl:attribute>
+                <xsl:text>
+&lt;!--
+var tstp_dump;
+function openSoTSTP (dump) {
+var tstp_url = &apos;http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTSTP&apos;;
+var tstp_browser = window.open(tstp_url, &apos;_blank&apos;);
+tstp_dump = dump;
+}
+function getTSTPDump () {
+return tstp_dump;
+}
+// End --&gt;
+</xsl:text>
+              </xsl:element>
+            </xsl:if>
             <xsl:element name="base">
               <xsl:choose>
                 <xsl:when test="$linking = &quot;s&quot;">
