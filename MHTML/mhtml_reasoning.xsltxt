@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.19 $
+// $Revision: 1.20 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -305,7 +305,7 @@ tpl [Let](#fst,#beg) {
        }
        else // or ends here - print the type, deal with following
        { 
-          " be "; apply[Typ]; ";"; <br;
+          " be "; apply[Typ]; ";"; try_th_exps(); <br;
 	  apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1"); 
        }
    }
