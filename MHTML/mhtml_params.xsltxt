@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.10 $
+// $Revision: 1.11 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -29,7 +29,7 @@ output method=html;
 
 // needed for local linking, document("") gives the sylesheet as a document
 #mizfiles = { `string(/*/@mizfiles)`; }
-#mizhtml  = { `concat($mizfiles,"html/")`; }
+#mizhtml  = { `concat("file://",$mizfiles,"html/")`; }
 
 // extension for linking to other articles - either xml or html
 #ext = { "html"; }
