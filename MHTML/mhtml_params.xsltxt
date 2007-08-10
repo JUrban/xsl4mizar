@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.9 $
+// $Revision: 1.10 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -92,7 +92,7 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 #ajax_proofs = { "0"; }
 
 // tells to display thesis after skeleton items
-#display_thesis = { "0"; }
+#display_thesis = { "1"; }
 
 // tells if only selected items are generated to subdirs; default is off
 #generate_items = { "0"; }
