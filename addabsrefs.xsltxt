@@ -161,14 +161,18 @@ tpl [ThesisExpansions/Pair] {
 	 else { "errorexpansion"; }}}}}
 
 // add absolute numbers to these (they are kind-dependent)
+// note that redefnr of Patterns (relative nr of the synonym/antonym
+// Pattern) is ignored
 tpl [Theorem|Constructor|Pattern](#s) { 
              $n=`name()`; <$n 
 	     { 
 	     copy-of `@*`;
-             if [$ethprocess = 0] {
-             $k=`@kind`; @aid=$aname;
-             @nr=`1 + count(preceding::*[(name()=$n) and (@kind=$k)])`;
-	     if [@redefnr > 0] { abs(#k=$k,#nr=`@redefnr`,#r="1"); } }
+             if [$ethprocess = 0] 
+	     {
+               $k=`@kind`; @aid=$aname;
+	       @nr=`1 + count(preceding::*[(name()=$n) and (@kind=$k)])`;
+	       if [(@redefnr > 0) and ($n = "Constructor")] { abs(#k=$k,#nr=`@redefnr`,#r="1"); } 
+	     }
              apply(#s=$s); }}
 
 tpl [Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp](#s)
