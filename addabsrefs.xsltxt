@@ -43,6 +43,8 @@ key "DF" [Definiens] `@relnr` ;
 key "SI" [/FromExplanations/SchemeInstantiation] `concat(@line,':',@col)`;
 
 // lookup for ByExplanations (in .bex)
+// after running verifier, postprocess (sort away redundant stuff from) .bex with:
+// perl -e 'local $/;$_=<>; m/((.|[\n])*?)<PolyEval/; print $1; while(m/(<PolyEval((.|[\n])*?)<\/PolyEval>)/g) { if(!(exists $h{$1})) { print $1; $h{$1} = (); }} print "</ByExplanations>";'
 key "PE" [/ByExplanations/PolyEval] `concat(@line,':',@col)`;
 
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
