@@ -42,6 +42,8 @@ key "DF" [Definiens] `@relnr` ;
 // lookup for FromExplanations (in .fex)
 key "SI" [/FromExplanations/SchemeInstantiation] `concat(@line,':',@col)`;
 
+// lookup for ByExplanations (in .bex)
+key "PE" [/ByExplanations/PolyEval] `concat(@line,':',@col)`;
 
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
@@ -70,6 +72,10 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // .fex file with FromExplanations
 #fex=  { `concat($anamelc, '.fex')`; }
 
+// .bex file with ByExplanations
+#bex=  { `concat($anamelc, '.bex')`; }
+
+
 // this needs to be set to 1 for processing .eth files
 #ethprocess = { "0"; }
 
@@ -93,7 +99,7 @@ tpl [Func](#s,#e) { <Func {  copy-of `@*`;
      apply(#s=$s,#e=$e); } 
   else { abs(#k=`@kind`, #nr=`@nr`); apply(#s=$s,#e=$e); }}}
 
-// for .fex (FromExopnations file)
+// for .fex (FromExplanations file)
 tpl [FuncInstance | PredInstance](#s,#e) { 
     $n=`name()`; <$n { copy-of `@*`;
     if [(@kind='K') or (@kind='R') or (@kind='V')]  
@@ -137,6 +143,27 @@ tpl [From](#s){ <From { copy-of `@*`;
 	  }}
           apply(#s=$s,#e=$el); }}}}}
     apply(#s=$s); }}
+
+tpl [Requirement](#s) { <Requirement { copy-of `@*`; abs(#k=`@constrkind`, #nr=`@constrnr`); }}
+
+tpl [By](#s) { 
+    <By 
+    { 
+       copy-of `@*`;
+       apply(#s=$s);
+       // insert the PolyEval elements from $bex, make 
+       // them absolute by adding @schemnr, @aid, @instaid, @instschemenr
+       $l = `@line`; $c = `@col`;
+       $pos = `concat($l,':',$c)`;
+       for-each [document($bex,/)] { 
+          for-each [key('PE',$pos)] 
+	  { 
+ 	          <PolyEval  { copy-of `@*`; apply(#s=$s); }
+          }
+       }
+    }
+}
+
 
 tpl [Ref](#s) { if [not(@articlenr)] { copy { apply [@*](#s=$s); apply(#s=$s); } }
             else { <Ref {  copy-of `@*`;
