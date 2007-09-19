@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.55 $
+// $Revision: 1.56 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -954,16 +954,29 @@ tpl refs(#el,#pl,#prnr)
 	  plname(#n=`../../@propnr - 1`,#pl=`../../@plevel`); } 
        else { if [$prnr>1] {
 	  plname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; } }
-      if [Ref] { ","; } 
+      if [Ref|PolyEval] { ","; } 
     }
     else { if [name()="From"] 
     { 
 	 sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); 
-	 if [Ref] { ","; }
+	 if [Ref|PolyEval] { ","; }
     }}
 
-    for-each [Ref] { refname(#el=`.`,#pl=$pl); 
-	if [not(position()=last())] { ","; } }
+    for-each [Ref] 
+    { 
+       refname(#el=`.`,#pl=$pl); 
+       if [not(position()=last())] { ","; } 
+    }
+    
+    if [PolyEval]
+    {
+       if[Ref] { ","; }
+       for-each [PolyEval] 
+       { 
+          polyeval_name(#el=`.`,#pl=$pl); 
+	  if [not(position()=last())] { ","; } 
+       }
+    }
   }
 }
 
@@ -1782,6 +1795,34 @@ tpl refname(#el,#pl) { for-each [$el] {
     if [(@kind = "T") or (@kind = "D")] { absr(#el=$el); }
     else { privname(#nr=`@nr`,#pl=$pl); } }}
 
+tpl polyeval_name(#el,#pl) 
+{ 
+    for-each [$el] 
+    {
+       `Requirement/@reqname`; "__";
+       absc(#el=`Requirement`); "__";
+       if [Requirement/@value = "false"] { "false__"; }
+       for-each[*[position() > 1]]
+       {
+          if[(name() = "RationalNr") or (name() = "ComplexNr")] {  apply[.]; }
+	  else { `name()`; $fail; }
+	  if [not(position()=last())] { "_"; }
+       }
+    }
+}
+
+tpl encode_minus (#n) { if[$n < 0] { "m";  `0 - $n`; } else { $n; } }
+
+tpl [RationalNr] 
+{
+   "r";
+   if[@denominator = "1"] {  encode_minus(#n=`@numerator`); }
+   else { "n"; encode_minus(#n=`@numerator`); "d"; encode_minus(#n=`@denominator`); }
+}
+
+tpl [ComplexNr] {"c"; apply;}
+
+
 tpl top_propname(#el) 
 { 
   for-each [$el/..] 
@@ -1852,12 +1893,41 @@ tpl priv_def(#k,#nr,#pl)
 }
 
 
+// hack for .bex1 file, it's the same as Typ, but uses upper cluster
+// instead of lower cluster; maybe the lower cluster should be fixed
+// to a more proper value in iocorrel.pas
+tpl [ByExplanations](#i,#pl) { for-each [Typ] { if[position() = 2] { "non"; } "zerotyp("; $anamelc; ","; 
+
+      if [@kind='errortyp'] { "errortyp"; }
+      else { if [(@kind="M") or (@kind="L")] {
+        $radix = { if [(@aid = "HIDDEN") and (@kind="M") and (@nr="1")]
+                         { "0"; } else { "1"; } }
+        $adjectives = { `count(*[2]/*)`; }
+        if [($adjectives + $radix) = 0] { "$true"; }
+        else {
+          if [($adjectives + $radix) > 1] { "( "; }
+          if [$adjectives > 0] {
+             apply[*[2]](#i=$i,#pl=$pl); 
+             if [$radix > 0] { $and_s; } }
+          if [($radix > 0)] { 
+             absc(#el=`.`);
+             if [count(*) > $cluster_nr ] { 
+               "(";
+               ilist(#separ=",", #elems=`*[position() > $cluster_nr]`, 
+	             #i=$i, #pl=$pl); 
+               ")"; } }
+          if [($adjectives + $radix) > 1] { " )"; }
+         }
+      }
+      else { $fail; } }
+
+ ").\n"; }}
 
 
 tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//Thesis|//PerCasesReasoning]; }
+	     //CCluster|//FCluster|//RCluster|//Thesis|//PerCasesReasoning|/ByExplanations]; }
 	  else { apply; } }
 
 
