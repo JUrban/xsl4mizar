@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.56 $
+// $Revision: 1.57 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -1811,7 +1811,11 @@ tpl polyeval_name(#el,#pl)
     }
 }
 
-tpl encode_minus (#n) { if[$n < 0] { "m";  `0 - $n`; } else { $n; } }
+// this produces m 2.964693601e+09 for pepin at 2058,54; so we use
+// string replacement instead
+tpl encode_minus_bad (#n) { if[$n < 0] { "m";  `0 - $n`; } else { $n; } }
+
+tpl encode_minus(#n) { if[$n < 0] { `translate($n,"-","m")`; } else { $n; } }
 
 tpl [RationalNr] 
 {
