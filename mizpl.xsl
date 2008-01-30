@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" extension-element-prefixes="exsl exsl-str xt" xmlns:exsl="http://exslt.org/common" xmlns:exsl-str="http://exslt.org/strings" xmlns:xt="http://www.jclark.com/xt" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text"/>
-  <!-- $Revision: 1.4 $ -->
+  <!-- $Revision: 1.5 $ -->
   <!--  -->
   <!-- File: mizpl.xsltxt - stylesheet translating Mizar XML terms, -->
   <!-- formulas and types to Prolog TSTP-like format. -->
@@ -1470,6 +1470,7 @@
         <xsl:text>]</xsl:text>
         <xsl:text>,</xsl:text>
         <xsl:text>[</xsl:text>
+        <xsl:value-of select="$thexps"/>
         <xsl:call-template name="thesisname">
           <xsl:with-param name="n" select="$thes_nr + 1"/>
           <xsl:with-param name="pl" select="@plevel"/>
@@ -2285,7 +2286,7 @@
               </xsl:choose>
             </xsl:otherwise>
           </xsl:choose>
-          <xsl:if test="Ref">
+          <xsl:if test="Ref|PolyEval">
             <xsl:text>,</xsl:text>
           </xsl:if>
         </xsl:when>
@@ -2296,7 +2297,7 @@
               <xsl:with-param name="pl" select="$pl"/>
               <xsl:with-param name="prnr" select="$prnr"/>
             </xsl:call-template>
-            <xsl:if test="Ref">
+            <xsl:if test="Ref|PolyEval">
               <xsl:text>,</xsl:text>
             </xsl:if>
           </xsl:if>
@@ -2311,6 +2312,20 @@
           <xsl:text>,</xsl:text>
         </xsl:if>
       </xsl:for-each>
+      <xsl:if test="PolyEval">
+        <xsl:if test="Ref">
+          <xsl:text>,</xsl:text>
+        </xsl:if>
+        <xsl:for-each select="PolyEval">
+          <xsl:call-template name="polyeval_name">
+            <xsl:with-param name="el" select="."/>
+            <xsl:with-param name="pl" select="$pl"/>
+          </xsl:call-template>
+          <xsl:if test="not(position()=last())">
+            <xsl:text>,</xsl:text>
+          </xsl:if>
+        </xsl:for-each>
+      </xsl:if>
     </xsl:for-each>
   </xsl:template>
 
@@ -2805,7 +2820,7 @@
     <xsl:variable name="l" select="count(ArgTypes/Typ)"/>
     <xsl:text>fof(dt_</xsl:text>
     <xsl:value-of select="$nm"/>
-    <xsl:text>,assumption,</xsl:text>
+    <xsl:text>,axiom,</xsl:text>
     <xsl:if test="$l &gt; 0">
       <xsl:text>![</xsl:text>
       <xsl:for-each select="ArgTypes/Typ">
@@ -4571,6 +4586,89 @@
     </xsl:for-each>
   </xsl:template>
 
+  <xsl:template name="polyeval_name">
+    <xsl:param name="el"/>
+    <xsl:param name="pl"/>
+    <xsl:for-each select="$el">
+      <xsl:value-of select="Requirement/@reqname"/>
+      <xsl:text>__</xsl:text>
+      <xsl:call-template name="absc">
+        <xsl:with-param name="el" select="Requirement"/>
+      </xsl:call-template>
+      <xsl:text>__</xsl:text>
+      <xsl:if test="Requirement/@value = &quot;false&quot;">
+        <xsl:text>false__</xsl:text>
+      </xsl:if>
+      <xsl:for-each select="*[position() &gt; 1]">
+        <xsl:choose>
+          <xsl:when test="(name() = &quot;RationalNr&quot;) or (name() = &quot;ComplexNr&quot;)">
+            <xsl:apply-templates select="."/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="name()"/>
+            <xsl:value-of select="$fail"/>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:if test="not(position()=last())">
+          <xsl:text>_</xsl:text>
+        </xsl:if>
+      </xsl:for-each>
+    </xsl:for-each>
+  </xsl:template>
+
+  <!-- this produces m 2.964693601e+09 for pepin at 2058,54; so we use -->
+  <!-- string replacement instead -->
+  <xsl:template name="encode_minus_bad">
+    <xsl:param name="n"/>
+    <xsl:choose>
+      <xsl:when test="$n &lt; 0">
+        <xsl:text>m</xsl:text>
+        <xsl:value-of select="0 - $n"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$n"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="encode_minus">
+    <xsl:param name="n"/>
+    <xsl:choose>
+      <xsl:when test="$n &lt; 0">
+        <xsl:value-of select="translate($n,&quot;-&quot;,&quot;m&quot;)"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$n"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match="RationalNr">
+    <xsl:text>r</xsl:text>
+    <xsl:choose>
+      <xsl:when test="@denominator = &quot;1&quot;">
+        <xsl:call-template name="encode_minus">
+          <xsl:with-param name="n" select="@numerator"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>n</xsl:text>
+        <xsl:call-template name="encode_minus">
+          <xsl:with-param name="n" select="@numerator"/>
+        </xsl:call-template>
+        <xsl:text>d</xsl:text>
+        <xsl:call-template name="encode_minus">
+          <xsl:with-param name="n" select="@denominator"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template match="ComplexNr">
+    <xsl:text>c</xsl:text>
+    <xsl:apply-templates/>
+  </xsl:template>
+
   <xsl:template name="top_propname">
     <xsl:param name="el"/>
     <xsl:for-each select="$el/..">
@@ -4725,13 +4823,97 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- hack for .bex1 file, it's the same as Typ, but uses upper cluster -->
+  <!-- instead of lower cluster; maybe the lower cluster should be fixed -->
+  <!-- to a more proper value in iocorrel.pas -->
+  <xsl:template match="ByExplanations">
+    <xsl:param name="i"/>
+    <xsl:param name="pl"/>
+    <xsl:for-each select="Typ">
+      <xsl:if test="position() = 2">
+        <xsl:text>non</xsl:text>
+      </xsl:if>
+      <xsl:text>zerotyp(</xsl:text>
+      <xsl:value-of select="$anamelc"/>
+      <xsl:text>,</xsl:text>
+      <xsl:choose>
+        <xsl:when test="@kind=&apos;errortyp&apos;">
+          <xsl:text>errortyp</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:choose>
+            <xsl:when test="(@kind=&quot;M&quot;) or (@kind=&quot;L&quot;)">
+              <xsl:variable name="radix">
+                <xsl:choose>
+                  <xsl:when test="(@aid = &quot;HIDDEN&quot;) and (@kind=&quot;M&quot;) and (@nr=&quot;1&quot;)">
+                    <xsl:text>0</xsl:text>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:text>1</xsl:text>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:variable>
+              <xsl:variable name="adjectives">
+                <xsl:value-of select="count(*[2]/*)"/>
+              </xsl:variable>
+              <xsl:choose>
+                <xsl:when test="($adjectives + $radix) = 0">
+                  <xsl:text>$true</xsl:text>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:if test="($adjectives + $radix) &gt; 1">
+                    <xsl:text>( </xsl:text>
+                  </xsl:if>
+                  <xsl:if test="$adjectives &gt; 0">
+                    <xsl:apply-templates select="*[2]">
+                      <xsl:with-param name="i" select="$i"/>
+                      <xsl:with-param name="pl" select="$pl"/>
+                    </xsl:apply-templates>
+                    <xsl:if test="$radix &gt; 0">
+                      <xsl:value-of select="$and_s"/>
+                    </xsl:if>
+                  </xsl:if>
+                  <xsl:if test="($radix &gt; 0)">
+                    <xsl:call-template name="absc">
+                      <xsl:with-param name="el" select="."/>
+                    </xsl:call-template>
+                    <xsl:if test="count(*) &gt; $cluster_nr ">
+                      <xsl:text>(</xsl:text>
+                      <xsl:call-template name="ilist">
+                        <xsl:with-param name="separ">
+                          <xsl:text>,</xsl:text>
+                        </xsl:with-param>
+                        <xsl:with-param name="elems" select="*[position() &gt; $cluster_nr]"/>
+                        <xsl:with-param name="i" select="$i"/>
+                        <xsl:with-param name="pl" select="$pl"/>
+                      </xsl:call-template>
+                      <xsl:text>)</xsl:text>
+                    </xsl:if>
+                  </xsl:if>
+                  <xsl:if test="($adjectives + $radix) &gt; 1">
+                    <xsl:text> )</xsl:text>
+                  </xsl:if>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$fail"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:text>).
+</xsl:text>
+    </xsl:for-each>
+  </xsl:template>
+
   <xsl:template match="/">
     <xsl:choose>
       <xsl:when test="$mml=&quot;0&quot;">
         <xsl:apply-templates select="//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//Thesis|//PerCasesReasoning"/>
+	     //CCluster|//FCluster|//RCluster|//Thesis|//PerCasesReasoning|/ByExplanations"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates/>
