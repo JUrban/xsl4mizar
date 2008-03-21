@@ -17,10 +17,10 @@ cp -a mml miztmp
 cp Makefile  miztmp
 export MIZFILES=`pwd`
 cd miztmp
-make -j4 allacc | tee 00acc.log
-make -j4 allxml | tee 00xml.log
-make -j4 allxml1 | tee 00xml1.log
-make -j4 allhtmla1 | tee 00htmla1.log
+make -j8 allacc | tee 00acc.log
+make -j8 allxml | tee 00xml.log
+make -j8 allxml1 | tee 00xml1.log
+make -j8 allhtmla1 | tee 00htmla1.log
 make hidden.acc
 make hidden.xml
 make hidden.xml1
@@ -29,7 +29,7 @@ make tarski.acc
 make tarski.xml
 make tarski.xml1
 make tarski.htmla1
-for i in `ls *.htmla1| sed -e 's/.htmla1//'`; do mv $i.htmla1 ../html/$i.html; done
+for j in `ls *.htmla1| sed -e 's/.htmla1//'`; do mv $j.htmla1 ../html/$j.html; done
 cd ..
 tar czf html_abstr.$i.noproofs.tar.gz html
 mv miztmp/proofs html
