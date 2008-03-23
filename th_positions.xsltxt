@@ -1,0 +1,24 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
+// rremoving all proof elements from the xml
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL th_positions.xsltxt > th_positions.xsl
+
+// Then e.g.: xsltproc th_positions.xsl ordinal2.xml > remproofs.xml1
+
+output method=text;
+
+strip-space "*";
+
+tpl [/Article/JustifiedTheorem]
+{ `Proposition/@line`; ",";
+  if[Proof] { `Proof/EndPosition/@line`; "\n"; }
+  else { if[By] { `By/@line`; "\n"; }
+  else { if [From] { `From/@line`; "\n";}
+  else { if [SkippedProof] { `Proposition/@line`; "\n";}
+  else { "error"; }}}}
+}
+
+
