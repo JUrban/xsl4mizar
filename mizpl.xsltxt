@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.57 $
+// $Revision: 1.58 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -1675,6 +1675,40 @@ tpl [RCluster]
 }
 
 
+// sufficient proof refs done as for clusters
+// ##GRM: IdentifyExp_Name : "ie" Number "_" Aid .
+tpl [IdentifyWithExp] 
+{ 
+  if [ErrorIdentify] { } 
+  else 
+  {
+    "fof("; absk(#el=`.`,#kind="ie"); ",theorem,";
+    if [Typ] 
+    {  
+       "!["; for-each [Typ] { 
+          ploci(#nr=`position()`); " : "; apply[.]; 
+          if [not(position()=last())] { ","; } }
+       "]: "; 
+    } 
+    "(";
+    apply[Func[1]];
+    $eq_s;
+    // the next/last one should be Func too, but just for safety:
+    apply[*[position() = last()]];
+    ")";
+    ",file("; lc(#s=`@aid`); ",";
+    absk(#el=`.`,#kind="ie"); "),[mptp_info("; `@nr`; 
+    ",[],identifyexp,position(0,0),[";
+    if [$mml="0"] 
+    { 
+       "proof_level(["; `translate(../@newlevel,"_",",")`; "]),"; 
+       cluster_correctness_conditions(#el=`../*[position() > 1]`);
+    }
+    "])]).\n"; 
+  }
+}
+
+
 tpl [ArgTypes] { if [Typ] {
        "!["; for-each [Typ] { 
           ploci(#nr=`position()`); " : "; apply[.]; 
@@ -1931,7 +1965,7 @@ tpl [ByExplanations](#i,#pl) { for-each [Typ] { if[position() = 2] { "non"; } "z
 tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//Thesis|//PerCasesReasoning|/ByExplanations]; }
+	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Thesis|//PerCasesReasoning|/ByExplanations]; }
 	  else { apply; } }
 
 
