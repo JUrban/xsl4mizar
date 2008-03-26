@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" extension-element-prefixes="exsl exsl-str xt" xmlns:exsl="http://exslt.org/common" xmlns:exsl-str="http://exslt.org/strings" xmlns:xt="http://www.jclark.com/xt" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text"/>
-  <!-- $Revision: 1.5 $ -->
+  <!-- $Revision: 1.6 $ -->
   <!--  -->
   <!-- File: mizpl.xsltxt - stylesheet translating Mizar XML terms, -->
   <!-- formulas and types to Prolog TSTP-like format. -->
@@ -4120,6 +4120,68 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- sufficient proof refs done as for clusters -->
+  <!-- ##GRM: IdentifyExp_Name : "ie" Number "_" Aid . -->
+  <xsl:template match="IdentifyWithExp">
+    <xsl:choose>
+      <xsl:when test="ErrorIdentify"/>
+      <xsl:otherwise>
+        <xsl:text>fof(</xsl:text>
+        <xsl:call-template name="absk">
+          <xsl:with-param name="el" select="."/>
+          <xsl:with-param name="kind">
+            <xsl:text>ie</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+        <xsl:text>,theorem,</xsl:text>
+        <xsl:if test="Typ">
+          <xsl:text>![</xsl:text>
+          <xsl:for-each select="Typ">
+            <xsl:call-template name="ploci">
+              <xsl:with-param name="nr" select="position()"/>
+            </xsl:call-template>
+            <xsl:text> : </xsl:text>
+            <xsl:apply-templates select="."/>
+            <xsl:if test="not(position()=last())">
+              <xsl:text>,</xsl:text>
+            </xsl:if>
+          </xsl:for-each>
+          <xsl:text>]: </xsl:text>
+        </xsl:if>
+        <xsl:text>(</xsl:text>
+        <xsl:apply-templates select="Func[1]"/>
+        <xsl:value-of select="$eq_s"/>
+        <!-- the next/last one should be Func too, but just for safety: -->
+        <xsl:apply-templates select="*[position() = last()]"/>
+        <xsl:text>)</xsl:text>
+        <xsl:text>,file(</xsl:text>
+        <xsl:call-template name="lc">
+          <xsl:with-param name="s" select="@aid"/>
+        </xsl:call-template>
+        <xsl:text>,</xsl:text>
+        <xsl:call-template name="absk">
+          <xsl:with-param name="el" select="."/>
+          <xsl:with-param name="kind">
+            <xsl:text>ie</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+        <xsl:text>),[mptp_info(</xsl:text>
+        <xsl:value-of select="@nr"/>
+        <xsl:text>,[],identifyexp,position(0,0),[</xsl:text>
+        <xsl:if test="$mml=&quot;0&quot;">
+          <xsl:text>proof_level([</xsl:text>
+          <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
+          <xsl:text>]),</xsl:text>
+          <xsl:call-template name="cluster_correctness_conditions">
+            <xsl:with-param name="el" select="../*[position() &gt; 1]"/>
+          </xsl:call-template>
+        </xsl:if>
+        <xsl:text>])]).
+</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template match="ArgTypes">
     <xsl:if test="Typ">
       <xsl:text>![</xsl:text>
@@ -4913,7 +4975,7 @@
         <xsl:apply-templates select="//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//Thesis|//PerCasesReasoning|/ByExplanations"/>
+	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Thesis|//PerCasesReasoning|/ByExplanations"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates/>
