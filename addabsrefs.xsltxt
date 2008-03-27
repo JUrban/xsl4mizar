@@ -71,6 +71,11 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // .dfs file with imported definientia
 #dfs=  { `concat($anamelc, '.dfs')`; }
 
+// set this to 0 to get rid of missing document errors
+// when the ByExplanations and SchemeInstantiation are missing
+#explainbyfrom = { "1"; }
+
+
 // .fex file with FromExplanations
 #fex=  { `concat($anamelc, '.fex')`; }
 
@@ -121,16 +126,20 @@ tpl [Typ](#s,#e) {
    apply(#s=$s,#e=$e);}
 }
 
-tpl [From](#s){ <From { copy-of `@*`;
+tpl [From](#s){ <From 
+{ 
+    copy-of `@*`;
     $schnr = `@nr`; $el = `.`; $anr=`@articlenr`;
     getschref(#anr=$anr, #nr=$schnr);
     // insert the SchemeInstantiation element from $fex, make 
     // them absolute by adding @schemnr, @aid, @instaid, @instschemenr
     $l = `@line`; $c = `@col`;
     $pos = `concat($l,':',$c)`;
-    for-each [document($fex,/)] { 
-     for-each [key('SI',$pos)] { 
-      <SchemeInstantiation  { copy-of `@*`;
+    if[$explainbyfrom > 0] 
+    {
+    	for-each [document($fex,/)] { 
+     	for-each [key('SI',$pos)] { 
+         <SchemeInstantiation  { copy-of `@*`;
         for-each [FuncInstance | PredInstance] {  $nm = `name()`;
 	  <$nm { 
 	  copy-of `@*`; 
@@ -143,8 +152,10 @@ tpl [From](#s){ <From { copy-of `@*`;
 	     when [($k="F") or ($k= "P")] { abs_fp(#el=$el); }
 	     otherwise {  }
 	  }}
-          apply(#s=$s,#e=$el); }}}}}
-    apply(#s=$s); }}
+          apply(#s=$s,#e=$el); }}}}
+    }}
+    apply(#s=$s); 
+}}
 
 tpl [Requirement](#s) { <Requirement { copy-of `@*`; abs(#k=`@constrkind`, #nr=`@constrnr`); }}
 
@@ -157,10 +168,13 @@ tpl [By](#s) {
        // them absolute by adding @schemnr, @aid, @instaid, @instschemenr
        $l = `@line`; $c = `@col`;
        $pos = `concat($l,':',$c)`;
-       for-each [document($bex,/)] { 
-          for-each [key('PE',$pos)] 
-	  { 
+       if[$explainbyfrom > 0] 
+       {
+          for-each [document($bex,/)] { 
+             for-each [key('PE',$pos)] 
+	     { 
  	          <PolyEval  { copy-of `@*`; apply(#s=$s); }
+             }
           }
        }
     }

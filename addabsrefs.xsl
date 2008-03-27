@@ -34,6 +34,10 @@
   <xsl:key name="DF" match="Definiens" use="@relnr"/>
   <!-- lookup for FromExplanations (in .fex) -->
   <xsl:key name="SI" match="/FromExplanations/SchemeInstantiation" use="concat(@line,&apos;:&apos;,@col)"/>
+  <!-- lookup for ByExplanations (in .bex) -->
+  <!-- after running verifier, postprocess (sort away redundant stuff from) .bex with: -->
+  <!-- perl -e 'local $/;$_=<>; m/((.|[\n])*?)<PolyEval/; print $1; while(m/(<PolyEval((.|[\n])*?)<\/PolyEval>)/g) { if(!(exists $h{$1})) { print $1; $h{$1} = (); }} print "</ByExplanations>";' -->
+  <xsl:key name="PE" match="/ByExplanations/PolyEval" use="concat(@line,&apos;:&apos;,@col)"/>
   <xsl:variable name="lcletters">
     <xsl:text>abcdefghijklmnopqrstuvwxyz</xsl:text>
   </xsl:variable>
@@ -68,9 +72,18 @@
   <xsl:param name="dfs">
     <xsl:value-of select="concat($anamelc, &apos;.dfs&apos;)"/>
   </xsl:param>
+  <!-- set this to 0 to get rid of missing document errors -->
+  <!-- when the ByExplanations and SchemeInstantiation are missing -->
+  <xsl:param name="explainbyfrom">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
   <!-- .fex file with FromExplanations -->
   <xsl:param name="fex">
     <xsl:value-of select="concat($anamelc, &apos;.fex&apos;)"/>
+  </xsl:param>
+  <!-- .bex file with ByExplanations -->
+  <xsl:param name="bex">
+    <xsl:value-of select="concat($anamelc, &apos;.bex&apos;)"/>
   </xsl:param>
   <!-- this needs to be set to 1 for processing .eth files -->
   <xsl:param name="ethprocess">
@@ -159,7 +172,7 @@
     </xsl:element>
   </xsl:template>
 
-  <!-- for .fex (FromExopnations file) -->
+  <!-- for .fex (FromExplanations file) -->
   <xsl:template match="FuncInstance | PredInstance">
     <xsl:param name="s"/>
     <xsl:param name="e"/>
@@ -252,51 +265,91 @@
       <xsl:variable name="l" select="@line"/>
       <xsl:variable name="c" select="@col"/>
       <xsl:variable name="pos" select="concat($l,&apos;:&apos;,$c)"/>
-      <xsl:for-each select="document($fex,/)">
-        <xsl:for-each select="key(&apos;SI&apos;,$pos)">
-          <xsl:element name="SchemeInstantiation">
-            <xsl:copy-of select="@*"/>
-            <xsl:for-each select="FuncInstance | PredInstance">
-              <xsl:variable name="nm" select="name()"/>
-              <xsl:element name="{$nm}">
-                <xsl:copy-of select="@*"/>
-                <xsl:call-template name="getschattrs">
-                  <xsl:with-param name="anr" select="$anr"/>
-                  <xsl:with-param name="nr" select="$schnr"/>
-                  <xsl:with-param name="i">
-                    <xsl:text>1</xsl:text>
-                  </xsl:with-param>
-                </xsl:call-template>
-                <xsl:variable name="k" select="@kind"/>
-                <!-- instantiated to other functor -->
-                <xsl:if test="$k">
-                  <xsl:choose>
-                    <xsl:when test="($k=&quot;K&quot;) or ($k=&quot;R&quot;) or ($k=&quot;V&quot;)">
-                      <xsl:call-template name="abs">
-                        <xsl:with-param name="k" select="$k"/>
-                        <xsl:with-param name="nr" select="@nr"/>
-                      </xsl:call-template>
-                    </xsl:when>
-                    <xsl:when test="($k=&quot;F&quot;) or ($k= &quot;P&quot;)">
-                      <xsl:call-template name="abs_fp">
-                        <xsl:with-param name="el" select="$el"/>
-                      </xsl:call-template>
-                    </xsl:when>
-                    <xsl:otherwise/>
-                  </xsl:choose>
-                </xsl:if>
-                <xsl:apply-templates>
-                  <xsl:with-param name="s" select="$s"/>
-                  <xsl:with-param name="e" select="$el"/>
-                </xsl:apply-templates>
-              </xsl:element>
-            </xsl:for-each>
-          </xsl:element>
+      <xsl:if test="$explainbyfrom &gt; 0">
+        <xsl:for-each select="document($fex,/)">
+          <xsl:for-each select="key(&apos;SI&apos;,$pos)">
+            <xsl:element name="SchemeInstantiation">
+              <xsl:copy-of select="@*"/>
+              <xsl:for-each select="FuncInstance | PredInstance">
+                <xsl:variable name="nm" select="name()"/>
+                <xsl:element name="{$nm}">
+                  <xsl:copy-of select="@*"/>
+                  <xsl:call-template name="getschattrs">
+                    <xsl:with-param name="anr" select="$anr"/>
+                    <xsl:with-param name="nr" select="$schnr"/>
+                    <xsl:with-param name="i">
+                      <xsl:text>1</xsl:text>
+                    </xsl:with-param>
+                  </xsl:call-template>
+                  <xsl:variable name="k" select="@kind"/>
+                  <!-- instantiated to other functor -->
+                  <xsl:if test="$k">
+                    <xsl:choose>
+                      <xsl:when test="($k=&quot;K&quot;) or ($k=&quot;R&quot;) or ($k=&quot;V&quot;)">
+                        <xsl:call-template name="abs">
+                          <xsl:with-param name="k" select="$k"/>
+                          <xsl:with-param name="nr" select="@nr"/>
+                        </xsl:call-template>
+                      </xsl:when>
+                      <xsl:when test="($k=&quot;F&quot;) or ($k= &quot;P&quot;)">
+                        <xsl:call-template name="abs_fp">
+                          <xsl:with-param name="el" select="$el"/>
+                        </xsl:call-template>
+                      </xsl:when>
+                      <xsl:otherwise/>
+                    </xsl:choose>
+                  </xsl:if>
+                  <xsl:apply-templates>
+                    <xsl:with-param name="s" select="$s"/>
+                    <xsl:with-param name="e" select="$el"/>
+                  </xsl:apply-templates>
+                </xsl:element>
+              </xsl:for-each>
+            </xsl:element>
+          </xsl:for-each>
         </xsl:for-each>
-      </xsl:for-each>
+      </xsl:if>
       <xsl:apply-templates>
         <xsl:with-param name="s" select="$s"/>
       </xsl:apply-templates>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="Requirement">
+    <xsl:param name="s"/>
+    <xsl:element name="Requirement">
+      <xsl:copy-of select="@*"/>
+      <xsl:call-template name="abs">
+        <xsl:with-param name="k" select="@constrkind"/>
+        <xsl:with-param name="nr" select="@constrnr"/>
+      </xsl:call-template>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="By">
+    <xsl:param name="s"/>
+    <xsl:element name="By">
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates>
+        <xsl:with-param name="s" select="$s"/>
+      </xsl:apply-templates>
+      <!-- insert the PolyEval elements from $bex, make -->
+      <!-- them absolute by adding @schemnr, @aid, @instaid, @instschemenr -->
+      <xsl:variable name="l" select="@line"/>
+      <xsl:variable name="c" select="@col"/>
+      <xsl:variable name="pos" select="concat($l,&apos;:&apos;,$c)"/>
+      <xsl:if test="$explainbyfrom &gt; 0">
+        <xsl:for-each select="document($bex,/)">
+          <xsl:for-each select="key(&apos;PE&apos;,$pos)">
+            <xsl:element name="PolyEval">
+              <xsl:copy-of select="@*"/>
+              <xsl:apply-templates>
+                <xsl:with-param name="s" select="$s"/>
+              </xsl:apply-templates>
+            </xsl:element>
+          </xsl:for-each>
+        </xsl:for-each>
+      </xsl:if>
     </xsl:element>
   </xsl:template>
 
@@ -380,6 +433,8 @@
   </xsl:template>
 
   <!-- add absolute numbers to these (they are kind-dependent) -->
+  <!-- note that redefnr of Patterns (relative nr of the synonym/antonym -->
+  <!-- Pattern) is ignored -->
   <xsl:template match="Theorem|Constructor|Pattern">
     <xsl:param name="s"/>
     <xsl:variable name="n" select="name()"/>
@@ -393,7 +448,7 @@
         <xsl:attribute name="nr">
           <xsl:value-of select="1 + count(preceding::*[(name()=$n) and (@kind=$k)])"/>
         </xsl:attribute>
-        <xsl:if test="@redefnr &gt; 0">
+        <xsl:if test="(@redefnr &gt; 0) and ($n = &quot;Constructor&quot;)">
           <xsl:call-template name="abs">
             <xsl:with-param name="k" select="$k"/>
             <xsl:with-param name="nr" select="@redefnr"/>
