@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.58 $
+// $Revision: 1.59 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -1592,11 +1592,11 @@ tpl [FCluster]
   {
     "fof("; absk(#el=`.`,#kind="fc"); ",theorem,";
     apply[ArgTypes];
-    $succ = { `count(Cluster/*)`; }
+    $succ = { `count(Cluster[1]/*)`; }
     $srt_s; "("; apply[*[2]];  ",";
     if [$succ = 0] { "$true"; } else {
-    if [$succ = 1] { apply[Cluster]; } 
-    else { "( "; apply[Cluster]; " )"; } }
+    if [$succ = 1] { apply[Cluster[1]]; } 
+    else { "( "; apply[Cluster[1]]; " )"; } }
     ")"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="fc"); "),[mptp_info("; `@nr`; 
     ",[],fcluster,position(0,0),[";
@@ -1643,11 +1643,11 @@ tpl [RCluster]
     $l = `1 + count(ArgTypes/Typ)`;
     apply[ArgTypes];
     "?["; ploci(#nr=$l); " : "; apply[Typ]; "]: "; 
-    $succ = { `count(Cluster/*)`; }
+    $succ = { `count(Cluster[1]/*)`; }
     $srt_s; "("; ploci(#nr=$l); ",";
     if [$succ = 0] { "$true"; } else {
-    if [$succ = 1] { apply[Cluster]; } 
-    else { "( "; apply[Cluster]; " )"; } }
+    if [$succ = 1] { apply[Cluster[1]]; } 
+    else { "( "; apply[Cluster[1]]; " )"; } }
     ")"; ",file("; lc(#s=`@aid`); ",";
     absk(#el=`.`,#kind="rc"); "),[mptp_info("; `@nr`; 
     ",[],rcluster,position(0,0),[";
