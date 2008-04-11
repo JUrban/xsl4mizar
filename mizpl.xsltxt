@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.59 $
+// $Revision: 1.60 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -1800,18 +1800,32 @@ tpl argsinsert(#nr,#nr1,#arg,#lim) {
 // find the constant with #nr on level #pl or higher,
 // rpint @constnr "_" $pl
 tpl absconst(#nr,#pl) {
-    if [key("C",$pl)[@nr=$nr]] { `key("C",$pl)[@nr=$nr]/@constnr`; 
-				 addp(#pl=$pl); }
-    else { if [key("C",$pl)[@nr < $nr]] { 
-      for-each [key("C",$pl)[@nr < $nr]] { if [position() = last()] {
-         $n1 = getcnr(#el=`.`); $lastnr = `@nr + $n1 - 1`;
-      if [$lastnr >= $nr] { `@constnr + ($nr - @nr)`; addp(#pl=$pl); }
-	 else { $fail;}}}}
-    else { if [string-length($pl)>0] { 
-	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
-	 $pl1= mjoin(#el=$ss,#s="_");
+    if [key("C",$pl)[@nr=$nr]] 
+    { 
+       `key("C",$pl)[@nr=$nr]/@constnr`; 
+       addp(#pl=$pl); 
+    }
+    else { if [key("C",$pl)[@nr < $nr]] 
+    { 
+       for-each [key("C",$pl)[@nr < $nr]] 
+       { 
+          if [position() = last()] 
+	  {
+	      $n1 = getcnr(#el=`.`); 
+	      $lastnr = `@nr + $n1 - 1`;
+	      if [$lastnr >= $nr] { `@constnr + ($nr - @nr)`; addp(#pl=$pl); }
+	      else { $fail;}
+          }
+       }
+    }
+    else { if [string-length($pl)>0] 
+    { 
+       $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
+       $pl1= mjoin(#el=$ss,#s="_");
 //	 "bb"; $pl1; "bb";
-	 absconst(#nr=$nr,#pl=$pl1); } else { $fail;}}
+       absconst(#nr=$nr,#pl=$pl1); 
+    } 
+    else { $fail;}}
  }}
 
 tpl mjoin(#el,#s) {

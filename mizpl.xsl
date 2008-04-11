@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" extension-element-prefixes="exsl exsl-str xt" xmlns:exsl="http://exslt.org/common" xmlns:exsl-str="http://exslt.org/strings" xmlns:xt="http://www.jclark.com/xt" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text"/>
-  <!-- $Revision: 1.6 $ -->
+  <!-- $Revision: 1.7 $ -->
   <!--  -->
   <!-- File: mizpl.xsltxt - stylesheet translating Mizar XML terms, -->
   <!-- formulas and types to Prolog TSTP-like format. -->
@@ -3939,7 +3939,7 @@
         <xsl:text>,theorem,</xsl:text>
         <xsl:apply-templates select="ArgTypes"/>
         <xsl:variable name="succ">
-          <xsl:value-of select="count(Cluster/*)"/>
+          <xsl:value-of select="count(Cluster[1]/*)"/>
         </xsl:variable>
         <xsl:value-of select="$srt_s"/>
         <xsl:text>(</xsl:text>
@@ -3952,11 +3952,11 @@
           <xsl:otherwise>
             <xsl:choose>
               <xsl:when test="$succ = 1">
-                <xsl:apply-templates select="Cluster"/>
+                <xsl:apply-templates select="Cluster[1]"/>
               </xsl:when>
               <xsl:otherwise>
                 <xsl:text>( </xsl:text>
-                <xsl:apply-templates select="Cluster"/>
+                <xsl:apply-templates select="Cluster[1]"/>
                 <xsl:text> )</xsl:text>
               </xsl:otherwise>
             </xsl:choose>
@@ -4047,7 +4047,7 @@
         <xsl:apply-templates select="Typ"/>
         <xsl:text>]: </xsl:text>
         <xsl:variable name="succ">
-          <xsl:value-of select="count(Cluster/*)"/>
+          <xsl:value-of select="count(Cluster[1]/*)"/>
         </xsl:variable>
         <xsl:value-of select="$srt_s"/>
         <xsl:text>(</xsl:text>
@@ -4062,11 +4062,11 @@
           <xsl:otherwise>
             <xsl:choose>
               <xsl:when test="$succ = 1">
-                <xsl:apply-templates select="Cluster"/>
+                <xsl:apply-templates select="Cluster[1]"/>
               </xsl:when>
               <xsl:otherwise>
                 <xsl:text>( </xsl:text>
-                <xsl:apply-templates select="Cluster"/>
+                <xsl:apply-templates select="Cluster[1]"/>
                 <xsl:text> )</xsl:text>
               </xsl:otherwise>
             </xsl:choose>
