@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.11 $
+// $Revision: 1.12 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -90,6 +90,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // tells if proofs are fetched through AJAX; default is off
 #ajax_proofs = { "0"; }
+
+// the dir with proofs that are fetched through AJAX
+#ajax_proof_dir = { "proofs"; }
 
 // tells to display thesis after skeleton items
 #display_thesis = { "1"; }

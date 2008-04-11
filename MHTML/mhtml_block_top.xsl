@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_reasoning.xsl"/>
 
-  <!-- $Revision: 1.6 $ -->
+  <!-- $Revision: 1.7 $ -->
   <!--  -->
   <!-- File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements -->
   <!--  -->
@@ -1202,7 +1202,7 @@
   <!-- (now done as perl postproc) -->
   <!-- if you want ajax_proofs -->
   <xsl:template match="Proof">
-    <xsl:variable name="nm" select="concat(&quot;proofs/&quot;,$anamelc,&quot;/&quot;,@newlevel)"/>
+    <xsl:variable name="nm" select="concat($ajax_proof_dir,&quot;/&quot;,$anamelc,&quot;/&quot;,@newlevel)"/>
     <xsl:element name="div">
       <xsl:element name="a">
         <xsl:choose>
@@ -1227,7 +1227,7 @@
       <xsl:choose>
         <xsl:when test="$ajax_proofs&gt;0">
           <xsl:element name="span"/>
-          <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html"> 
+          <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html"> 
           <xsl:element name="div">
             <xsl:attribute name="class">
               <xsl:text>add</xsl:text>

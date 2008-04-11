@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.13 $
+// $Revision: 1.14 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -764,7 +764,7 @@ tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock
 // (now done as perl postproc)
 // if you want ajax_proofs
 tpl [Proof] {
-    $nm = `concat("proofs/",$anamelc,"/",@newlevel)`;
+    $nm = `concat($ajax_proof_dir,"/",$anamelc,"/",@newlevel)`;
     <div { 
 	 <a { 
 	    if [$ajax_proofs>0]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
@@ -772,7 +772,7 @@ tpl [Proof] {
 	    <b { "proof "; } 
 	    }
          if [$ajax_proofs>0]	{ <span; 
-// <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html">
+// <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html">
 	    <div { @class="add"; apply; }
 // </xsl:document>
    $bogus=`1`;

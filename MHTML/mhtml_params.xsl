@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.4 $ -->
+  <!-- $Revision: 1.5 $ -->
   <!--  -->
   <!-- File: params.xsltxt - html-ization of Mizar XML, top-level parameters -->
   <!--  -->
@@ -105,6 +105,10 @@
   <!-- tells if proofs are fetched through AJAX; default is off -->
   <xsl:param name="ajax_proofs">
     <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- the dir with proofs that are fetched through AJAX -->
+  <xsl:param name="ajax_proof_dir">
+    <xsl:text>proofs</xsl:text>
   </xsl:param>
   <!-- tells to display thesis after skeleton items -->
   <xsl:param name="display_thesis">
