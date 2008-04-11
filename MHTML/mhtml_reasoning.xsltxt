@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.21 $
+// $Revision: 1.22 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -101,7 +101,7 @@ tpl [By	](#nbr)
 
 tpl [IterStep/By] { if [(count(*)>0)] { 
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
-      <i { list(#separ=", ", #elems=`*`); } }}
+      <i { list(#separ=", ", #elems=`Ref`); } }}
 tpl [From](#nbr) { <b { "from "; }
         <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
              list(#separ=", ", #elems=`*`); ")"; ";"; 

@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.44 $ -->
+  <!-- $Revision: 1.45 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -4788,7 +4788,7 @@
           <xsl:with-param name="separ">
             <xsl:text>, </xsl:text>
           </xsl:with-param>
-          <xsl:with-param name="elems" select="*"/>
+          <xsl:with-param name="elems" select="Ref"/>
         </xsl:call-template>
       </xsl:element>
     </xsl:if>
