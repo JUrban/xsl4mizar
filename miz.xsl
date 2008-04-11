@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.42 $ -->
+  <!-- $Revision: 1.43 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -83,6 +83,17 @@
       <xsl:when test="$linking = &quot;q&quot;">
         <xsl:text>html</xsl:text>
       </xsl:when>
+    </xsl:choose>
+  </xsl:param>
+  <!-- default target frame for links -->
+  <xsl:param name="default_target">
+    <xsl:choose>
+      <xsl:when test="$linking = &quot;s&quot;">
+        <xsl:text>_self</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>mmlquery</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:param>
   <!-- put titles to links or not -->

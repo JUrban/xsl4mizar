@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.12 $
+// $Revision: 1.13 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -46,6 +46,8 @@ output method=html;
    }
 }
 
+// default target frame for links
+#default_target = { if [$linking = "s"] { "_self"; } else { "mmlquery";} } 
 
 // put titles to links or not
 #titles = { "0"; }

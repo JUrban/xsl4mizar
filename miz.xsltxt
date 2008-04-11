@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.92 $
+// $Revision: 1.93 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -90,6 +90,8 @@ output method=html;
    }
 }
 
+// default target frame for links
+#default_target = { if [$linking = "s"] { "_self"; } else { "mmlquery";} } 
 
 // put titles to links or not
 #titles = { "0"; }
