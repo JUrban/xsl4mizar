@@ -9,9 +9,9 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.91 $
+// $Revision: 1.92 $
 //
-// File: miz.xsltxt - html-ization of Mizar XML, main file
+// File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
 // Author: Josef Urban
 //
@@ -134,6 +134,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // tells if proofs are fetched through AJAX; default is off
 #ajax_proofs = { "0"; }
+
+// the dir with proofs that are fetched through AJAX
+#ajax_proof_dir = { "proofs"; }
 
 // tells to display thesis after skeleton items
 #display_thesis = { "1"; }
@@ -2060,7 +2063,7 @@ tpl [By	](#nbr)
    if [(count(*)>0)] 
    { 
       linkbyif(#line = `@line`, #col = `@col`,#by = "by");
-      <i { list(#separ = ", ", #elems = `*`); } 
+      <i { list(#separ = ", ", #elems = `Ref`); } 
       ";"; 
    }
    else 
@@ -3320,7 +3323,7 @@ tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock
 // (now done as perl postproc)
 // if you want ajax_proofs
 tpl [Proof] {
-    $nm = `concat("proofs/",$anamelc,"/",@newlevel)`;
+    $nm = `concat($ajax_proof_dir,"/",$anamelc,"/",@newlevel)`;
     <div { 
 	 <a { 
 	    if [$ajax_proofs>0]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
@@ -3328,7 +3331,7 @@ tpl [Proof] {
 	    <b { "proof "; } 
 	    }
          if [$ajax_proofs>0]	{ <span; 
-// <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html">
+// <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html">
 	    <div { @class="add"; apply; }
 // </xsl:document>
    $bogus=`1`;

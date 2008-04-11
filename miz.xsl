@@ -7,9 +7,9 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.41 $ -->
+  <!-- $Revision: 1.42 $ -->
   <!--  -->
-  <!-- File: miz.xsltxt - html-ization of Mizar XML, main file -->
+  <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
   <!-- Author: Josef Urban -->
   <!--  -->
@@ -137,6 +137,10 @@
   <!-- tells if proofs are fetched through AJAX; default is off -->
   <xsl:param name="ajax_proofs">
     <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- the dir with proofs that are fetched through AJAX -->
+  <xsl:param name="ajax_proof_dir">
+    <xsl:text>proofs</xsl:text>
   </xsl:param>
   <!-- tells to display thesis after skeleton items -->
   <xsl:param name="display_thesis">
@@ -4732,7 +4736,7 @@
             <xsl:with-param name="separ">
               <xsl:text>, </xsl:text>
             </xsl:with-param>
-            <xsl:with-param name="elems" select="*"/>
+            <xsl:with-param name="elems" select="Ref"/>
           </xsl:call-template>
         </xsl:element>
         <xsl:text>;</xsl:text>
@@ -6854,7 +6858,7 @@
   <!-- (now done as perl postproc) -->
   <!-- if you want ajax_proofs -->
   <xsl:template match="Proof">
-    <xsl:variable name="nm" select="concat(&quot;proofs/&quot;,$anamelc,&quot;/&quot;,@newlevel)"/>
+    <xsl:variable name="nm" select="concat($ajax_proof_dir,&quot;/&quot;,$anamelc,&quot;/&quot;,@newlevel)"/>
     <xsl:element name="div">
       <xsl:element name="a">
         <xsl:choose>
@@ -6879,7 +6883,7 @@
       <xsl:choose>
         <xsl:when test="$ajax_proofs&gt;0">
           <xsl:element name="span"/>
-          <xsl:document href="proofs/{$anamelc}/{@newlevel}" format="html"> 
+          <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html"> 
           <xsl:element name="div">
             <xsl:attribute name="class">
               <xsl:text>add</xsl:text>
