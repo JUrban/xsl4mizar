@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.93 $
+// $Revision: 1.94 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -3739,8 +3739,8 @@ return tstp_dump;
 // End -->
 ";
 }}
-<base { 
-if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} } 
+<base { @target=$default_target; }
+// if [$linking = "s"] { @target="_self"; } else { @target="mmlquery";} } 
 // <!-- 
 // var browse_url = \"http://merak.pb.bialystok.pl/mmlquery/fillin.php?entry=\"
 // function l1(c) { location = browse_url + c }

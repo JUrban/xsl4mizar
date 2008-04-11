@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.43 $ -->
+  <!-- $Revision: 1.44 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -7546,18 +7546,9 @@ return tstp_dump;
               </xsl:element>
             </xsl:if>
             <xsl:element name="base">
-              <xsl:choose>
-                <xsl:when test="$linking = &quot;s&quot;">
-                  <xsl:attribute name="target">
-                    <xsl:text>_self</xsl:text>
-                  </xsl:attribute>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:attribute name="target">
-                    <xsl:text>mmlquery</xsl:text>
-                  </xsl:attribute>
-                </xsl:otherwise>
-              </xsl:choose>
+              <xsl:attribute name="target">
+                <xsl:value-of select="$default_target"/>
+              </xsl:attribute>
             </xsl:element>
           </xsl:element>
           <xsl:element name="body">
