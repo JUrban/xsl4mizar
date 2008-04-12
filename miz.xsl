@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.45 $ -->
+  <!-- $Revision: 1.46 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -3843,28 +3843,15 @@
           </xsl:attribute>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:variable name="ext1">
+          <xsl:attribute name="href">
             <xsl:choose>
               <xsl:when test="($c = 1) and (($linking = &apos;m&apos;) or ($linking = &apos;l&apos;))">
-                <xsl:value-of select="$selfext"/>
+                <xsl:value-of select="concat(&quot;#&quot;,$k, $nr)"/>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:value-of select="$ext"/>
+                <xsl:value-of select="concat($mizhtml,$alc, &quot;.&quot;,$ext, &quot;#&quot;,$k, $nr)"/>
               </xsl:otherwise>
             </xsl:choose>
-          </xsl:variable>
-          <xsl:variable name="mhtml1">
-            <xsl:choose>
-              <xsl:when test="($linking = &apos;l&apos;) and not($c = &quot;1&quot;)">
-                <xsl:value-of select="$mizhtml"/>
-              </xsl:when>
-              <xsl:otherwise>
-                <xsl:text/>
-              </xsl:otherwise>
-            </xsl:choose>
-          </xsl:variable>
-          <xsl:attribute name="href">
-            <xsl:value-of select="concat($mhtml1,$alc, &quot;.&quot;, $ext1, &quot;#&quot;,$k, $nr)"/>
           </xsl:attribute>
           <xsl:if test="$c = &quot;1&quot;">
             <xsl:attribute name="target">
@@ -3942,28 +3929,15 @@
             </xsl:attribute>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:variable name="ext1">
+            <xsl:attribute name="href">
               <xsl:choose>
                 <xsl:when test="($c = 1) and (($linking = &apos;m&apos;) or ($linking = &apos;l&apos;))">
-                  <xsl:value-of select="$selfext"/>
+                  <xsl:value-of select="concat(&quot;#&quot;, $n1, @kind, @nr)"/>
                 </xsl:when>
                 <xsl:otherwise>
-                  <xsl:value-of select="$ext"/>
+                  <xsl:value-of select="concat($mizhtml,$alc, &quot;.&quot;,$ext, &quot;#&quot;, $n1, @kind, @nr)"/>
                 </xsl:otherwise>
               </xsl:choose>
-            </xsl:variable>
-            <xsl:variable name="mhtml1">
-              <xsl:choose>
-                <xsl:when test="($linking = &apos;l&apos;) and not($c = &quot;1&quot;)">
-                  <xsl:value-of select="$mizhtml"/>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:text/>
-                </xsl:otherwise>
-              </xsl:choose>
-            </xsl:variable>
-            <xsl:attribute name="href">
-              <xsl:value-of select="concat($mhtml1,$alc, &quot;.&quot;, $ext1, &quot;#&quot;, $n1, @kind, @nr)"/>
             </xsl:attribute>
             <!-- this is probably needed if $mml = 1 -->
             <xsl:if test="($c = &quot;1&quot;) and not($linking = &quot;s&quot;)">

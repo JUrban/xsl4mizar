@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.95 $
+// $Revision: 1.96 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -1598,16 +1598,14 @@ tpl mkref(#aid, #nr, #k, #c, #nm)
       }
       else 
       {
-
-        $ext1 = 
-	    { 
-	       if[($c = 1) and (($linking = 'm') or ($linking = 'l'))] { $selfext; }
-	       else { $ext; }
-            }
-
-        $mhtml1 = { if[($linking = 'l') and not($c = "1")] { $mizhtml; } else { ""; } }
-
-        @href = `concat($mhtml1,$alc, ".", $ext1, "#",$k, $nr)`;
+        @href =	
+	{
+           if[($c = 1) and (($linking = 'm') or ($linking = 'l'))]
+	   {
+	      `concat("#",$k, $nr)`;
+	   }
+	   else { `concat($mizhtml,$alc, ".",$ext, "#",$k, $nr)`; }
+	}
 
         if [$c = "1"] 
 	{
@@ -1663,14 +1661,16 @@ tpl absref(#elems, #c, #sym, #pid)
 	 }
 	 else 
 	 { 
-	    $ext1 = 
-	    { 
-	       if[($c = 1) and (($linking = 'm') or ($linking = 'l'))] { $selfext; }
-	       else { $ext; }
-            }
-	    $mhtml1 = { if[($linking = 'l') and not($c = "1")] { $mizhtml; } else { ""; } }
 
-            @href=`concat($mhtml1,$alc, ".", $ext1, "#", $n1, @kind, @nr)`; 
+            @href =	
+	    {
+               if[($c = 1) and (($linking = 'm') or ($linking = 'l'))]
+	       {
+	          `concat("#", $n1, @kind, @nr)`;
+	       }
+	       else { `concat($mizhtml,$alc, ".",$ext, "#", $n1, @kind, @nr)`; }
+	    }
+
 	    // this is probably needed if $mml = 1
 	    if [($c = "1") and not($linking = "s")] { @target="_self"; } 
          }
