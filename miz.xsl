@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.46 $ -->
+  <!-- $Revision: 1.47 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -3990,6 +3990,9 @@
   <!-- look up and link the constructor/pattern with kind #k and #nr; -->
   <!-- #sym is optionally forces the given Mizar symbol -->
   <!-- #pid links to  patterns instead of constructors -->
+  <!-- note that we can be inside a Notation document here already (see pp), -->
+  <!-- so the $doc = "" test does not have to mean that we are inside -->
+  <!-- the article (could be probably fixed in pp, don't know about expnadable modes though) -->
   <xsl:template name="abs">
     <xsl:param name="k"/>
     <xsl:param name="nr"/>
@@ -4008,17 +4011,17 @@
             </xsl:otherwise>
           </xsl:choose>
         </xsl:variable>
-        <xsl:variable name="c1">
-          <xsl:choose>
-            <xsl:when test="($doc = &quot;&quot;) and ($mml = &quot;0&quot;)">
-              <xsl:text>1</xsl:text>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:text>0</xsl:text>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
         <xsl:for-each select="document($doc,/)">
+          <xsl:variable name="c1">
+            <xsl:choose>
+              <xsl:when test="(name(/*) = &quot;Article&quot;) and ($mml = &quot;0&quot;)">
+                <xsl:text>1</xsl:text>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>0</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
           <xsl:call-template name="absref">
             <xsl:with-param name="elems" select="key($k1,$nr)[$pid=@relnr]"/>
             <xsl:with-param name="c" select="$c1"/>
@@ -4038,17 +4041,17 @@
             </xsl:otherwise>
           </xsl:choose>
         </xsl:variable>
-        <xsl:variable name="c1">
-          <xsl:choose>
-            <xsl:when test="($doc = &quot;&quot;) and ($mml = &quot;0&quot;)">
-              <xsl:text>1</xsl:text>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:text>0</xsl:text>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
         <xsl:for-each select="document($doc,/)">
+          <xsl:variable name="c1">
+            <xsl:choose>
+              <xsl:when test="(name(/*) = &quot;Article&quot;) and ($mml = &quot;0&quot;)">
+                <xsl:text>1</xsl:text>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>0</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
           <xsl:call-template name="absref">
             <xsl:with-param name="elems" select="key($k,$nr)"/>
             <xsl:with-param name="c" select="$c1"/>

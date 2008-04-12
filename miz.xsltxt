@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.96 $
+// $Revision: 1.97 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -1703,26 +1703,29 @@ tpl absref(#elems, #c, #sym, #pid)
 // look up and link the constructor/pattern with kind #k and #nr;
 // #sym is optionally forces the given Mizar symbol
 // #pid links to  patterns instead of constructors
+// note that we can be inside a Notation document here already (see pp),
+// so the $doc = "" test does not have to mean that we are inside
+// the article (could be probably fixed in pp, don't know about expnadable modes though)
 tpl abs(#k, #nr, #sym, #pid) 
 {
    if [$pid>0] 
    {
       $k1  = `concat('P_',$k)`;
       $doc = { if [key($k1,$nr)[$pid=@relnr]] { ""; } else { $patts; } }
-      $c1  = { if [($doc = "") and ($mml = "0")] { "1"; } else { "0"; } }
 
       for-each [document($doc,/)] 
       {
+         $c1  = { if [(name(/*) = "Article") and ($mml = "0")] { "1"; } else { "0"; } }
          absref(#elems = `key($k1,$nr)[$pid=@relnr]`, #c = $c1, #sym = $sym, #pid = $pid);
       }
    } 
    else 
    {
       $doc = { if [key($k,$nr)] { ""; } else { $constrs; } }
-      $c1  = { if [($doc = "") and ($mml = "0")] { "1"; } else { "0"; } }
 
       for-each [document($doc,/)] 
       {
+         $c1  = { if [(name(/*) = "Article") and ($mml = "0")] { "1"; } else { "0"; } }
          absref(#elems = `key($k,$nr)`, #c = $c1, #sym = $sym);
       }
    }
