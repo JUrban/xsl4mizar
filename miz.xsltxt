@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.97 $
+// $Revision: 1.98 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -130,6 +130,11 @@ $print_lab_identifiers = { "1"; }
 // complete prefix of the DLI-processor CGI request
 $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
+// URL of the TPTP-processor CGI
+#lbytptpcgi= { "http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi"; }
+
+// temporary dir with  the tptp by files, needs to be passed as a param
+#lbytmpdir = { ""; }
 
 // tells if linkage of proof elements is done; default is off
 #proof_links = { "0"; }
@@ -2052,6 +2057,8 @@ tpl linkbyif(#line,#col,#by)
 	 { 
 	    when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
 	    when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } 
+	    when [$linkby=3] { `concat($lbytptpcgi,"?article=",$anamelc,"&lc=",$line,"_",$col,"&tmp=",$lbytmpdir)`; } 
+
 	 } 
       }
 

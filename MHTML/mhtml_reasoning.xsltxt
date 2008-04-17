@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.22 $
+// $Revision: 1.23 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -71,6 +71,8 @@ tpl linkbyif(#line,#col,#by)
 	 { 
 	    when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
 	    when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } 
+	    when [$linkby=3] { `concat($lbytptpcgi,"?article=",$anamelc,"&lc=",$line,"_",$col,"&tmp=",$lbytmpdir)`; } 
+
 	 } 
       }
 

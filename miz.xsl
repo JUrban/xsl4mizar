@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.47 $ -->
+  <!-- $Revision: 1.48 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -141,6 +141,14 @@
   <xsl:variable name="lbydlicgipref">
     <xsl:value-of select="concat($lbydlicgi,&quot;?url=&quot;,$lbydliurl)"/>
   </xsl:variable>
+  <!-- URL of the TPTP-processor CGI -->
+  <xsl:param name="lbytptpcgi">
+    <xsl:text>http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi</xsl:text>
+  </xsl:param>
+  <!-- temporary dir with  the tptp by files, needs to be passed as a param -->
+  <xsl:param name="lbytmpdir">
+    <xsl:text/>
+  </xsl:param>
   <!-- tells if linkage of proof elements is done; default is off -->
   <xsl:param name="proof_links">
     <xsl:text>0</xsl:text>
@@ -4677,6 +4685,9 @@
             </xsl:when>
             <xsl:when test="$linkby=2">
               <xsl:value-of select="concat($lbydlicgipref,$anamelc,&quot;/&quot;,$line,&quot;_&quot;,$col,&quot;.dli&quot;)"/>
+            </xsl:when>
+            <xsl:when test="$linkby=3">
+              <xsl:value-of select="concat($lbytptpcgi,&quot;?article=&quot;,$anamelc,&quot;&amp;lc=&quot;,$line,&quot;_&quot;,$col,&quot;&amp;tmp=&quot;,$lbytmpdir)"/>
             </xsl:when>
           </xsl:choose>
         </xsl:variable>

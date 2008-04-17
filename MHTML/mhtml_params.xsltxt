@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.13 $
+// $Revision: 1.14 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -86,6 +86,11 @@ $print_lab_identifiers = { "1"; }
 // complete prefix of the DLI-processor CGI request
 $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
+// URL of the TPTP-processor CGI
+#lbytptpcgi= { "http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi"; }
+
+// temporary dir with  the tptp by files, needs to be passed as a param
+#lbytmpdir = { ""; }
 
 // tells if linkage of proof elements is done; default is off
 #proof_links = { "0"; }
