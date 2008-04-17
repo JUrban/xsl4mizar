@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.14 $
+// $Revision: 1.15 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -72,6 +72,9 @@ $print_lab_identifiers = { "1"; }
 // 1 - static linking (to pre-generated html)
 // 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor)
 #linkby= { "0"; }
+
+// If 1, the target frame for by explanations is _self
+#linkbytoself = { "0"; }
 
 // directory with by ATP solutions in HTML; each article in its own subdir
 #lbydir= { "_by/"; }

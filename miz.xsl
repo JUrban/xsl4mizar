@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.48 $ -->
+  <!-- $Revision: 1.49 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -122,6 +122,10 @@
   <!-- 1 - static linking (to pre-generated html) -->
   <!-- 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor) -->
   <xsl:param name="linkby">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- If 1, the target frame for by explanations is _self -->
+  <xsl:param name="linkbytoself">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- directory with by ATP solutions in HTML; each article in its own subdir -->
@@ -4698,9 +4702,18 @@
           <xsl:attribute name="class">
             <xsl:text>txt</xsl:text>
           </xsl:attribute>
-          <xsl:attribute name="target">
-            <xsl:text>byATP</xsl:text>
-          </xsl:attribute>
+          <xsl:choose>
+            <xsl:when test="$linkbytoself &gt; 0">
+              <xsl:attribute name="target">
+                <xsl:text>_self</xsl:text>
+              </xsl:attribute>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:attribute name="target">
+                <xsl:text>byATP</xsl:text>
+              </xsl:attribute>
+            </xsl:otherwise>
+          </xsl:choose>
           <xsl:element name="b">
             <xsl:value-of select="$by"/>
             <xsl:text> </xsl:text>
