@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.51 $ -->
+  <!-- $Revision: 1.52 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -4699,14 +4699,14 @@
             </xsl:when>
           </xsl:choose>
         </xsl:variable>
-        <xsl:choose>
-          <xsl:when test="$ajax_by &gt; 0">
-            <xsl:call-template name="add_ajax_attrs">
-              <xsl:with-param name="u" select="$byurl"/>
-            </xsl:call-template>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:element name="a">
+        <xsl:element name="a">
+          <xsl:choose>
+            <xsl:when test="$ajax_by &gt; 0">
+              <xsl:call-template name="add_ajax_attrs">
+                <xsl:with-param name="u" select="$byurl"/>
+              </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
               <xsl:attribute name="href">
                 <xsl:value-of select="$byurl"/>
               </xsl:attribute>
@@ -4725,13 +4725,13 @@
                   </xsl:attribute>
                 </xsl:otherwise>
               </xsl:choose>
-              <xsl:element name="b">
-                <xsl:value-of select="$by"/>
-                <xsl:text> </xsl:text>
-              </xsl:element>
-            </xsl:element>
-          </xsl:otherwise>
-        </xsl:choose>
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:element name="b">
+            <xsl:value-of select="$by"/>
+            <xsl:text> </xsl:text>
+          </xsl:element>
+        </xsl:element>
       </xsl:when>
       <xsl:otherwise>
         <xsl:element name="b">

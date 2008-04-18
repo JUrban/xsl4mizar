@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.26 $
+// $Revision: 1.27 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -76,15 +76,16 @@ tpl linkbyif(#line,#col,#by)
 	 } 
       }
 
-      if[$ajax_by > 0] { add_ajax_attrs(#u=$byurl); }
-      else
-      {
       <a { 
-	    @href=$byurl; @class="txt"; 
-	    if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
+            if[$ajax_by > 0] { add_ajax_attrs(#u=$byurl); }
+	    else
+	    {
+	       @href=$byurl; @class="txt"; 
+	       if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
+            }
 	    <b { $by; " "; } 
 	 }
-      }
+      
     }
     else { <b { $by; " "; } }
 }

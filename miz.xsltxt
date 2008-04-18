@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.101 $
+// $Revision: 1.102 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -2069,15 +2069,16 @@ tpl linkbyif(#line,#col,#by)
 	 } 
       }
 
-      if[$ajax_by > 0] { add_ajax_attrs(#u=$byurl); }
-      else
-      {
       <a { 
-	    @href=$byurl; @class="txt"; 
-	    if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
+            if[$ajax_by > 0] { add_ajax_attrs(#u=$byurl); }
+	    else
+	    {
+	       @href=$byurl; @class="txt"; 
+	       if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
+            }
 	    <b { $by; " "; } 
 	 }
-      }
+      
     }
     else { <b { $by; " "; } }
 }
