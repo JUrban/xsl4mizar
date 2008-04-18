@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.53 $ -->
+  <!-- $Revision: 1.54 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -4729,18 +4729,14 @@
           </xsl:choose>
           <xsl:element name="b">
             <xsl:value-of select="$by"/>
+            <xsl:text> </xsl:text>
           </xsl:element>
-          <xsl:choose>
-            <xsl:when test="$ajax_by &gt; 0">
-              <xsl:element name="span">
-                <xsl:text> </xsl:text>
-              </xsl:element>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:text> </xsl:text>
-            </xsl:otherwise>
-          </xsl:choose>
         </xsl:element>
+        <xsl:if test="$ajax_by &gt; 0">
+          <xsl:element name="span">
+            <xsl:text> </xsl:text>
+          </xsl:element>
+        </xsl:if>
       </xsl:when>
       <xsl:otherwise>
         <xsl:element name="b">
