@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.99 $
+// $Revision: 1.100 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -2157,7 +2157,8 @@ tpl privname(#nr,#pl) {
 	      <a 
 	      { 
 	         @class = "txt"; 
-		 @href  = `concat($anamelc, ".", $ext, "#",$txt)`;
+//		 @href  = `concat($anamelc, ".", $ext, "#",$txt)`;
+		 @href  = `concat("#",$txt)`;
 		 pplab(#nr=`@nr`, #vid = `@vid`); 
               } 
             }

@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.49 $ -->
+  <!-- $Revision: 1.50 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -4941,8 +4941,9 @@
                 <xsl:attribute name="class">
                   <xsl:text>txt</xsl:text>
                 </xsl:attribute>
+                <!-- @href  = `concat($anamelc, ".", $ext, "#",$txt)`; -->
                 <xsl:attribute name="href">
-                  <xsl:value-of select="concat($anamelc, &quot;.&quot;, $ext, &quot;#&quot;,$txt)"/>
+                  <xsl:value-of select="concat(&quot;#&quot;,$txt)"/>
                 </xsl:attribute>
                 <xsl:call-template name="pplab">
                   <xsl:with-param name="nr" select="@nr"/>

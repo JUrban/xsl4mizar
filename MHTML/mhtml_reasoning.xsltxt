@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.24 $
+// $Revision: 1.25 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -168,7 +168,8 @@ tpl privname(#nr,#pl) {
 	      <a 
 	      { 
 	         @class = "txt"; 
-		 @href  = `concat($anamelc, ".", $ext, "#",$txt)`;
+//		 @href  = `concat($anamelc, ".", $ext, "#",$txt)`;
+		 @href  = `concat("#",$txt)`;
 		 pplab(#nr=`@nr`, #vid = `@vid`); 
               } 
             }
