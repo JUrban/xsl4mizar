@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.50 $ -->
+  <!-- $Revision: 1.51 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -148,6 +148,10 @@
   <!-- URL of the TPTP-processor CGI -->
   <xsl:param name="lbytptpcgi">
     <xsl:text>http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi</xsl:text>
+  </xsl:param>
+  <!-- tells if by action is fetched through AJAX; default is off -->
+  <xsl:param name="ajax_by">
+    <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- temporary dir with  the tptp by files, needs to be passed as a param -->
   <xsl:param name="lbytmpdir">
@@ -4695,30 +4699,39 @@
             </xsl:when>
           </xsl:choose>
         </xsl:variable>
-        <xsl:element name="a">
-          <xsl:attribute name="href">
-            <xsl:value-of select="$byurl"/>
-          </xsl:attribute>
-          <xsl:attribute name="class">
-            <xsl:text>txt</xsl:text>
-          </xsl:attribute>
-          <xsl:choose>
-            <xsl:when test="$linkbytoself &gt; 0">
-              <xsl:attribute name="target">
-                <xsl:text>_self</xsl:text>
+        <xsl:choose>
+          <xsl:when test="$ajax_by &gt; 0">
+            <xsl:call-template name="add_ajax_attrs">
+              <xsl:with-param name="u" select="$byurl"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:element name="a">
+              <xsl:attribute name="href">
+                <xsl:value-of select="$byurl"/>
               </xsl:attribute>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:attribute name="target">
-                <xsl:text>byATP</xsl:text>
+              <xsl:attribute name="class">
+                <xsl:text>txt</xsl:text>
               </xsl:attribute>
-            </xsl:otherwise>
-          </xsl:choose>
-          <xsl:element name="b">
-            <xsl:value-of select="$by"/>
-            <xsl:text> </xsl:text>
-          </xsl:element>
-        </xsl:element>
+              <xsl:choose>
+                <xsl:when test="$linkbytoself &gt; 0">
+                  <xsl:attribute name="target">
+                    <xsl:text>_self</xsl:text>
+                  </xsl:attribute>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:attribute name="target">
+                    <xsl:text>byATP</xsl:text>
+                  </xsl:attribute>
+                </xsl:otherwise>
+              </xsl:choose>
+              <xsl:element name="b">
+                <xsl:value-of select="$by"/>
+                <xsl:text> </xsl:text>
+              </xsl:element>
+            </xsl:element>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:when>
       <xsl:otherwise>
         <xsl:element name="b">

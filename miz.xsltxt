@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.100 $
+// $Revision: 1.101 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -135,6 +135,10 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // URL of the TPTP-processor CGI
 #lbytptpcgi= { "http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi"; }
+
+// tells if by action is fetched through AJAX; default is off
+#ajax_by = { "0"; }
+
 
 // temporary dir with  the tptp by files, needs to be passed as a param
 #lbytmpdir = { ""; }
@@ -2065,11 +2069,15 @@ tpl linkbyif(#line,#col,#by)
 	 } 
       }
 
+      if[$ajax_by > 0] { add_ajax_attrs(#u=$byurl); }
+      else
+      {
       <a { 
 	    @href=$byurl; @class="txt"; 
 	    if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
 	    <b { $by; " "; } 
 	 }
+      }
     }
     else { <b { $by; " "; } }
 }

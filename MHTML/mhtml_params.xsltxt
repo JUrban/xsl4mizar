@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.15 $
+// $Revision: 1.16 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -91,6 +91,10 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // URL of the TPTP-processor CGI
 #lbytptpcgi= { "http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi"; }
+
+// tells if by action is fetched through AJAX; default is off
+#ajax_by = { "0"; }
+
 
 // temporary dir with  the tptp by files, needs to be passed as a param
 #lbytmpdir = { ""; }
