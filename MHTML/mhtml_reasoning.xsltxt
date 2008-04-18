@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.27 $
+// $Revision: 1.28 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -83,7 +83,7 @@ tpl linkbyif(#line,#col,#by)
 	       @href=$byurl; @class="txt"; 
 	       if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
             }
-	    <b { $by; " "; } 
+	    <b { $by; } <span { " "; } 
 	 }
       
     }
