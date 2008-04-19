@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_simple.xsl;
 
 
-// $Revision: 1.8 $
+// $Revision: 1.9 $
 //
 // File: utils.xsltxt - html-ization of Mizar XML, various utility functions
 //
@@ -309,11 +309,18 @@ tpl dlist(#separ,#elems) {
 // the Typ is printed only once.
 // #sep2 is now either "be " or "being ", 
 // comma is added automatically.
-tpl jtlist(#j,#sep2,#elems) 
+// #pl passes proolevel if after addabsrefs processing 
+// (needed for const_links)
+tpl jtlist(#j,#sep2,#elems,#pl) 
 { 
+   $addpl = { if [$const_links>0] { addp(#pl = $pl); } }
+
    for-each [$elems] 
    { 
-      ppconst(#nr = `$j+position()`, #vid = `@vid`);
+      $nr1 = `$j+position()`;
+      if [$const_links>0] { <a { @NAME=`concat("c",$nr1,$addpl)`; } }
+
+      ppconst(#nr = $nr1, #vid = `@vid`);
 
       if [position()=last()] 
       { 

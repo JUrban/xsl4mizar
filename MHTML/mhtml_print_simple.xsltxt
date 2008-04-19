@@ -5,7 +5,7 @@ output method=html;
 include mhtml_params.xsl;
 include mhtml_keys.xsl;
 
-// $Revision: 1.6 $
+// $Revision: 1.7 $
 //
 // File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs
 //
@@ -62,23 +62,43 @@ tpl pvar(#nr) { if [$colored="1"] { <font { @color=$varcolor;
 tpl pconst(#nr) {  if [$colored="1"] { <font { @color=$constcolor; 
     "c"; <sub { $nr;} } } else { "c"; <sub { $nr;} } }
 
-tpl ppconst(#nr, #vid) 
+// #pl gives the optional proof level
+tpl ppconst(#nr, #vid, #pl) 
 { 
     if [($print_identifiers > 0) and ($vid > 0)] 
     {
+       $ctarget = 
+       { 
+         if [($const_links>0) and  ($pl)] { "c"; $nr; addp(#pl=$pl); } 
+	 else { `concat("c",$nr)`; }
+       }
 
        $nm = { get_vid_name(#vid = $vid); }
 
-       if [$colored = "1"] 
+       if [($const_links=2)] // const_links imply colored here
+       {
+	  <a 
+	  { 
+	      @class = "txt"; 
+	      @href  = `concat("#",$ctarget)`;
+	      <font 
+	      { 
+	         @color = $constcolor; 
+		 if [$titles="1"] { @title = $ctarget; } 
+		 $nm; 
+	      } 
+          } 
+       }       
+       else { if [$colored = "1"] 
        { 
 	  <font 
 	  { 
 	     @color = $constcolor; 
-	     if [$titles="1"] { @title=`concat("c",$nr)`; } 
+	     if [$titles="1"] { @title = $ctarget; } 
 	     $nm; 
           } 
        }
-       else { $nm;} 
+       else { $nm;} } 
     }
     else { pconst(#nr = $nr); }
 }

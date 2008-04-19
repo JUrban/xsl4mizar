@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.30 $
+// $Revision: 1.31 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -331,7 +331,7 @@ tpl [Let](#fst,#beg) {
        }
        else // print them all
        {
-          jtlist(#j=`@nr - 1`, #sep2=" be ", #elems=`Typ`);
+          jtlist(#j=`@nr - 1`, #sep2=" be ", #elems=`Typ`, #pl=`@plevel`);
 	  ";"; try_th_exps(); <br;
 	  apply[following-sibling::*[position()=$it_step][name()="Let"]](#fst="1");
        }
@@ -352,7 +352,7 @@ tpl [Given]
 { 
   $j=`@nr - 1`; 
   <b {"given ";} 
-  jtlist(#j=$j, #sep2=" being ", #elems=`Typ`); 
+  jtlist(#j=$j, #sep2=" being ", #elems=`Typ`, #pl=`@plevel`); 
   <b {" such that ";}
   andlist(#elems=`*[(name()="Proposition") and (position() > 1)]`); ";"; 
   try_th_exps(); <br; 
@@ -361,8 +361,15 @@ tpl [Given]
 tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(); <br; }
 tpl [TakeAsVar] 
 { 
-   <b { "take "; } ppconst(#nr=`@nr`, #vid = `Typ[1]/@vid`); " = ";   apply[*[2]]; 
-		  ";"; try_th_exps(); <br; 
+   <b { "take "; } 
+   if [$const_links>0] 
+   {   
+      $addpl = { addp(#pl=`@plevel`); } 
+      <a { @NAME=`concat("c",@nr,$addpl)`; }
+   }
+   ppconst(#nr=`@nr`, #vid = `Typ[1]/@vid`); " = ";   
+   apply[*[2]]; 
+   ";"; try_th_exps(); <br; 
 }
 
 tpl [Conclusion] 
@@ -432,7 +439,7 @@ tpl [Consider]
       "consider ";
    }
 
-   jtlist(#j = $j, #sep2 = " being ", #elems = `Typ`);
+   jtlist(#j = $j, #sep2 = " being ", #elems = `Typ`, #pl=`@plevel`);
 
    if [count(Proposition) > 1] 
    { 
@@ -457,12 +464,17 @@ tpl [Consider]
 //    (elTyp, Term)+,
 //    elProposition, Justification
 //  }
-tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; } 
-    "reconsider "; } 
+tpl [Reconsider] 
+{ 
+   $j=`@nr`; 
+   <b { if [By[@linked="true"]] { "then "; } "reconsider "; }
+   $addpl = { if [$const_links>0] { addp(#pl=`@plevel`); } }
 // should work both for old and new reconsider
     for-each [*[(not(name() = "Typ")) and (position() < (last() - 1))]] {
-	 $p1 = `position()`;
-	 ppconst(#nr=`$j + position() - 1`, #vid = `../Typ[$p1]/@vid`);
+	 $p1  = `position()`;
+	 $nr1 = `$j + $p1 - 1`;
+	 if [$const_links>0] {<a { @NAME=`concat("c",$nr1,$addpl)`; }}
+	 ppconst(#nr = $nr1, #vid = `../Typ[$p1]/@vid`);
 	 " = ";
 	 apply[.];
 	 if [not($p1=last())] { ", "; }}
@@ -473,7 +485,17 @@ tpl [Reconsider] { $j=`@nr`; <b { if [By[@linked="true"]] { "then "; }
     " as "; apply[*[1]]; " "; 
     apply[*[last()]]; } 
 
-tpl [Set] { <b { "set ";} ppconst(#nr=`@nr`, #vid=`Typ/@vid`); " = "; apply[*[1]]; ";"; <br; }
+tpl [Set] 
+{ 
+   <b { "set ";} 
+   if [$const_links>0] 
+   {   
+      $addpl = { addp(#pl=`@plevel`); } 
+      <a { @NAME=`concat("c",@nr,$addpl)`; }
+   }
+   ppconst(#nr=`@nr`, #vid=`Typ/@vid`); " = "; apply[*[1]]; ";"; <br; 
+}
+
 tpl [DefFunc] { <b { "deffunc "; } ppfunc(#nr=`@nr`); "(";  
                 list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
                 apply[*[3]]; " = ";

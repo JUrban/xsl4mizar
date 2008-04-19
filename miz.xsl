@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.54 $ -->
+  <!-- $Revision: 1.55 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -159,6 +159,11 @@
   </xsl:param>
   <!-- tells if linkage of proof elements is done; default is off -->
   <xsl:param name="proof_links">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- tells if linkage of constants is done; default is 0 (off), -->
+  <!-- 1 tells to only create the anchors, 2 tells to also link constants -->
+  <xsl:param name="const_links">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- tells if proofs are fetched through AJAX; default is off -->
@@ -464,32 +469,73 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- #pl gives the optional proof level -->
   <xsl:template name="ppconst">
     <xsl:param name="nr"/>
     <xsl:param name="vid"/>
+    <xsl:param name="pl"/>
     <xsl:choose>
       <xsl:when test="($print_identifiers &gt; 0) and ($vid &gt; 0)">
+        <xsl:variable name="ctarget">
+          <xsl:choose>
+            <xsl:when test="($const_links&gt;0) and  ($pl)">
+              <xsl:text>c</xsl:text>
+              <xsl:value-of select="$nr"/>
+              <xsl:call-template name="addp">
+                <xsl:with-param name="pl" select="$pl"/>
+              </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="concat(&quot;c&quot;,$nr)"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
         <xsl:variable name="nm">
           <xsl:call-template name="get_vid_name">
             <xsl:with-param name="vid" select="$vid"/>
           </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
-          <xsl:when test="$colored = &quot;1&quot;">
-            <xsl:element name="font">
-              <xsl:attribute name="color">
-                <xsl:value-of select="$constcolor"/>
+          <xsl:when test="($const_links=2)">
+            <xsl:element name="a">
+              <xsl:attribute name="class">
+                <xsl:text>txt</xsl:text>
               </xsl:attribute>
-              <xsl:if test="$titles=&quot;1&quot;">
-                <xsl:attribute name="title">
-                  <xsl:value-of select="concat(&quot;c&quot;,$nr)"/>
+              <xsl:attribute name="href">
+                <xsl:value-of select="concat(&quot;#&quot;,$ctarget)"/>
+              </xsl:attribute>
+              <xsl:element name="font">
+                <xsl:attribute name="color">
+                  <xsl:value-of select="$constcolor"/>
                 </xsl:attribute>
-              </xsl:if>
-              <xsl:value-of select="$nm"/>
+                <xsl:if test="$titles=&quot;1&quot;">
+                  <xsl:attribute name="title">
+                    <xsl:value-of select="$ctarget"/>
+                  </xsl:attribute>
+                </xsl:if>
+                <xsl:value-of select="$nm"/>
+              </xsl:element>
             </xsl:element>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:value-of select="$nm"/>
+            <xsl:choose>
+              <xsl:when test="$colored = &quot;1&quot;">
+                <xsl:element name="font">
+                  <xsl:attribute name="color">
+                    <xsl:value-of select="$constcolor"/>
+                  </xsl:attribute>
+                  <xsl:if test="$titles=&quot;1&quot;">
+                    <xsl:attribute name="title">
+                      <xsl:value-of select="$ctarget"/>
+                    </xsl:attribute>
+                  </xsl:if>
+                  <xsl:value-of select="$nm"/>
+                </xsl:element>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="$nm"/>
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
@@ -1649,13 +1695,31 @@
   <!-- the Typ is printed only once. -->
   <!-- #sep2 is now either "be " or "being ", -->
   <!-- comma is added automatically. -->
+  <!-- #pl passes proolevel if after addabsrefs processing -->
+  <!-- (needed for const_links) -->
   <xsl:template name="jtlist">
     <xsl:param name="j"/>
     <xsl:param name="sep2"/>
     <xsl:param name="elems"/>
+    <xsl:param name="pl"/>
+    <xsl:variable name="addpl">
+      <xsl:if test="$const_links&gt;0">
+        <xsl:call-template name="addp">
+          <xsl:with-param name="pl" select="$pl"/>
+        </xsl:call-template>
+      </xsl:if>
+    </xsl:variable>
     <xsl:for-each select="$elems">
+      <xsl:variable name="nr1" select="$j+position()"/>
+      <xsl:if test="$const_links&gt;0">
+        <xsl:element name="a">
+          <xsl:attribute name="NAME">
+            <xsl:value-of select="concat(&quot;c&quot;,$nr1,$addpl)"/>
+          </xsl:attribute>
+        </xsl:element>
+      </xsl:if>
       <xsl:call-template name="ppconst">
-        <xsl:with-param name="nr" select="$j+position()"/>
+        <xsl:with-param name="nr" select="$nr1"/>
         <xsl:with-param name="vid" select="@vid"/>
       </xsl:call-template>
       <xsl:choose>
@@ -5243,6 +5307,7 @@
                     <xsl:text> be </xsl:text>
                   </xsl:with-param>
                   <xsl:with-param name="elems" select="Typ"/>
+                  <xsl:with-param name="pl" select="@plevel"/>
                 </xsl:call-template>
                 <xsl:text>;</xsl:text>
                 <xsl:call-template name="try_th_exps"/>
@@ -5291,6 +5356,7 @@
         <xsl:text> being </xsl:text>
       </xsl:with-param>
       <xsl:with-param name="elems" select="Typ"/>
+      <xsl:with-param name="pl" select="@plevel"/>
     </xsl:call-template>
     <xsl:element name="b">
       <xsl:text> such that </xsl:text>
@@ -5317,6 +5383,18 @@
     <xsl:element name="b">
       <xsl:text>take </xsl:text>
     </xsl:element>
+    <xsl:if test="$const_links&gt;0">
+      <xsl:variable name="addpl">
+        <xsl:call-template name="addp">
+          <xsl:with-param name="pl" select="@plevel"/>
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:element name="a">
+        <xsl:attribute name="NAME">
+          <xsl:value-of select="concat(&quot;c&quot;,@nr,$addpl)"/>
+        </xsl:attribute>
+      </xsl:element>
+    </xsl:if>
     <xsl:call-template name="ppconst">
       <xsl:with-param name="nr" select="@nr"/>
       <xsl:with-param name="vid" select="Typ[1]/@vid"/>
@@ -5415,6 +5493,7 @@
         <xsl:text> being </xsl:text>
       </xsl:with-param>
       <xsl:with-param name="elems" select="Typ"/>
+      <xsl:with-param name="pl" select="@plevel"/>
     </xsl:call-template>
     <xsl:if test="count(Proposition) &gt; 1">
       <xsl:element name="b">
@@ -5449,11 +5528,26 @@
       </xsl:if>
       <xsl:text>reconsider </xsl:text>
     </xsl:element>
+    <xsl:variable name="addpl">
+      <xsl:if test="$const_links&gt;0">
+        <xsl:call-template name="addp">
+          <xsl:with-param name="pl" select="@plevel"/>
+        </xsl:call-template>
+      </xsl:if>
+    </xsl:variable>
     <!-- should work both for old and new reconsider -->
     <xsl:for-each select="*[(not(name() = &quot;Typ&quot;)) and (position() &lt; (last() - 1))]">
       <xsl:variable name="p1" select="position()"/>
+      <xsl:variable name="nr1" select="$j + $p1 - 1"/>
+      <xsl:if test="$const_links&gt;0">
+        <xsl:element name="a">
+          <xsl:attribute name="NAME">
+            <xsl:value-of select="concat(&quot;c&quot;,$nr1,$addpl)"/>
+          </xsl:attribute>
+        </xsl:element>
+      </xsl:if>
       <xsl:call-template name="ppconst">
-        <xsl:with-param name="nr" select="$j + position() - 1"/>
+        <xsl:with-param name="nr" select="$nr1"/>
         <xsl:with-param name="vid" select="../Typ[$p1]/@vid"/>
       </xsl:call-template>
       <xsl:text> = </xsl:text>
@@ -5475,6 +5569,18 @@
     <xsl:element name="b">
       <xsl:text>set </xsl:text>
     </xsl:element>
+    <xsl:if test="$const_links&gt;0">
+      <xsl:variable name="addpl">
+        <xsl:call-template name="addp">
+          <xsl:with-param name="pl" select="@plevel"/>
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:element name="a">
+        <xsl:attribute name="NAME">
+          <xsl:value-of select="concat(&quot;c&quot;,@nr,$addpl)"/>
+        </xsl:attribute>
+      </xsl:element>
+    </xsl:if>
     <xsl:call-template name="ppconst">
       <xsl:with-param name="nr" select="@nr"/>
       <xsl:with-param name="vid" select="Typ/@vid"/>
