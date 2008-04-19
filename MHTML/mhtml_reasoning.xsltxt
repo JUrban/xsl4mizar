@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.31 $
+// $Revision: 1.32 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -310,7 +310,13 @@ tpl [Let](#fst,#beg) {
   if [$beg] // no thesis guaranteed, only one const guaranteed
 	    // this sequence has already been started,
    {   
-       ", "; ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
+       ", ";
+       if [$const_links>0] 
+       {   
+	     $addpl = { addp(#pl=`@plevel`); } 
+	     <a { @NAME=`concat("c",@nr,$addpl)`; }
+       } 
+       ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
        if [$next="1"] // and does not end here - print the rest
        {
           apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=$beg);
@@ -326,6 +332,11 @@ tpl [Let](#fst,#beg) {
        <b { "let "; }
        if [$next="1"] // not ending here; no thesis guaranteed, only one const guaranteed
        {
+          if [$const_links>0] 
+	  {   
+	     $addpl = { addp(#pl=`@plevel`); } 
+	     <a { @NAME=`concat("c",@nr,$addpl)`; }
+	  }
 	  ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
 	  apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=`@nr`);
        }

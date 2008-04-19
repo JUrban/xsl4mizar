@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.55 $ -->
+  <!-- $Revision: 1.56 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -3336,9 +3336,17 @@
       <xsl:when test="($print_identifiers &gt; 0)  and ((@vid&gt;0) or ($proof_links&gt;0))">
         <xsl:choose>
           <xsl:when test="@vid &gt; 0">
+            <xsl:variable name="pl">
+              <xsl:if test="$const_links=2">
+                <xsl:call-template name="get_nearest_level">
+                  <xsl:with-param name="el" select=".."/>
+                </xsl:call-template>
+              </xsl:if>
+            </xsl:variable>
             <xsl:call-template name="ppconst">
               <xsl:with-param name="nr" select="@nr"/>
               <xsl:with-param name="vid" select="@vid"/>
+              <xsl:with-param name="pl" select="$pl"/>
             </xsl:call-template>
           </xsl:when>
           <xsl:otherwise>
@@ -5256,6 +5264,18 @@
         <xsl:choose>
           <xsl:when test="$beg">
             <xsl:text>, </xsl:text>
+            <xsl:if test="$const_links&gt;0">
+              <xsl:variable name="addpl">
+                <xsl:call-template name="addp">
+                  <xsl:with-param name="pl" select="@plevel"/>
+                </xsl:call-template>
+              </xsl:variable>
+              <xsl:element name="a">
+                <xsl:attribute name="NAME">
+                  <xsl:value-of select="concat(&quot;c&quot;,@nr,$addpl)"/>
+                </xsl:attribute>
+              </xsl:element>
+            </xsl:if>
             <xsl:call-template name="ppconst">
               <xsl:with-param name="nr" select="@nr"/>
               <xsl:with-param name="vid" select="Typ/@vid"/>
@@ -5289,6 +5309,18 @@
             </xsl:element>
             <xsl:choose>
               <xsl:when test="$next=&quot;1&quot;">
+                <xsl:if test="$const_links&gt;0">
+                  <xsl:variable name="addpl">
+                    <xsl:call-template name="addp">
+                      <xsl:with-param name="pl" select="@plevel"/>
+                    </xsl:call-template>
+                  </xsl:variable>
+                  <xsl:element name="a">
+                    <xsl:attribute name="NAME">
+                      <xsl:value-of select="concat(&quot;c&quot;,@nr,$addpl)"/>
+                    </xsl:attribute>
+                  </xsl:element>
+                </xsl:if>
                 <xsl:call-template name="ppconst">
                   <xsl:with-param name="nr" select="@nr"/>
                   <xsl:with-param name="vid" select="Typ/@vid"/>

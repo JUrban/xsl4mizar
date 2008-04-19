@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.105 $
+// $Revision: 1.106 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -1415,7 +1415,8 @@ tpl [Const](#p,#i)
     {
        if [@vid > 0]
        {
-          ppconst(#nr = `@nr`, #vid = `@vid`);
+          $pl = { if[$const_links=2]  { get_nearest_level(#el = `..`); } }
+          ppconst(#nr = `@nr`, #vid = `@vid`, #pl = $pl);
        } 
        else    
        {
@@ -2334,7 +2335,13 @@ tpl [Let](#fst,#beg) {
   if [$beg] // no thesis guaranteed, only one const guaranteed
 	    // this sequence has already been started,
    {   
-       ", "; ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
+       ", ";
+       if [$const_links>0] 
+       {   
+	     $addpl = { addp(#pl=`@plevel`); } 
+	     <a { @NAME=`concat("c",@nr,$addpl)`; }
+       } 
+       ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
        if [$next="1"] // and does not end here - print the rest
        {
           apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=$beg);
@@ -2350,6 +2357,11 @@ tpl [Let](#fst,#beg) {
        <b { "let "; }
        if [$next="1"] // not ending here; no thesis guaranteed, only one const guaranteed
        {
+          if [$const_links>0] 
+	  {   
+	     $addpl = { addp(#pl=`@plevel`); } 
+	     <a { @NAME=`concat("c",@nr,$addpl)`; }
+	  }
 	  ppconst(#nr = `@nr`, #vid = `Typ/@vid`);
 	  apply[following-sibling::*[position()=$it_step]](#fst="1",#beg=`@nr`);
        }
