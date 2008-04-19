@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.17 $
+// $Revision: 1.18 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -104,6 +104,8 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // tells if linkage of constants is done; default is 0 (off),
 // 1 tells to only create the anchors, 2 tells to also link constants
+// ##TODO: 2 is implement incorrectly and should not be used now,
+//         it should be done like privname (via the C key, not like now)
 #const_links = { "0"; }
 
 // tells if proofs are fetched through AJAX; default is off
