@@ -31,6 +31,6 @@ make tarski.xml1
 make tarski.htmla1
 for j in `ls *.htmla1| sed -e 's/.htmla1//'`; do mv $j.htmla1 ../html/$j.html; done
 cd ..
-tar czf html_abstr.$i.noproofs.tar.gz html
+tar czf html_abstr.$1.noproofs.tar.gz html
 mv miztmp/proofs html
-tar czf html_abstr.$i.tar.gz html
+tar czf html_abstr.$1.tar.gz html
