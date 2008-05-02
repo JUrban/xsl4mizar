@@ -3,7 +3,7 @@ stylesheet "1.0";
 output method=text;
 
 
-// $Revision: 1.5 $
+// $Revision: 1.6 $
 //
 // File: mizpl.xsltxt - stylesheet translating TSTP XML solutions to MML Query DLI syntax
 //
@@ -108,7 +108,11 @@ tpl transl_constr(#nm) {
        $art = `substring-after($nm,"_")`;
        // test if $nr is digit
        if [$nr >= 0] {
-	  if [$k="c"] { "$"; $pref; " "; usto0(#s=$art);}
+	  if [$k="c"] 
+	  {
+	  $lev = `substring-before($art,"__")`; 
+	  "$"; $pref; " "; usto0(#s=$lev);
+	  }
 	  else { uc(#s=$art); ":"; mkind(#kind=$k); " "; $nr; }
 	  }
        else { 

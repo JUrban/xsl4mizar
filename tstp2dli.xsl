@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text"/>
-  <!-- $Revision: 1.2 $ -->
+  <!-- $Revision: 1.3 $ -->
   <!--  -->
   <!-- File: mizpl.xsltxt - stylesheet translating TSTP XML solutions to MML Query DLI syntax -->
   <!--  -->
@@ -284,11 +284,12 @@
           <xsl:when test="$nr &gt;= 0">
             <xsl:choose>
               <xsl:when test="$k=&quot;c&quot;">
+                <xsl:variable name="lev" select="substring-before($art,&quot;__&quot;)"/>
                 <xsl:text>$</xsl:text>
                 <xsl:value-of select="$pref"/>
                 <xsl:text> </xsl:text>
                 <xsl:call-template name="usto0">
-                  <xsl:with-param name="s" select="$art"/>
+                  <xsl:with-param name="s" select="$lev"/>
                 </xsl:call-template>
               </xsl:when>
               <xsl:otherwise>
