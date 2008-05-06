@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.56 $ -->
+  <!-- $Revision: 1.57 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -118,9 +118,10 @@
   <xsl:param name="relnames">
     <xsl:text>1</xsl:text>
   </xsl:param>
-  <!-- link by inferences to ATP solutions rendered by MMLQuery; experimental - off -->
+  <!-- link by (now also from) inferences to ATP solutions rendered by MMLQuery; experimental - off -->
   <!-- 1 - static linking (to pre-generated html) -->
   <!-- 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor) -->
+  <!-- 3 - dynamic linking to the TPTP-processor CGI ($lbytptpcgi) -->
   <xsl:param name="linkby">
     <xsl:text>0</xsl:text>
   </xsl:param>
@@ -147,7 +148,7 @@
   </xsl:variable>
   <!-- URL of the TPTP-processor CGI -->
   <xsl:param name="lbytptpcgi">
-    <xsl:text>http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi</xsl:text>
+    <xsl:text>http://octopi.mizar.org/~mptp/cgi-bin/showby.cgi</xsl:text>
   </xsl:param>
   <!-- tells if by action is fetched through AJAX; default is off -->
   <xsl:param name="ajax_by">
@@ -163,6 +164,8 @@
   </xsl:param>
   <!-- tells if linkage of constants is done; default is 0 (off), -->
   <!-- 1 tells to only create the anchors, 2 tells to also link constants -->
+  <!-- ##TODO: 2 is implement incorrectly and should not be used now, -->
+  <!-- it should be done like privname (via the C key, not like now) -->
   <xsl:param name="const_links">
     <xsl:text>0</xsl:text>
   </xsl:param>
@@ -4887,9 +4890,13 @@
 
   <xsl:template match="From">
     <xsl:param name="nbr"/>
-    <xsl:element name="b">
-      <xsl:text>from </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="linkbyif">
+      <xsl:with-param name="line" select="@line"/>
+      <xsl:with-param name="col" select="@col"/>
+      <xsl:with-param name="by">
+        <xsl:text>from</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:element name="i">
       <xsl:call-template name="getref">
         <xsl:with-param name="k">
@@ -4914,9 +4921,13 @@
   </xsl:template>
 
   <xsl:template match="IterStep/From">
-    <xsl:element name="b">
-      <xsl:text>from </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="linkbyif">
+      <xsl:with-param name="line" select="@line"/>
+      <xsl:with-param name="col" select="@col"/>
+      <xsl:with-param name="by">
+        <xsl:text>from</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:element name="i">
       <xsl:call-template name="getref">
         <xsl:with-param name="k">

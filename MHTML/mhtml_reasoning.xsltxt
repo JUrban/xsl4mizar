@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.32 $
+// $Revision: 1.33 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -113,13 +113,22 @@ tpl [By	](#nbr)
 tpl [IterStep/By] { if [(count(*)>0)] { 
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
       <i { list(#separ=", ", #elems=`Ref`); } }}
-tpl [From](#nbr) { <b { "from "; }
-        <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
-             list(#separ=", ", #elems=`*`); ")"; ";"; 
-      if [not($nbr="1")] { <br;  } } }
-tpl [IterStep/From] { <b { "from "; } 
+tpl [From](#nbr) 
+{ 
+    linkbyif(#line=`@line`,#col=`@col`,#by="from");
+    <i 
+    { 
+        getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
+	list(#separ=", ", #elems=`*`); ")"; ";"; 
+	if [not($nbr="1")] { <br;  } 
+    } 
+}
+tpl [IterStep/From] 
+{ 
+   linkbyif(#line=`@line`,#col=`@col`,#by="from");
    <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
-        list(#separ=", ", #elems=`*`); ")"; } }
+        list(#separ=", ", #elems=`*`); ")"; } 
+}
 
 
 // ##REQUIRE: the following two can be called only if $proof_links>0

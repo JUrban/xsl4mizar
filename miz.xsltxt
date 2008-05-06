@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.106 $
+// $Revision: 1.107 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -112,9 +112,10 @@ $print_lab_identifiers = { "1"; }
 // tells whether relative or absolute names are shown
 #relnames= { "1"; }
 
-// link by inferences to ATP solutions rendered by MMLQuery; experimental - off
+// link by (now also from) inferences to ATP solutions rendered by MMLQuery; experimental - off
 // 1 - static linking (to pre-generated html)
 // 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor)
+// 3 - dynamic linking to the TPTP-processor CGI ($lbytptpcgi)
 #linkby= { "0"; }
 
 // If 1, the target frame for by explanations is _self
@@ -134,7 +135,7 @@ $print_lab_identifiers = { "1"; }
 $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // URL of the TPTP-processor CGI
-#lbytptpcgi= { "http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi"; }
+#lbytptpcgi= { "http://octopi.mizar.org/~mptp/cgi-bin/showby.cgi"; }
 
 // tells if by action is fetched through AJAX; default is off
 #ajax_by = { "0"; }
@@ -148,6 +149,8 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // tells if linkage of constants is done; default is 0 (off),
 // 1 tells to only create the anchors, 2 tells to also link constants
+// ##TODO: 2 is implement incorrectly and should not be used now,
+//         it should be done like privname (via the C key, not like now)
 #const_links = { "0"; }
 
 // tells if proofs are fetched through AJAX; default is off
@@ -2138,13 +2141,22 @@ tpl [By	](#nbr)
 tpl [IterStep/By] { if [(count(*)>0)] { 
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
       <i { list(#separ=", ", #elems=`Ref`); } }}
-tpl [From](#nbr) { <b { "from "; }
-        <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
-             list(#separ=", ", #elems=`*`); ")"; ";"; 
-      if [not($nbr="1")] { <br;  } } }
-tpl [IterStep/From] { <b { "from "; } 
+tpl [From](#nbr) 
+{ 
+    linkbyif(#line=`@line`,#col=`@col`,#by="from");
+    <i 
+    { 
+        getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
+	list(#separ=", ", #elems=`*`); ")"; ";"; 
+	if [not($nbr="1")] { <br;  } 
+    } 
+}
+tpl [IterStep/From] 
+{ 
+   linkbyif(#line=`@line`,#col=`@col`,#by="from");
    <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
-        list(#separ=", ", #elems=`*`); ")"; } }
+        list(#separ=", ", #elems=`*`); ")"; } 
+}
 
 
 // ##REQUIRE: the following two can be called only if $proof_links>0

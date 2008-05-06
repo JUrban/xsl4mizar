@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.18 $
+// $Revision: 1.19 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -68,9 +68,10 @@ $print_lab_identifiers = { "1"; }
 // tells whether relative or absolute names are shown
 #relnames= { "1"; }
 
-// link by inferences to ATP solutions rendered by MMLQuery; experimental - off
+// link by (now also from) inferences to ATP solutions rendered by MMLQuery; experimental - off
 // 1 - static linking (to pre-generated html)
 // 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor)
+// 3 - dynamic linking to the TPTP-processor CGI ($lbytptpcgi)
 #linkby= { "0"; }
 
 // If 1, the target frame for by explanations is _self
@@ -90,7 +91,7 @@ $print_lab_identifiers = { "1"; }
 $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // URL of the TPTP-processor CGI
-#lbytptpcgi= { "http://octopi.ms.mff.cuni.cz/~mptp/cgi-bin/showby.cgi"; }
+#lbytptpcgi= { "http://octopi.mizar.org/~mptp/cgi-bin/showby.cgi"; }
 
 // tells if by action is fetched through AJAX; default is off
 #ajax_by = { "0"; }
