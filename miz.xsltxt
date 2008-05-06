@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.107 $
+// $Revision: 1.108 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -2147,7 +2147,7 @@ tpl [From](#nbr)
     <i 
     { 
         getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
-	list(#separ=", ", #elems=`*`); ")"; ";"; 
+	list(#separ=", ", #elems=`Ref`); ")"; ";"; 
 	if [not($nbr="1")] { <br;  } 
     } 
 }
@@ -2155,7 +2155,7 @@ tpl [IterStep/From]
 { 
    linkbyif(#line=`@line`,#col=`@col`,#by="from");
    <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
-        list(#separ=", ", #elems=`*`); ")"; } 
+        list(#separ=", ", #elems=`Ref`); ")"; } 
 }
 
 
