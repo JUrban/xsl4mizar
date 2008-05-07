@@ -5,7 +5,7 @@ xmlns exsl-str "http://exslt.org/strings";
 xmlns xt "http://www.jclark.com/xt";
 output method=text;
 
-// $Revision: 1.60 $
+// $Revision: 1.61 $
 //
 // File: mizpl.xsltxt - stylesheet translating Mizar XML terms, 
 //                      formulas and types to Prolog TSTP-like format.
@@ -940,7 +940,9 @@ tpl skippedinfer(#el,#pl,#prnr) { "inference(mizar_skipped_proof,[],[])"; }
 // ##GRM: By_Inference: "inference(" "mizar_by" "," "[" "]" "," "[" References "]" ")".
 // assumes By
 tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
-    "inference(mizar_by,[],["; refs(#el=`.`,#pl=$pl,#prnr=$prnr); "])"; }}
+    "inference(mizar_by,[";
+    "position("; `@line`; ","; `@col`; ")],"; 
+    "["; refs(#el=`.`,#pl=$pl,#prnr=$prnr); "])"; }}
 
 // handles Refs for From, (possibly linked) By and ThesisExpansions
 // ignores possible ThesisExpansions/Pair - each has a Ref added to it
@@ -1016,7 +1018,9 @@ tpl [SchemeInstantiation](#pl) { "[";
 //          "," Aid "," Scheme_Instantiation ")],[" 
 //          Scheme_Instance_Name [ "," References ] "])" .   
 tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
-    "inference(mizar_from,[scheme_instance("; 
+    "inference(mizar_from,[";
+    "position("; `@line`; ","; `@col`; "),"; 
+    "scheme_instance("; 
     sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); ",";
     absr(#el=`.`); ","; plname(#n=$prnr,#pl=$pl); ","; $anamelc; ",";
     apply[SchemeInstantiation](#pl=$pl); ")],[";

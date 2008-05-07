@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" extension-element-prefixes="exsl exsl-str xt" xmlns:exsl="http://exslt.org/common" xmlns:exsl-str="http://exslt.org/strings" xmlns:xt="http://www.jclark.com/xt" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text"/>
-  <!-- $Revision: 1.7 $ -->
+  <!-- $Revision: 1.8 $ -->
   <!--  -->
   <!-- File: mizpl.xsltxt - stylesheet translating Mizar XML terms, -->
   <!-- formulas and types to Prolog TSTP-like format. -->
@@ -2246,7 +2246,13 @@
     <xsl:param name="pl"/>
     <xsl:param name="prnr"/>
     <xsl:for-each select="$el">
-      <xsl:text>inference(mizar_by,[],[</xsl:text>
+      <xsl:text>inference(mizar_by,[</xsl:text>
+      <xsl:text>position(</xsl:text>
+      <xsl:value-of select="@line"/>
+      <xsl:text>,</xsl:text>
+      <xsl:value-of select="@col"/>
+      <xsl:text>)],</xsl:text>
+      <xsl:text>[</xsl:text>
       <xsl:call-template name="refs">
         <xsl:with-param name="el" select="."/>
         <xsl:with-param name="pl" select="$pl"/>
@@ -2460,7 +2466,13 @@
     <xsl:param name="pl"/>
     <xsl:param name="prnr"/>
     <xsl:for-each select="$el">
-      <xsl:text>inference(mizar_from,[scheme_instance(</xsl:text>
+      <xsl:text>inference(mizar_from,[</xsl:text>
+      <xsl:text>position(</xsl:text>
+      <xsl:value-of select="@line"/>
+      <xsl:text>,</xsl:text>
+      <xsl:value-of select="@col"/>
+      <xsl:text>),</xsl:text>
+      <xsl:text>scheme_instance(</xsl:text>
       <xsl:call-template name="sch_instname">
         <xsl:with-param name="el" select="."/>
         <xsl:with-param name="pl" select="$pl"/>
