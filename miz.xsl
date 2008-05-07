@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.58 $ -->
+  <!-- $Revision: 1.59 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -123,6 +123,10 @@
   <!-- 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor) -->
   <!-- 3 - dynamic linking to the TPTP-processor CGI ($lbytptpcgi) -->
   <xsl:param name="linkby">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- if > 0, call the mk_by_title function to create a title for by|from|; -->
+  <xsl:param name="by_titles">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- If 1, the target frame for by explanations is _self -->
@@ -4754,6 +4758,12 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template name="mk_by_title">
+    <xsl:param name="line"/>
+    <xsl:param name="col"/>
+    <xsl:value-of select="concat(&quot;Explain line &quot;, $line, &quot; column &quot;, $col)"/>
+  </xsl:template>
+
   <!-- Justifications -->
   <xsl:template name="linkbyif">
     <xsl:param name="line"/>
@@ -4802,6 +4812,14 @@
               </xsl:choose>
             </xsl:otherwise>
           </xsl:choose>
+          <xsl:if test="$by_titles&gt;0">
+            <xsl:attribute name="title">
+              <xsl:call-template name="mk_by_title">
+                <xsl:with-param name="line" select="$line"/>
+                <xsl:with-param name="col" select="$col"/>
+              </xsl:call-template>
+            </xsl:attribute>
+          </xsl:if>
           <xsl:element name="b">
             <xsl:value-of select="$by"/>
             <xsl:text> </xsl:text>

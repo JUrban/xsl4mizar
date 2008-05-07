@@ -9,7 +9,7 @@ stylesheet 1.0;
 output method=html;
 
 
-// $Revision: 1.108 $
+// $Revision: 1.109 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -117,6 +117,9 @@ $print_lab_identifiers = { "1"; }
 // 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor)
 // 3 - dynamic linking to the TPTP-processor CGI ($lbytptpcgi)
 #linkby= { "0"; }
+
+// if > 0, call the mk_by_title function to create a title for by|from|;
+#by_titles = { "0"; }
 
 // If 1, the target frame for by explanations is _self
 #linkbytoself = { "0"; }
@@ -2088,6 +2091,8 @@ tpl [Proposition]
     else { apply; " ";} 
 }
 
+tpl mk_by_title(#line, #col) { `concat("Explain line ", $line, " column ", $col)`; }
+
 // Justifications
 tpl linkbyif(#line,#col,#by) 
 { 
@@ -2111,6 +2116,7 @@ tpl linkbyif(#line,#col,#by)
 	       @href=$byurl; @class="txt"; 
 	       if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
             }
+	    if [$by_titles>0] { @title=mk_by_title(#line=$line,#col=$col); }
 	    <b { $by; " "; } 
 	 }
       if[$ajax_by > 0] { <span { " "; } } 
