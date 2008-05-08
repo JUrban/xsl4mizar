@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.59 $ -->
+  <!-- $Revision: 1.60 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -4846,7 +4846,7 @@
   <xsl:template match="By	">
     <xsl:param name="nbr"/>
     <xsl:choose>
-      <xsl:when test="(count(*)&gt;0)">
+      <xsl:when test="(count(Ref)&gt;0)">
         <xsl:call-template name="linkbyif">
           <xsl:with-param name="line" select="@line"/>
           <xsl:with-param name="col" select="@col"/>
@@ -4887,7 +4887,7 @@
   </xsl:template>
 
   <xsl:template match="IterStep/By">
-    <xsl:if test="(count(*)&gt;0)">
+    <xsl:if test="(count(Ref)&gt;0)">
       <xsl:call-template name="linkbyif">
         <xsl:with-param name="line" select="@line"/>
         <xsl:with-param name="col" select="@col"/>

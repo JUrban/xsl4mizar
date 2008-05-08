@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_frmtrm.xsl;
 
-// $Revision: 1.35 $
+// $Revision: 1.36 $
 //
 // File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items
 //
@@ -98,7 +98,7 @@ tpl linkbyif(#line,#col,#by)
 //  expansions are handled on the same line)
 tpl [By	](#nbr) 
 { 
-   if [(count(*)>0)] 
+   if [(count(Ref)>0)] 
    { 
       linkbyif(#line = `@line`, #col = `@col`,#by = "by");
       <i { list(#separ = ", ", #elems = `Ref`); } 
@@ -113,7 +113,7 @@ tpl [By	](#nbr)
    if [not($nbr = "1")] { <br;  }
 }
 
-tpl [IterStep/By] { if [(count(*)>0)] { 
+tpl [IterStep/By] { if [(count(Ref)>0)] { 
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
       <i { list(#separ=", ", #elems=`Ref`); } }}
 tpl [From](#nbr) 
