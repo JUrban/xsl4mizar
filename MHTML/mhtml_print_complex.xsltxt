@@ -5,7 +5,7 @@ output method=html;
 include mhtml_utils.xsl;
 
 
-// $Revision: 1.13 $
+// $Revision: 1.14 $
 //
 // File: print_complex.xsltxt - html-ization of Mizar XML, more complex printing stuff
 //
@@ -243,7 +243,7 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i)
                      for-each [key('F',$fnr)] { 
                        if [@leftargnr] { `@leftargnr`;} else { "0";} }}} }
     // try if right bracket - returns '' if not
-    $rsym = { if [($k='K') and ($la='0')] { abs1(#k=$k, #nr=$nr, #r="1"); } }
+    $rsym = { if [($k='K') and ($la='0')] { abs1(#k=$k, #nr=$nr, #fnr=$fnr, #r="1"); } }
     $np = { if [not($vis) or ($k='G')] { "0"; } else {
                if [$parenth>0] { $parenth; } else { 
                   if [not($rsym='')] { "1"; } else { "0";} } } }
