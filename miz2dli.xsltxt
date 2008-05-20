@@ -3,7 +3,7 @@ stylesheet "1.0";
 output method=text;
 
 
-// $Revision: 1.1 $
+// $Revision: 1.2 $
 //
 // File: miz2dli.xsltxt - stylesheet translating Mizar XML syntax to MML Query DLI syntax
 //
@@ -168,19 +168,24 @@ tpl [Typ](#i,#pl)
   ")";
 }
 
+// Cluster = ( Adjective*  )
+//
 tpl [Cluster](#i,#pl) { ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); }
 
 // ###TODO: the current Query syntax seems to forget about arguments of adjectives
 tpl [Adjective](#i,#pl) 
 { 
-  if [@value="false"] { "-"; } else { "+"; } "(";
-  absc(#el=`.`); ")";
+  if [@value="false"] { "-"; } else { "+"; } 
+  "("; absc(#el=`.`); ")";
 }
 
 // :::::::::::::::::::::  End of expression stuff :::::::::::::::::::::
 
 // :::::::::::::::::::::  Top items :::::::::::::::::::::
 
+
+// RCluster = (ArgTypes, Typ, Cluster)
+//
 tpl [RCluster]
 { 
    `@aid`; ":exreg "; `@nr`; "=exreg(";
@@ -190,6 +195,8 @@ tpl [RCluster]
    ")\n";
 }
 
+// FCluster = (ArgTypes, Term, Cluster, Typ?)
+//
 // ###TODO: not sure how Query deals with the optional Typ specification - now omitted
 tpl [FCluster]
 { 
@@ -200,6 +207,8 @@ tpl [FCluster]
    ")\n";
 }
 
+// CCluster = (ArgTypes, Cluster, Typ, Cluster)
+// 
 tpl [CCluster]
 { 
    `@aid`; ":condreg "; `@nr`; "=condreg(";
@@ -212,6 +221,8 @@ tpl [CCluster]
 }
 
 
+// IdentifyWithExp = (Typ*, ( (Term, Term) | (Formula, Formula) ) )
+//
 tpl [IdentifyWithExp] 
 { 
    `@aid`; ":idreg "; `@nr`; "=idreg(";
@@ -221,6 +232,9 @@ tpl [IdentifyWithExp]
    ")\n";  
 }
 
+// JustifiedTheorem = (Proposition, Justification)
+// DefTheorem = (Proposition)
+//
 tpl [JustifiedTheorem|DefTheorem] 
 { 
    `@aid`; ":"; refkind(#kind = `@kind`); " "; `@nr`; "=theorem(";
@@ -234,6 +248,7 @@ tpl [RegistrationBlock]
 	| Registration/CCluster
 	| Registration/FCluster]; 
 }
+
 
 // :::::::::::::::::::::  End of top items :::::::::::::::::::::
 
