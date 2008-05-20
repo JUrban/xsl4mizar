@@ -227,6 +227,7 @@ tpl [Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp](#s)
     {
       @aid = $aname;
       @nr = `1 + count(preceding::*[(name()=$n)])`; 
+      if [($n = "Definiens")] { abs(#k=`@constrkind`,#nr=`@constrnr`,#r="2"); }
     }
     apply(#s=$s); 
   }
@@ -283,9 +284,11 @@ tpl arity(#k,#nr) {
 //     copy-of `@*`; for-each [*] { repl_loci(#w=`.`,#f=$f,#t=$t) } }}}
 
 
-// add the constructor href, $r tells if it is from redefinition
+// add the constructor href, if $r, it tells if this is from redefinition (r=1)
+// or constr (r=2)
 tpl absref(#elems,#r) { for-each [$elems] { 
-    if [$r=1] { @redefaid=`@aid`; @absredefnr=`@nr`; }
+    if [$r>0] { if [$r=1] { @redefaid=`@aid`; @absredefnr=`@nr`; }
+                else { if [$r=2] { @constraid=`@aid`; @absconstrnr=`@nr`;} }}
     else { @kind=`@kind`; // @kind=mkind(#kind=`@kind`); 
            @nr=`@relnr`; @aid=`@aid`; @absnr=`@nr`; }} }
 
