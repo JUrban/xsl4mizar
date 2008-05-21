@@ -476,6 +476,15 @@
         <xsl:attribute name="nr">
           <xsl:value-of select="1 + count(preceding::*[(name()=$n)])"/>
         </xsl:attribute>
+        <xsl:if test="($n = &quot;Definiens&quot;)">
+          <xsl:call-template name="abs">
+            <xsl:with-param name="k" select="@constrkind"/>
+            <xsl:with-param name="nr" select="@constrnr"/>
+            <xsl:with-param name="r">
+              <xsl:text>2</xsl:text>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:if>
       </xsl:if>
       <xsl:apply-templates>
         <xsl:with-param name="s" select="$s"/>
@@ -564,19 +573,34 @@
   <!-- tpl repl_loci(#w,#f,#t) { $n=`name()`; -->
   <!-- if [($n = "Locus") and (@nr = $f)] { $t; } else { <$n { -->
   <!-- copy-of `@*`; for-each [*] { repl_loci(#w=`.`,#f=$f,#t=$t) } }}} -->
-  <!-- add the constructor href, $r tells if it is from redefinition -->
+  <!-- add the constructor href, if $r, it tells if this is from redefinition (r=1) -->
+  <!-- or constr (r=2) -->
   <xsl:template name="absref">
     <xsl:param name="elems"/>
     <xsl:param name="r"/>
     <xsl:for-each select="$elems">
       <xsl:choose>
-        <xsl:when test="$r=1">
-          <xsl:attribute name="redefaid">
-            <xsl:value-of select="@aid"/>
-          </xsl:attribute>
-          <xsl:attribute name="absredefnr">
-            <xsl:value-of select="@nr"/>
-          </xsl:attribute>
+        <xsl:when test="$r&gt;0">
+          <xsl:choose>
+            <xsl:when test="$r=1">
+              <xsl:attribute name="redefaid">
+                <xsl:value-of select="@aid"/>
+              </xsl:attribute>
+              <xsl:attribute name="absredefnr">
+                <xsl:value-of select="@nr"/>
+              </xsl:attribute>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:if test="$r=2">
+                <xsl:attribute name="constraid">
+                  <xsl:value-of select="@aid"/>
+                </xsl:attribute>
+                <xsl:attribute name="absconstrnr">
+                  <xsl:value-of select="@nr"/>
+                </xsl:attribute>
+              </xsl:if>
+            </xsl:otherwise>
+          </xsl:choose>
         </xsl:when>
         <xsl:otherwise>
           <xsl:attribute name="kind">
