@@ -448,15 +448,28 @@
         <xsl:attribute name="nr">
           <xsl:value-of select="1 + count(preceding::*[(name()=$n) and (@kind=$k)])"/>
         </xsl:attribute>
-        <xsl:if test="(@redefnr &gt; 0) and ($n = &quot;Constructor&quot;)">
-          <xsl:call-template name="abs">
-            <xsl:with-param name="k" select="$k"/>
-            <xsl:with-param name="nr" select="@redefnr"/>
-            <xsl:with-param name="r">
-              <xsl:text>1</xsl:text>
-            </xsl:with-param>
-          </xsl:call-template>
-        </xsl:if>
+        <xsl:choose>
+          <xsl:when test="(@redefnr &gt; 0) and ($n = &quot;Constructor&quot;)">
+            <xsl:call-template name="abs">
+              <xsl:with-param name="k" select="$k"/>
+              <xsl:with-param name="nr" select="@redefnr"/>
+              <xsl:with-param name="r">
+                <xsl:text>1</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:if test="($n = &quot;Pattern&quot;) and (not(Expansion))">
+              <xsl:call-template name="abs">
+                <xsl:with-param name="k" select="@constrkind"/>
+                <xsl:with-param name="nr" select="@constrnr"/>
+                <xsl:with-param name="r">
+                  <xsl:text>2</xsl:text>
+                </xsl:with-param>
+              </xsl:call-template>
+            </xsl:if>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:if>
       <xsl:apply-templates>
         <xsl:with-param name="s" select="$s"/>
