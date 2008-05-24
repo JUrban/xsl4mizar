@@ -3,7 +3,7 @@ stylesheet "1.0";
 output method=text;
 
 
-// $Revision: 1.3 $
+// $Revision: 1.4 $
 //
 // File: miz2dli.xsltxt - stylesheet translating Mizar XML syntax to MML Query DLI syntax
 //
@@ -20,6 +20,33 @@ output method=text;
 
 
 strip-space "*";
+
+// name of current article (upper case)
+#aname= { `string(/*/@aid)`; }
+
+// name of current article (lower case)
+#anamelc= { `translate($aname, $ucletters, $lcletters)`; }
+
+// .frx file with all (both imported and article's) formats
+#formats=  { `concat($anamelc, '.frx')`; }
+
+// .dcx file with vocabulary
+#vocs=  { `concat($anamelc, '.dcx')`; }
+
+// .idx file with identifier names
+#ids=  { `concat($anamelc, '.idx')`; }
+
+key "F" [Format] `@nr`;
+
+key "D_G" [Symbol[@kind='G']] `@nr`;
+key "D_K" [Symbol[@kind='K']] `@nr`;
+key "D_J" [Symbol[@kind='J']] `@nr`;
+key "D_L" [Symbol[@kind='L']] `@nr`;
+key "D_M" [Symbol[@kind='M']] `@nr`;
+key "D_O" [Symbol[@kind='O']] `@nr`;
+key "D_R" [Symbol[@kind='R']] `@nr`;
+key "D_U" [Symbol[@kind='U']] `@nr`;
+key "D_V" [Symbol[@kind='V']] `@nr`;
 
 
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
@@ -73,7 +100,7 @@ tpl [For](#i,#pl)
 { 
   $j = { if [$i>0] { `$i + 1`;} else { "1"; } }
   $for_s; "("; pvar(#nr=$j); ","; 
-  $srt_s; "("; apply[Typ[1]](#i=$j,#pl=$pl); ")";
+  apply[Typ[1]](#i=$j,#pl=$pl); ",";
   apply[*[2]](#i=$j,#pl=$pl); ")";
 }
 
@@ -151,10 +178,10 @@ tpl [Typ](#i,#pl)
   if [@kind='errortyp'] { "$ERRORTYP"; }
   else { if [(@kind="M") or (@kind="L")] 
   {
-    $adjectives = { `count(Cluster[$which_cluster]/*)`; }
+    $adjectives = { `count(Cluster[position()=$which_cluster]/*)`; }
     if [$adjectives > 0] 
     { 
-      apply[Cluster[$which_cluster]](#i=$i,#pl=$pl);
+      apply[Cluster[position()=$which_cluster]](#i=$i,#pl=$pl);
       ","; 
     }
     absc(#el=`.`);
@@ -185,40 +212,42 @@ tpl [Adjective](#i,#pl)
 // :::::::::::::::::::::  Top items :::::::::::::::::::::
 
 
-// RCluster = (ArgTypes, Typ, Cluster)
+// RCluster = ( ArgTypes, Typ, Cluster, Cluster? )
 //
+// the second optional Cluster is after rounding-up
 tpl [RCluster]
 { 
    `@aid`; ":exreg "; `@nr`; "=exreg(";
    loci(#el = `ArgTypes/Typ`); ",";
-   "$cluster"; if [Cluster/*] { "("; apply[Cluster]; ")"; } ",";
+   "$cluster"; if [Cluster[1]/*] { "("; apply[Cluster[1]]; ")"; } ",";
    apply[Typ];
    ")\n";
 }
 
-// FCluster = (ArgTypes, Term, Cluster, Typ?)
+// FCluster = (ArgTypes, Term, Cluster, Cluster?, Typ?)
 //
+// the second optional Cluster is after rounding-up
 // ###TODO: not sure how Query deals with the optional Typ specification - now omitted
 tpl [FCluster]
 { 
    `@aid`; ":funcreg "; `@nr`; "=funcreg(";
    loci(#el = `ArgTypes/Typ`); ",";
-   "$cluster"; if [Cluster/*] { "("; apply[Cluster]; ")"; } ",";
+   "$cluster"; if [Cluster[1]/*] { "("; apply[Cluster[1]]; ")"; } ",";
    apply[*[2]];
    if [Typ] { ","; apply[Typ]; }
    ")\n";
 }
 
-// CCluster = (ArgTypes, Cluster, Typ, Cluster)
+// CCluster = (ArgTypes, Cluster, Typ, Cluster, Cluster?)
 // 
+// the last optional Cluster is after rounding-up
 tpl [CCluster]
 { 
    `@aid`; ":condreg "; `@nr`; "=condreg(";
    loci(#el = `ArgTypes/Typ`); ",";
    "$antecedent"; if [Cluster[1]/*] { "("; apply[Cluster[1]]; ")"; } ",";
-   apply[Typ];
-   "$cluster"; if [Cluster[2]/*] { "("; apply[Cluster[2]]; ")"; } ",";
-   apply[*[3]];
+   apply[Typ]; ",";
+   "$cluster"; if [Cluster[2]/*] { "("; apply[Cluster[2]]; ")"; }
    ")\n";
 }
 
@@ -243,6 +272,54 @@ tpl [JustifiedTheorem|DefTheorem]
    apply[*[1]]; ")\n";
 }
 
+// Scheme blocks are used for declaring the types of second-order
+// variables appearing in a scheme, and for its justification.
+// This could be a bit unified with Scheme later.
+// schemenr is its serial nr in the article, while vid is
+// its identifier number.   
+// SchemeBlock =   
+//  element SchemeBlock {
+//    attribute schemenr { xsd:integer },
+//    attribute vid { xsd:integer }?,
+//    Position,
+//    ( SchemeFuncDecl | SchemePredDecl )*,
+//    element SchemePremises { Proposition* },
+//    Proposition, Justification,
+//    EndPosition
+//    }
+//
+//  Declaration of a scheme functor, possibly with its identifier number.
+// SchemeFuncDecl =   
+//  element SchemeFuncDecl {
+//    attribute nr { xsd:integer},
+//    attribute vid { xsd:integer}?,
+//    ArgTypes, Typ
+//  }
+//
+// ABCMIZ_0:sch 1=scheme(ABCMIZ_0:sch 1,$parameters,$premisses($not($for($B 1,$type(+(FINSET_1:attr 1),HIDDEN:mode 1),$not($private_formula 1($B 1))))),$thesis($not($for($B 1,$type(+(FINSET_1:attr 1),HIDDEN:mode 1),$not($and($private_formula 1($B 1),$for($B 2,$type(HIDDEN:mode 1),$not($and(TARSKI:pred 1($B 2,$B 1),$private_formula 1($B 2),$not(HIDDEN:pred 1($B 2,$B 1)))))))))))
+//
+// ABCMIZ_0:sch 2=scheme(ABCMIZ_0:sch 2,$parameters($type(-(XBOOLE_0:attr 1),HIDDEN:mode 1),$type(RELSET_1:mode 2($private_functor 1,$private_functor 1))),$premisses($for($B 1,$type(SUBSET_1:mode 1($private_functor 1)),$for($B 2,$type(SUBSET_1:mode 1($private_functor 1)),$not($and(HIDDEN:pred 2(DOMAIN_1:func 1($private_functor 1,$private_functor 1,$B 1,$B 2),$private_functor 2),$not($private_formula 1($B 1,$B 2)))))),$for($B 1,$type(SUBSET_1:mode 1($private_functor 1)),$private_formula 1($B 1,$B 1)),$for($B 1,$type(SUBSET_1:mode 1($private_functor 1)),$for($B 2,$type(SUBSET_1:mode 1($private_functor 1)),$for($B 3,$type(SUBSET_1:mode 1($private_functor 1)),$not($and($private_formula 1($B 1,$B 2),$private_formula 1($B 2,$B 3),$not($private_formula 1($B 1,$B 3)))))))),$thesis($for($B 1,$type(SUBSET_1:mode 1($private_functor 1)),$for($B 2,$type(SUBSET_1:mode 1($private_functor 1)),$not($and(REWRITE1:pred 1($private_functor 2,$B 1,$B 2),$not($private_formula 1($B 1,$B 2))))))))
+
+tpl [SchemeBlock](#i,#pl)
+{
+   $aname; ":"; "sch"; " "; `@schemenr`; "=scheme(";  $aname; ":"; "sch"; " "; `@schemenr`; ",";
+   "$parameters";
+   if [SchemeFuncDecl] 
+   { 
+      "("; ilist(#separ=",", #elems=`SchemeFuncDecl/Typ`, #i=$i, #pl=$pl); ")"; 
+   }
+   ",";
+   "$premisses";
+   if [SchemePremises/*]
+   {
+      "("; ilist(#separ=",", #elems=`SchemePremises/Proposition`, #i=$i, #pl=$pl); ")"; 
+   }
+   ",";
+   "$thesis("; apply[Proposition](#i,#pl); ")";
+   ")\n";
+}
+
+
 tpl [RegistrationBlock]
 {
    apply[IdentifyRegistration/IdentifyWithExp
@@ -251,20 +328,39 @@ tpl [RegistrationBlock]
 	| Registration/FCluster]; 
 }
 
+tpl [DefinitionBlock]
+{
+   apply[Definition/Constructor | Definition/Pattern | Definition/Registration/RCluster];
+}
+
+
+
 // Constructor = (Properties? , ArgTypes, StructLoci?, Typ*, Fields?)
 //
-tpl [Constructor]
+tpl [Constructor](#i,#pl)
 {
    `@aid`; ":"; mkind(#kind = `@kind`); " "; `@nr`; "="; mkind(#kind = `@kind`); "(";
-   loci(#el = `ArgTypes/Typ`); 
+   loci(#el = `ArgTypes/Typ`,#us="1"); 
+   $locicount = `count(ArgTypes/Typ)`;
+   $typcount = `count(Typ)`;
    if [(@kind='K') or (@kind='U') or (@kind='G') or (@kind='M') or (@kind='V')]
    {
-      ","; $srt_s; "("; apply[Typ[1]]; ")";
+      if [$locicount > 0] { ","; }
+      apply[Typ[1]];
    }
    else { if [(@kind='L')]
    {
-      ","; $prefices_s; "("; ilist(#separ=",", #elems=`Typ`, #i=$i,#pl=$pl); ")";
+      if [$locicount > 0] { ","; }
+      $prefices_s; 
+      if [Typ] { "("; ilist(#separ=",", #elems=`Typ`, #i=$i,#pl=$pl); ")"; }
    }}
+   if [Properties]
+   {
+      if [($locicount + $typcount) > 0] { ","; }
+      "$properties(";
+      for-each [Properties/*] { lc(#s = `name()`); if [not(position() = last())] { ",";} }
+      ")";
+   }
    ")\n";
 }
 
@@ -281,7 +377,7 @@ tpl [Definiens]
    `@aid`; ":"; "dfs "; `@nr`; "="; "$definiens($definiendum(";
    `@constraid`; ":"; mkind(#kind = `@constrkind`); " "; `@absconstrnr`; "),";
    loci(#el = `Typ`); ",";
-   apply[Essentials];
+   apply[Essentials]; ",";
    "$assumptions"; "(";
    if [not(name(*[position()=last() -1]) = "Essentials")] 
    {
@@ -302,15 +398,72 @@ tpl [Definiens]
    "))\n";
 }
 
+// Pattern = ( Format?, ArgTypes, Visible, Expansion?)
+//
+// element Pattern {
+// attribute kind { 'M' | 'L' | 'V' | 'R' | 'K' | 'U' | 'G' | 'J' },
+//    ( attribute nr { xsd:integer },
+//      attribute aid { xsd:string } )?,
+//    ( attribute formatnr { xsd:integer}
+//    | Format ),
+//    attribute constrkind { 'M' | 'L' | 'V' | 'R' | 'K' | 'U' | 'G' | 'J' },
+//    attribute constrnr { xsd:integer},
+//    attribute antonymic { xsd:boolean }?,
+//    attribute relnr { xsd:integer }?,
+//    attribute redefnr { xsd:integer }?,
+//    ArgTypes,
+//    element Visible { Int*},
+//    element Expansion { Typ }?
+// }
 
+// ABCMIZ_0:attrnot 1=attrnot(IDEAL_1:vocV 5("Noetherian"),$loci($type(ORDERS_2:struct 1)),$format(0,1),$visible(1),$constructor(ABCMIZ_0:attr 1))
+//
+// MCART_1:funcnot 12=funcnot(HIDDEN:vocK 4("[:"),HIDDEN:vocL 4(":]"),$loci($type(HIDDEN:mode 1),$type(HIDDEN:mode 1),$type(SUBSET_1:mode 1(ZFMISC_1:func 1($A 1))),$type(SUBSET_1:mode 1(ZFMISC_1:func 1($A 2)))),$format(0,2),$visible(3,4),$constructor(MCART_1:func 12),$synonym)
+
+tpl [Pattern](#i,#pl)
+{
+   `@aid`; ":"; mkind(#kind = `@kind`); "not "; `@nr`; "="; mkind(#kind = `@kind`); "not"; "(";
+   $fnr = `@formatnr`;
+   format_info(#fnr1 = $fnr); ",";
+   loci(#el = `ArgTypes/Typ`); ",";
+   
+   for-each [document($formats,/)] 
+   {
+        for-each [key('F', $fnr)] 
+	{
+	  $largnr = { if [@leftargnr] { `@leftargnr`; } else { "0"; } }
+	  $rargnr = { `@argnr - $largnr`; }
+	  "$format("; $largnr; ","; $rargnr; "),";
+        }
+   }
+   
+   "$visible"; if [Visible/Int] {	"("; ilist(#separ=",", #elems=`Visible/Int`, #i=$i, #pl=$pl); ")"; } 
+   ","; 
+   // ###TODO: MML Query now prints construcor even for forgetful functors, but there are none
+   if [not(Expansion)] 
+   {  
+      "$constructor("; 
+      if [@kind = "J"] { `@aid`; ":"; "forg"; " "; `@nr`; }
+      else
+      { 
+        `@constraid`; ":"; mkind(#kind = `@constrkind`); " "; `@absconstrnr`; 
+      }
+      ")";
+   }
+   else { "$abbreviation("; apply[Expansion/Typ]; ")"; }
+   if [@redefnr > 0]
+   {
+      ","; if [@antonymic = "true"] { "$antonym"; } else { "$synonym"; }
+   }
+   ")\n";
+}
 
 // :::::::::::::::::::::  End of top items :::::::::::::::::::::
 
 
-tpl [Essentials]
+tpl [Essentials](#i,#pl)
 {
-   "$visible"; "(";
-   ilist(#separ=",", #elems=`Int`, #i=$i, #pl=$pl); ")";
+   "$visible"; if [Int] { "("; ilist(#separ=",", #elems=`Int`, #i=$i, #pl=$pl); ")"; }
 }
 
 tpl [Int] { `@x`; }
@@ -348,7 +501,9 @@ tpl sch_fpname(#k,#nr,#schnr,#aid)
     if [$k and $nr and $aid and $schnr] 
     {
 //       lc(#s=`concat($k,$nr,'_s',$schnr,'_',$aid)`); 
-       "$private functor "; $nr;
+       "$private_"; 
+       if[$k="F"] { "functor "; } else { "formula "; }
+       $nr;
     }
     else 
     { 
@@ -369,8 +524,9 @@ tpl mkind(#kind)
       when [$kind = 'G'] { "aggr";}
       when [$kind = 'L'] { "struct";}
       when [$kind = 'U'] { "sel";}
-      when [$kind = 'F'] { "private functor";}
-      when [$kind = 'P'] { "private formula";}
+      when [$kind = 'J'] { "forg";}
+      when [$kind = 'F'] { "private_functor";}
+      when [$kind = 'P'] { "private_formula";}
    }
 }
 
@@ -397,14 +553,109 @@ tpl ilist(#separ,#elems,#i,#pl)
 }
 
 // print Typ elements in #el as loci
-tpl loci(#el,#i,#pl)
+// if #us=1, prints as a series of locus instead of one loci:
+// $locus($A 1,$type(HIDDEN:mode 1)),$locus($A 2,$type(HIDDEN:mode 1))
+tpl loci(#el,#i,#pl,#us)
 { 
-  "$loci";
-   if [$el] 
-   { 
-      "("; ilist(#separ=",", #elems=`$el`, #i=$i, #pl=$pl); ")";
-   }
+  if [$us=1]
+  {
+     for-each [$el]
+     {
+       "$locus("; ploci(#nr=`position()`); ","; apply[.](#i=$i,#pl=$pl); ")";
+       if [not(position()=last())] { ","; }
+     }
+  }
+  else
+  {
+     "$loci";
+     if [$el] 
+     { 
+        "("; ilist(#separ=",", #elems=`$el`, #i=$i, #pl=$pl); ")";
+     }
+  }
 }
+
+// ## Format keeps the kind of a given symbol and arities.
+// ## For bracket formats (K) this keeps both symbols.   
+// ## Optionally a nr (of the format) is kept, to which patterns may refer,
+// ## This implementation might change in some time.
+// Format = 
+//  element Format {
+//    attribute kind {'G'|'K'|'J'|'L'|'M'|'O'|'R'|'U'|'V'},
+//    attribute nr { xsd:integer }?,
+//    attribute symbolnr { xsd:integer },
+//    attribute argnr { xsd:integer },
+//    attribute leftargnr { xsd:integer }?,
+//    attribute rightsymbolnr { xsd:integer }?
+//  }
+//
+// element Symbol { 
+//     attribute kind { xsd:string },
+//     attribute nr { xsd:integer },
+//     attribute name { xsd:integer }
+//    }
+//
+// ###TODO: absolute numbering of symbols (is only relative now - needs to be kept
+//          with additional attributes in .dcx)
+//
+// MCART_1:funcnot 12=funcnot(HIDDEN:vocK 4("[:"),HIDDEN:vocL 4(":]"),$loci($type(HIDDEN:mode 1),$type(HIDDEN:mode 1),$type(SUBSET_1:mode 1(ZFMISC_1:func 1($A 1))),$type(SUBSET_1:mode 1(ZFMISC_1:func 1($A 2)))),$format(0,2),$visible(3,4),$constructor(MCART_1:func 12),$synonym)
+tpl format_info(#fnr1) 
+{
+  for-each [document($formats,/)] 
+  {
+     if [not(key('F',$fnr1))] { `concat($fail,":",$fnr1)`; }
+     else 
+     {
+        for-each [key('F',$fnr1)] 
+	{
+          $snr  = `@symbolnr`; 
+	  $sk1  = `@kind`; 
+	  $sk   = { if [($sk1="L") or ($sk1="J")] { "G";} else { $sk1; } }
+	  $dkey = `concat('D_',$sk)`;
+          $rsnr = { if [$sk='K'] { `@rightsymbolnr`; } else { "0";} }
+
+	  for-each [document($vocs,/)] 
+	  {
+	        if [key($dkey,$snr)] 
+		{
+		   for-each [key($dkey,$snr)] 
+		   { 
+                      "UNKNOWN: voc"; $sk; " 1(\""; `@name`; "\")";
+		      if [$rsnr>0] 
+		      { 
+                         ",UNKNOWN: voc"; "L"; " 1(\"";
+		         for-each [key('D_L',$rsnr)] { `@name`; }
+			 "\")"; 
+		      }
+                   }
+                }
+		// try the built-in symbols
+		else 
+		{ 
+		   "UNKNOWN: voc"; $sk; " 1(\""; 
+		   choose 
+		   { 
+		      when [($snr='1') and ($sk='M')] { "set"; }
+		      when [($snr='1') and ($sk='R')] { "="; }
+		      when [($snr='1') and ($sk='K')] 
+		      { 
+		         "["; "\")"; ",UNKNOWN: voc"; "L"; " 1(\""; "]";
+                      } 
+		      when [($snr='2') and ($sk='K')] 
+		      { 
+		         "{"; "\")"; ",UNKNOWN: voc"; "L"; " 1(\""; "}";
+		      }
+		      otherwise { `concat($fail,":",$fnr1)`; } 
+		   }
+		   "\")"; 
+		} 
+	   }
+	  
+        } 
+     } 
+  } 
+}
+
 
 
 // :::::::::::::::::::::  End of utilities :::::::::::::::::::::
@@ -419,7 +670,7 @@ tpl [/]
     for-each [/Article]
     {
       // ###TODO: add items here when their processing is defined
-      apply[RegistrationBlock | JustifiedTheorem | DefTheorem];
+      apply[RegistrationBlock | JustifiedTheorem | DefTheorem | SchemeBlock| DefinitionBlock | Definiens| NotationBlock/Pattern];
     }
   }
   else { apply; } 
