@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.61 $ -->
+  <!-- $Revision: 1.62 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -7639,6 +7639,9 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 </xsl:text>
           </xsl:element>
           <xsl:element name="head">
+            <xsl:element name="title">
+              <xsl:value-of select="$aname"/>
+            </xsl:element>
             <xsl:element name="script">
               <xsl:attribute name="type">
                 <xsl:text>text/javascript</xsl:text>
