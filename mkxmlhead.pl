@@ -20,7 +20,7 @@ sub PrintIt
 {
     die "Something missing: $title, $authors, $date, $copyright" 
 	if (!(defined $authors) or !(defined $date) or !(defined $copyright));
-    print '<?xml version="1.0"?>', "\n", '<Header>', "\n";
+    print '<?xml version="1.0"?>', "\n", '<Header xmlns:dc="http://purl.org/dc/elements/1.1/">', "\n";
     print '<dc:title>', $title, '</dc:title>', "\n";
     print '<dc:creator>', $authors, '</dc:creator>', "\n";
     print '<dc:date>', $date, '</dc:date>', "\n";
