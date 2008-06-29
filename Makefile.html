@@ -16,7 +16,7 @@ VERIFIER = $(MFILES)/bin/verifier
 	$(ACCOM) $* > $*.acc 
 
 %.hdr: %.miz
-	$(MKXMLHEAD) $* > $*.hdr
+	$(MKXMLHEAD) $*.miz > $*.hdr
 
 %.xml: %.acc
 	$(VERIFIER) -q   $*  
