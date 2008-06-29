@@ -18,14 +18,17 @@ cp Makefile  miztmp
 export MIZFILES=`pwd`
 cd miztmp
 make -j8 allacc | tee 00acc.log
+make -j8 allhdr | tee 00hdr.log
 make -j8 allxml | tee 00xml.log
 make -j8 allxml1 | tee 00xml1.log
 make -j8 allhtmla1 | tee 00htmla1.log
 make hidden.acc
+make hidden.hdr
 make hidden.xml
 make hidden.xml1
 make hidden.htmla1
 make tarski.acc
+make tarski.hdr
 make tarski.xml
 make tarski.xml1
 make tarski.htmla1
