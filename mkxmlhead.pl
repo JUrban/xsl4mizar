@@ -33,8 +33,8 @@ while(<>)
 {
   m/^::+ *(.*)$/ or PrintIt(); ## print and exit when the initial comment ends
   my $content = $1;
-  if($content =~ m/[bB]y +(.*)/) { $authors = $1; }
-  elsif($content =~ m/[rR]eceived +(.*)/) { $date = $1; }
-  elsif($content =~ m/[cC]opyright +(.*)/) { $copyright = $1; }
+  if($content =~ m/^[bB]y +(.*)/) { $authors = $1; }
+  elsif($content =~ m/^[rR]eceived +(.*)/) { $date = $1; }
+  elsif($content =~ m/^[cC]opyright +(.*)/) { $copyright = $1; }
   elsif(!($content eq "")) { $title = $title . $content; }
 }
