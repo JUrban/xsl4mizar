@@ -28,7 +28,7 @@ VERIFIER = $(MFILES)/bin/verifier
 	$(XSLTPROC) --param linking \'s\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.html 
 
 %.htmla1: %.xml1 %.hdr
-	$(XSLTPROC) --param mk_header 1 --param linking \'s\' --param ajax_proofs \'1\' --param titles \'1\' --param colored \'1\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.htmla1 
+	$(XSLTPROC) --param mk_header 1 --param linking \'s\' --param mizhtml \'\' --param ajax_proofs \'1\' --param titles \'1\' --param colored \'1\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.htmla1 
 
 %.htmla2: %.xml1
 	$(XSLTPROC) --param ajax_proofs \'2\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.htmla2 
