@@ -4,12 +4,14 @@
 // The main stylesheet mhtml_main.xsl can be used instead miz.xsl,
 // provided the included .xsl files are available in the same directory
 
-stylesheet 1.0;
+stylesheet 1.0
+extension-element-prefixes = "dc";
+xmlns dc "http://purl.org/dc/elements/1.1/";
 
 output method=html;
 
 
-// $Revision: 1.111 $
+// $Revision: 1.112 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -175,6 +177,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // add IDV links and icons
 #idv =  { "0"; }
 
+// create header info from .hdr file
+#mk_header =  { "0"; }
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
@@ -218,6 +223,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // .dfs file with imported definientia
 #dfs=  { `concat($anamelc, '.dfs')`; }
+
+// .hdr file with header info (done by mkxmlhdr.pl)
+#hdr=  { `concat($anamelc, '.hdr')`; }
 
 #varcolor = { "Olive"; }
 
@@ -3762,6 +3770,7 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 ";
 	                } 
         <head {  
+<title { $aname; }
 <script { @type="text/javascript";
 "
 <!-- 
@@ -3859,6 +3868,8 @@ return tstp_dump;
 }
         <body {  
 
+	if[$mk_header > 0] { apply[document($hdr,/)/Header/*]; <br; }
+
 // first read the keys for imported stuff
 //          apply[document($constrs,/)/Constructors/Constructor]; 
 //          apply[document($thms,/)/Theorems/Theorem]; 
@@ -3870,3 +3881,8 @@ return tstp_dump;
 // tpl [*] { copy { apply [@*]; apply; } }
 // tpl [@*] { copy-of `.`; }
 
+// Header rules
+tpl [dc:title] { pcomment(#str=`text()`); }
+tpl [dc:creator] { pcomment(#str=`concat("by ", text())`); pcomment(#str=""); }
+tpl [dc:date] { pcomment(#str=`concat("Received ", text())`); }
+tpl [dc:rights] { pcomment(#str=`concat("Copyright ", text())`); }

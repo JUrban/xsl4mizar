@@ -5,9 +5,9 @@
 <!-- So any changes should be done to the MHTML files, running 'make miz.xsl' afterwards. -->
 <!-- The main stylesheet mhtml_main.xsl can be used instead miz.xsl, -->
 <!-- provided the included .xsl files are available in the same directory -->
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" extension-element-prefixes="dc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.62 $ -->
+  <!-- $Revision: 1.63 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -198,6 +198,10 @@
   <xsl:param name="idv">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- create header info from .hdr file -->
+  <xsl:param name="mk_header">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <xsl:variable name="lcletters">
     <xsl:text>abcdefghijklmnopqrstuvwxyz</xsl:text>
   </xsl:variable>
@@ -271,6 +275,10 @@
   <!-- .dfs file with imported definientia -->
   <xsl:param name="dfs">
     <xsl:value-of select="concat($anamelc, &apos;.dfs&apos;)"/>
+  </xsl:param>
+  <!-- .hdr file with header info (done by mkxmlhdr.pl) -->
+  <xsl:param name="hdr">
+    <xsl:value-of select="concat($anamelc, &apos;.hdr&apos;)"/>
   </xsl:param>
   <xsl:param name="varcolor">
     <xsl:text>Olive</xsl:text>
@@ -7743,6 +7751,10 @@ return tstp_dump;
             </xsl:element>
           </xsl:element>
           <xsl:element name="body">
+            <xsl:if test="$mk_header &gt; 0">
+              <xsl:apply-templates select="document($hdr,/)/Header/*"/>
+              <xsl:element name="br"/>
+            </xsl:if>
             <!-- first read the keys for imported stuff -->
             <!-- apply[document($constrs,/)/Constructors/Constructor]; -->
             <!-- apply[document($thms,/)/Theorems/Theorem]; -->
@@ -7753,5 +7765,37 @@ return tstp_dump;
         </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <!-- tpl [*] { copy { apply [@*]; apply; } } -->
+  <!-- tpl [@*] { copy-of `.`; } -->
+  <!-- Header rules -->
+  <xsl:template match="dc:title">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="text()"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:creator">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;by &quot;, text())"/>
+    </xsl:call-template>
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str">
+        <xsl:text/>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:date">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;Received &quot;, text())"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:rights">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;Copyright &quot;, text())"/>
+    </xsl:call-template>
   </xsl:template>
 </xsl:stylesheet>

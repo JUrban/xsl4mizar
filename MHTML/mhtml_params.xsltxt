@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.20 $
+// $Revision: 1.21 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -131,6 +131,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // add IDV links and icons
 #idv =  { "0"; }
 
+// create header info from .hdr file
+#mk_header =  { "0"; }
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
@@ -174,6 +177,9 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // .dfs file with imported definientia
 #dfs=  { `concat($anamelc, '.dfs')`; }
+
+// .hdr file with header info (done by mkxmlhdr.pl)
+#hdr=  { `concat($anamelc, '.hdr')`; }
 
 #varcolor = { "Olive"; }
 

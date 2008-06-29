@@ -1,10 +1,12 @@
 
-stylesheet 1.0;
+stylesheet 1.0
+extension-element-prefixes = "dc";
+xmlns dc "http://purl.org/dc/elements/1.1/";
 
 output method=html;
 
 
-// $Revision: 1.6 $
+// $Revision: 1.7 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -83,6 +85,7 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 ";
 	                } 
         <head {  
+<title { $aname; }
 <script { @type="text/javascript";
 "
 <!-- 
@@ -180,6 +183,8 @@ return tstp_dump;
 }
         <body {  
 
+	if[$mk_header > 0] { apply[document($hdr,/)/Header/*]; <br; }
+
 // first read the keys for imported stuff
 //          apply[document($constrs,/)/Constructors/Constructor]; 
 //          apply[document($thms,/)/Theorems/Theorem]; 
@@ -191,3 +196,8 @@ return tstp_dump;
 // tpl [*] { copy { apply [@*]; apply; } }
 // tpl [@*] { copy-of `.`; }
 
+// Header rules
+tpl [dc:title] { pcomment(#str=`text()`); }
+tpl [dc:creator] { pcomment(#str=`concat("by ", text())`); pcomment(#str=""); }
+tpl [dc:date] { pcomment(#str=`concat("Received ", text())`); }
+tpl [dc:rights] { pcomment(#str=`concat("Copyright ", text())`); }
