@@ -1,0 +1,44 @@
+MFILES	= $(MIZFILES)
+MMLLAR  = $(MFILES)/mml.lar
+MMLLAR100  = $(MFILES)/mml.lar.100
+MIZ100     = $(shell cat $(MMLLAR100))
+STANDARDMIZ     = $(shell cat $(MMLLAR))
+SHMIZ = $(shell shuffle < $(MMLLAR))
+
+XSLTPROC = /home/urban/mizwrk/xsltproc 
+XML2HTML = /home/urban/xsltxt/xsl4mizar/miz.xsl
+ADDABS = /home/urban/xsltxt/xsl4mizar/addabsrefs.xsl
+ACCOM = $(MFILES)/bin/accom 
+VERIFIER = $(MFILES)/bin/verifier
+
+%.acc: %.miz
+	$(ACCOM) $* > $*.acc 
+
+%.xml: %.acc
+	$(VERIFIER) -q   $*  
+
+%.xml1: %.xml
+	$(XSLTPROC) $(ADDABS)  $*.xml > $*.xml1 
+
+%.html: %.xml1
+	$(XSLTPROC) --param linking \'s\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.html 
+
+%.htmla1: %.xml1
+	$(XSLTPROC) --param linking \'s\' --param ajax_proofs \'1\' --param titles \'1\' --param colored \'1\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.htmla1 
+
+%.htmla2: %.xml1
+	$(XSLTPROC) --param ajax_proofs \'2\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.htmla2 
+
+%.htmla3: %.xml1
+	$(XSLTPROC) --param linking \'q\' --param generate_items \'1\' --param titles \'1\' --param colored \'1\' $(XML2HTML)  $*.xml1 > $*.htmla3
+
+
+# all: xboole.html
+allhtml: $(addsuffix .html, $(SHMIZ))
+allhtmla1: $(addsuffix .htmla1, $(SHMIZ))
+allhtmla2: $(addsuffix .htmla2, $(SHMIZ))
+allhtmla3: $(addsuffix .htmla3, $(SHMIZ))
+html100: $(addsuffix .html, $(MIZ100))
+allacc: $(addsuffix .acc, $(STANDARDMIZ))
+allxml: $(addsuffix .xml, $(STANDARDMIZ))
+allxml1: $(addsuffix .xml1, $(SHMIZ))
