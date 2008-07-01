@@ -11,6 +11,7 @@ ADDABS = /home/urban/xsltxt/xsl4mizar/addabsrefs.xsl
 MKXMLHEAD = /home/urban/xsltxt/xsl4mizar/mkxmlhead.pl
 ACCOM = $(MFILES)/bin/accom 
 VERIFIER = $(MFILES)/bin/verifier
+MIZ2DLI = /home/urban/xsltxt/xsl4mizar/miz2dli.xsl
 
 %.acc: %.miz
 	$(ACCOM) $* > $*.acc 
@@ -23,6 +24,9 @@ VERIFIER = $(MFILES)/bin/verifier
 
 %.xml1: %.xml
 	$(XSLTPROC) $(ADDABS)  $*.xml > $*.xml1 
+
+%.dli: %.xml1
+	$(XSLTPROC) $(MIZ2DLI)  $*.xml1 > $*.dli
 
 %.html: %.xml1
 	$(XSLTPROC) --param linking \'s\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.html 
@@ -47,3 +51,4 @@ allacc: $(addsuffix .acc, $(STANDARDMIZ))
 allhdr: $(addsuffix .hdr, $(STANDARDMIZ))
 allxml: $(addsuffix .xml, $(STANDARDMIZ))
 allxml1: $(addsuffix .xml1, $(SHMIZ))
+alldli: $(addsuffix .dli, $(SHMIZ))
