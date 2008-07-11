@@ -1,0 +1,428 @@
+stylesheet "1.0" 
+extension-element-prefixes = "exsl exsl-str xt";
+xmlns exsl "http://exslt.org/common"; 
+xmlns exsl-str "http://exslt.org/strings";
+xmlns xt "http://www.jclark.com/xt";
+output method=text;
+
+// $Revision: 1.1 $
+//
+// File: miz2outref.xsltxt - stylesheet translating Mizar XML syntax to MML Query outref files
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL miz2outref.xsltxt >miz2outref.xsl
+
+// ##TODO: cleanup - this is crudely adapted from mizpl.xsltxt
+
+strip-space "*";
+
+
+// this will ensure failure of Prolog parsing
+#fail = { "zzz k l-**)))))))"; }
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+// this is for lookup of selectors for Abstractness property
+key "G" [Constructor[@kind='G']] `@nr` ;
+
+// lookup for local constants
+key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
+
+// lookup for propositions
+key "E" [Proposition|IterEquality|Now] `concat(@nr,":",@plevel)` ;
+
+// lookup for JustifiedTheorems' propnr (needed in plname)
+key "JT" [/Article/JustifiedTheorem/Proposition] `@propnr`;
+
+// lookup for scheme functors and predicates
+key "f" [SchemeFuncDecl] `concat(@nr,":",@plevel)` ;
+key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
+
+// lookup for private functors and predicates
+key "pf" [DefFunc] `concat(@nr,":",@plevel)` ;
+key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
+
+// name of current article (upper case)
+#aname= { `string(/*/@aid)`; }
+
+// name of current article (lower case)
+#anamelc= { lc(#s=$aname); }
+
+
+tpl addp(#pl) { if [string-length($pl)>0] { "_"; $pl; }}
+
+// concat number and level
+tpl propname(#n,#pl) { 
+// "e"; $n; addp(#pl=$pl); 
+}
+tpl abspropname(#n,#pl) { propname(#n=$n,#pl=$pl); "__"; $anamelc; }
+tpl lemmaname(#n) { 
+// "l"; $n; "_"; $anamelc; 
+} 
+tpl plname(#n,#pl) 
+{
+    if [string-length($pl)>0] { propname(#n=$n, #pl=$pl); }
+    else { if [key("JT",$n)] 
+    {
+      for-each [key("JT",$n)] { absr(#el=`..`); }
+    } 
+    else { lemmaname(#n=$n); }
+    }
+}
+
+
+tpl [SchemeBlock] 
+{ 
+    $aname; ":"; refkind(#kind = "S"); " "; `@schemenr`; "=(";
+    $r1= try_inference( #el=`*[position() = (last() - 1)]`,#pl=`@newlevel`,#nl="1");
+    $ss = `exsl-str:tokenize($r1,',')`; 
+    mjoin(#el=$ss,#s=",");
+    ")\n"; 
+}
+
+
+tpl [JustifiedTheorem/Proposition] 
+{ 
+
+//   `../@aid`; ":"; refkind(#kind = `../@kind`); " "; `../@nr`; 
+    absr(#el=`..`); "=(";
+    $r1= try_inference(#el=`../*[2]`,#pl=`@plevel`, #prnr=`@propnr`,#nl="1");
+    $ss = `exsl-str:tokenize($r1,',')`; 
+    mjoin(#el=$ss,#s=",");
+    ")\n"; 
+}
+
+tpl [Definition]
+{
+    if [@nr]	
+    { 
+          $cnt1 = `1 + count(preceding-sibling::Definition[@nr])`;
+	  $defnr = `../following-sibling::Definiens[position() = $cnt1]/@defnr`;
+	  $aname; ":"; refkind(#kind = "D"); " "; $defnr; "=(";
+
+          $r1 =
+	  { 
+	     for-each [Coherence|Compatibility|Consistency|Existence|Uniqueness|Correctness|JustifiedProperty]
+	     {
+                if [Proposition]
+    	      	{
+	           try_inference(#el=`*[2]`,#pl=`Proposition/@plevel`, #prnr=`Proposition/@propnr`,#nl="1");
+		   ",";
+                }
+             }
+       	  }
+
+	  $ss = `exsl-str:tokenize($r1,',')`; 
+      	  mjoin(#el=$ss,#s=",");
+    	  ")\n"; 
+    }
+}
+
+// translate constructor (notation) kinds to their mizar/mmlquery names
+tpl mkind(#kind) 
+{
+   choose 
+   { 
+      when [$kind = 'M'] { "mode";}
+      when [$kind = 'V'] { "attr";}
+      when [$kind = 'R'] { "pred";}
+      when [$kind = 'K'] { "func";}
+      when [$kind = 'G'] { "aggr";}
+      when [$kind = 'L'] { "struct";}
+      when [$kind = 'U'] { "sel";}
+      when [$kind = 'J'] { "forg";}
+      when [$kind = 'F'] { "private_functor";}
+      when [$kind = 'P'] { "private_formula";}
+   }
+}
+
+
+tpl refkind(#kind) 
+{
+  choose 
+  { 
+      when [$kind = 'T'] { "th";}
+      when [$kind = 'D'] { "def";}
+      when [$kind = 'S'] { "sch";}
+  }
+}
+
+
+// #nl is only passsed to proofinfer when dealing with schemes;
+// it is also used to prevent trying ND for schemes
+tpl try_inference(#el,#pl,#prnr,#nl) 
+{ 
+  for-each [$el] 
+  {
+    if [name() = "By"] { ",";
+       byinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
+    else { if [name() = "From"] { ",";
+       frominfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
+    else { if [name() = "Proof"] { ",";
+       proofinfer(#el=`.`,#pl=$pl,#prnr=$prnr,#nl=$nl); 
+       if [not($nl)] 
+       {
+         ",";
+	 try_nd_inference(#el = `BlockThesis/*[position() = last()]`, #thes_nr = "0");
+       }
+    }
+    else { if [name() = "SkippedProof"] { ",";
+       skippedinfer(#el=`.`,#pl=$pl,#prnr=$prnr); }
+  }}}}
+}
+
+
+tpl skippedinfer(#el,#pl,#prnr) { }
+
+// ##GRM: By_Inference: "inference(" "mizar_by" "," "[" "]" "," "[" References "]" ")".
+// assumes By
+tpl byinfer(#el,#pl,#prnr) { for-each [$el] {
+    refs(#el=`.`,#pl=$pl,#prnr=$prnr);  }}
+
+// handles Refs for From, (possibly linked) By and ThesisExpansions
+// ignores possible ThesisExpansions/Pair - each has a Ref added to it
+tpl refs(#el,#pl,#prnr) 
+{  
+  for-each [$el] 
+  {
+    if [@linked] 
+    { 
+       if [name(..)="IterStep"] {
+	  plname(#n=`../../@propnr - 1`,#pl=`../../@plevel`); } 
+       else { if [$prnr>1] {
+	  plname(#n=`$prnr - 1`,#pl=$pl); } else { $fail; } }
+      if [Ref|PolyEval] { ","; } 
+    }
+    else { if [name()="From"] 
+    { 
+	 sch_instname(#el=`.`, #pl=$pl, #prnr=$prnr); 
+	 if [Ref|PolyEval] { ","; }
+    }}
+
+    for-each [Ref] 
+    { 
+       refname(#el=`.`,#pl=$pl); 
+       if [not(position()=last())] { ","; } 
+    }
+    
+    if [PolyEval]
+    {
+       if[Ref] { ","; }
+       for-each [PolyEval] 
+       { 
+          polyeval_name(#el=`.`,#pl=$pl); 
+	  if [not(position()=last())] { ","; } 
+       }
+    }
+  }
+}
+
+// assumes From, introduces a unique name for this scheme instance
+// ##GRM: Scheme_Inference : 
+//          "inference(mizar_from,[scheme_instance(" 
+//          Scheme_Instance_Name "," Scheme_Name "," Proposition_Name
+//          "," Aid "," Scheme_Instantiation ")],[" 
+//          Scheme_Instance_Name [ "," References ] "])" .   
+tpl frominfer(#el,#pl,#prnr) { for-each [$el] {
+    refs(#el=`.`,#pl=$pl,#prnr=$prnr);
+}}
+
+
+// assumes Proof, Now or IterEquality,
+// selects all references (no matter what their level is) used for
+// justifying anything inside the proof (so e.g. assumption, which 
+// is never used to justify anything willnot be listed).
+tpl proofinfer(#el,#pl,#prnr,#nl) 
+{ 
+  for-each [$el] 
+  {
+    for-each [.//By[((name(preceding-sibling::*[1])="Proposition") 
+	              or (name(..)="IterStep"))
+	            and ((@linked="true") or (count(Ref)>0))] 
+	     | .//From[((name(preceding-sibling::*[1])="Proposition") 
+	                 or (name(..)="IterStep"))]
+             | .//ThesisExpansions[count(Ref)>0]] 
+    { 
+      if [name()="ThesisExpansions"] { refs( #el=`.`); }
+      else { if [name(..)="IterStep"] {  
+	     refs( #el=`.`,#pl=`../@plevel`,#prnr=`../@propnr`); }
+        else 
+	{
+	      refs( #el=`.`,#pl=`preceding-sibling::*[1]/@plevel`,
+		    #prnr=`preceding-sibling::*[1]/@propnr`); 
+        }
+      }
+      if [not(position()=last())] { ","; } 
+    }
+  }
+}
+
+
+// create name and info for a scheme instance
+tpl sch_instname(#el,#pl,#prnr) { for-each [$el] { absr(#el=`.`); 
+//    "__"; abspropname(#n=$prnr,#pl=$pl); 
+}}
+
+
+tpl [CCluster] 
+{ 
+  if [ErrorCluster] { } else 
+  {
+    `@aid`; ":condreg "; `@nr`; "=(";
+    cluster_correctness_conditions(#el=`../*[position() = last()]`);
+    ")\n"; 
+  }
+}
+
+// sufficient proof refs can be collected from its coherence 
+tpl [FCluster] 
+{ 
+  if [ErrorCluster] { } 
+  else 
+  {
+    `@aid`; ":funcreg "; `@nr`; "=(";
+    cluster_correctness_conditions(#el=`../*[position() > 1]`);
+    ")\n"; 
+  }
+}
+
+// private for clusters
+tpl cluster_correctness_conditions(#el)
+{
+
+//  "correctness_conditions([";
+
+  for-each [$el]
+  {
+    $corr_nm = `name()`;
+    if [Proposition]
+    {
+//      lc(#s = $corr_nm); "(";
+//      plname(#n=`Proposition/@propnr`, #pl=`Proposition/@plevel`);
+      $r1= try_inference(#el=`*[2]`,#pl=`Proposition/@plevel`, #prnr=`Proposition/@propnr`,#nl="1");
+      $ss = `exsl-str:tokenize($r1,',')`; 
+      mjoin(#el=$ss,#s=",");
+//      ")";
+    }
+    else { $fail; }
+    if [not(position()=last())] { ","; }
+//    "])";
+  }
+}
+
+// ##NOTE: We need to deal with the RCluster coming from structurel 
+// definitions (attribute "strict") specially, since the existence
+//  is never proved in Mizar. The current MPTP choice is to forge the justification
+//  by the type declaration of the appropriate 
+// aggregate functor (which is defined to be "strict").
+// Nothing is done for MML Query right now
+tpl [RCluster] 
+{ 
+  if [ErrorCluster] { } else 
+  {
+    `@aid`; ":exreg "; `@nr`; "=(";
+    // nothing for structural "strict" registrations
+    if [name(../..) = "Definition"] {}
+    else
+    {
+          cluster_correctness_conditions(#el=`../*[position() = last()]`);
+    }
+    ")\n"; 
+  }
+}
+
+
+// sufficient proof refs done as for clusters
+tpl [IdentifyWithExp] 
+{ 
+  if [ErrorIdentify] { } 
+  else 
+  {
+    `@aid`; ":idreg "; `@nr`; "=(";
+    cluster_correctness_conditions(#el=`../*[position() > 1]`);
+    ")\n"; 
+  }
+}
+
+
+// absolute reference names (use $fail for debugging absnrs)
+// also used for From to get the scheme name
+tpl absr(#el) 
+{ 
+  for-each [$el] 
+  {
+    if [@nr and @aid and @kind]
+    { 
+      `@aid`; ":"; refkind(#kind = `@kind`); " "; `@nr`;
+    }
+    else 
+    { 
+      lc(#s=`@kind`); `@nr`;  $fail; 
+    } 
+  } 
+}
+
+tpl mjoin(#el,#s) {
+ for-each [$el] { `string(.)`; if [not(position()=last())] { $s; } }}
+
+
+tpl refname(#el,#pl) { for-each [$el] {
+    if [(@kind = "T") or (@kind = "D")] { absr(#el=$el); }
+    else { privname(#nr=`@nr`,#pl=$pl); } }}
+
+
+tpl top_propname(#el) 
+{ 
+  for-each [$el/..] 
+  {
+    if [(name() = "DefTheorem") or (name() = "JustifiedTheorem")] 
+       { absr(#el=`.`); }
+    else 
+    { 
+       $k1 = `concat($el/@nr,":")`;
+       lemmaname(#n=`key("E",$k1)/@propnr`); 
+    } 
+  }
+}
+
+// name of private reference - name of the proposition
+// this differs from `plname` in that the #pl is not the
+// proof level to print, but the proof level used to start the
+// search for the reference 
+tpl privname(#nr,#pl) 
+{
+   $k1 = `concat($nr,":",$pl)`;
+   if [key("E",$k1)] 
+   { 
+	 if [not(string-length($pl)>0)] { top_propname(#el=`key("E",$k1)`); }
+	 else { propname(#n=`key("E",$k1)/@propnr`,#pl=$pl); } 
+   }
+   else { if [string-length($pl)>0] 
+   { 
+	 $ss = `exsl-str:tokenize($pl,'_')[position() < last()]`; 
+	 $pl1= mjoin(#el=$ss,#s="_");
+	 privname(#nr=$nr,#pl=$pl1); 
+   } 
+   else { $fail;}
+   }
+}
+
+
+tpl [/] {  apply[//JustifiedTheorem/Proposition|//SchemeBlock|
+	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Definition]; }
+
+
+
+
+
+
+
+ 
