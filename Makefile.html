@@ -12,6 +12,7 @@ MKXMLHEAD = /home/urban/xsltxt/xsl4mizar/mkxmlhead.pl
 ACCOM = $(MFILES)/bin/accom 
 VERIFIER = $(MFILES)/bin/verifier
 MIZ2DLI = /home/urban/xsltxt/xsl4mizar/miz2dli.xsl
+MIZ2OUTREF = /home/urban/xsltxt/xsl4mizar/miz2outref.xsl
 
 %.acc: %.miz
 	$(ACCOM) $* > $*.acc 
@@ -27,6 +28,9 @@ MIZ2DLI = /home/urban/xsltxt/xsl4mizar/miz2dli.xsl
 
 %.dli: %.xml1
 	$(XSLTPROC) $(MIZ2DLI)  $*.xml1 > $*.dli
+
+%.outref: %.xml1
+	$(XSLTPROC) $(MIZ2OUTREF)  $*.xml1 > $*.outref
 
 %.html: %.xml1
 	$(XSLTPROC) --param linking \'s\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.html 
@@ -52,3 +56,4 @@ allhdr: $(addsuffix .hdr, $(STANDARDMIZ))
 allxml: $(addsuffix .xml, $(STANDARDMIZ))
 allxml1: $(addsuffix .xml1, $(SHMIZ))
 alldli: $(addsuffix .dli, $(SHMIZ))
+alloutref: $(addsuffix .outref, $(SHMIZ))
