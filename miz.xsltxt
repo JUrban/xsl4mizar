@@ -11,7 +11,7 @@ xmlns dc "http://purl.org/dc/elements/1.1/";
 output method=html;
 
 
-// $Revision: 1.113 $
+// $Revision: 1.114 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -1460,7 +1460,7 @@ tpl [Func](#p,#i) {
 tpl [PrivFunc](#p,#i) { ppfunc(#nr=`@nr`); "("; 
     ilist(#separ=",", #elems=`*[position()>1]`, #i = $i); ")"; }
 tpl [ErrorTrm](#p,#i) { "errortrm"; }
-
+tpl [Choice](#p,#i) { "the "; apply[Typ](#i = $i); }
 tpl [Fraenkel](#p,#i) {
     $j = { if [$i] { $i;} else { "0"; } }
     $par = { if [$p>0] { `$p+1`;} else { "1"; } }

@@ -5,7 +5,7 @@ output method=html;
 include mhtml_print_complex.xsl;
 
 
-// $Revision: 1.11 $
+// $Revision: 1.12 $
 //
 // File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types
 //
@@ -383,7 +383,7 @@ tpl [Func](#p,#i) {
 tpl [PrivFunc](#p,#i) { ppfunc(#nr=`@nr`); "("; 
     ilist(#separ=",", #elems=`*[position()>1]`, #i = $i); ")"; }
 tpl [ErrorTrm](#p,#i) { "errortrm"; }
-
+tpl [Choice](#p,#i) { "the "; apply[Typ](#i = $i); }
 tpl [Fraenkel](#p,#i) {
     $j = { if [$i] { $i;} else { "0"; } }
     $par = { if [$p>0] { `$p+1`;} else { "1"; } }

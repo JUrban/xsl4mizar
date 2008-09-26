@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" extension-element-prefixes="dc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.64 $ -->
+  <!-- $Revision: 1.65 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -3485,6 +3485,15 @@
     <xsl:param name="p"/>
     <xsl:param name="i"/>
     <xsl:text>errortrm</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="Choice">
+    <xsl:param name="p"/>
+    <xsl:param name="i"/>
+    <xsl:text>the </xsl:text>
+    <xsl:apply-templates select="Typ">
+      <xsl:with-param name="i" select="$i"/>
+    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="Fraenkel">
