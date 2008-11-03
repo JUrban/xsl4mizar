@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" extension-element-prefixes="dc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.66 $ -->
+  <!-- $Revision: 1.67 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -6387,7 +6387,7 @@
         <xsl:value-of select="concat($ltmpftptpcgi,&quot;?file=&quot;,$tptp_file,&quot;&amp;tmp=&quot;,$lbytmpdir)"/>
       </xsl:attribute>
       <xsl:attribute name="target">
-        <xsl:value-of select="concat(&quot;MizarTPTP&quot;,$PidNr)"/>
+        <xsl:value-of select="concat(&quot;MizarTPTP&quot;,$lbytmpdir)"/>
       </xsl:attribute>
       <xsl:attribute name="src">
         <xsl:text>TPTP.gif</xsl:text>
