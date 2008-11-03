@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.17 $
+// $Revision: 1.18 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -324,7 +324,7 @@ tpl tptp_for_thm(#line, #col)
   {
     @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir)`; 
     @target= `concat("MizarTPTP",$lbytmpdir)`;
-    @src= "TPTP.gif";
+    @src= `concat($ltptproot,"TPTP.gif")`;
     @height= "17";
     @width= "17";
     @alt= "Show TPTP problem";

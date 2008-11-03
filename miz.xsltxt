@@ -11,7 +11,7 @@ xmlns dc "http://purl.org/dc/elements/1.1/";
 output method=html;
 
 
-// $Revision: 1.116 $
+// $Revision: 1.117 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -139,8 +139,11 @@ $print_lab_identifiers = { "1"; }
 // complete prefix of the DLI-processor CGI request
 $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
+// URL of the MizAR root dir
+#ltptproot= { "http://octopi.mizar.org/~mptp/"; }
+
 // URL of the TPTP-processor CGI
-#ltptpcgi= { "http://octopi.mizar.org/~mptp/cgi-bin/"; }
+#ltptpcgi= { `concat($ltptproot,"cgi-bin/")`; }
 
 // URL of the showby CGI
 #lbytptpcgi= { `concat($ltptpcgi,"showby.cgi")`; }
@@ -3016,7 +3019,7 @@ tpl tptp_for_thm(#line, #col)
   {
     @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir)`; 
     @target= `concat("MizarTPTP",$lbytmpdir)`;
-    @src= "TPTP.gif";
+    @src= `concat($ltptproot,"TPTP.gif")`;
     @height= "17";
     @width= "17";
     @alt= "Show TPTP problem";

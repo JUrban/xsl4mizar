@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.23 $
+// $Revision: 1.24 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -93,8 +93,11 @@ $print_lab_identifiers = { "1"; }
 // complete prefix of the DLI-processor CGI request
 $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
+// URL of the MizAR root dir
+#ltptproot= { "http://octopi.mizar.org/~mptp/"; }
+
 // URL of the TPTP-processor CGI
-#ltptpcgi= { "http://octopi.mizar.org/~mptp/cgi-bin/"; }
+#ltptpcgi= { `concat($ltptproot,"cgi-bin/")`; }
 
 // URL of the showby CGI
 #lbytptpcgi= { `concat($ltptpcgi,"showby.cgi")`; }

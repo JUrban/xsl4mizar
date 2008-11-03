@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" extension-element-prefixes="dc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.67 $ -->
+  <!-- $Revision: 1.68 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -150,9 +150,13 @@
   <xsl:variable name="lbydlicgipref">
     <xsl:value-of select="concat($lbydlicgi,&quot;?url=&quot;,$lbydliurl)"/>
   </xsl:variable>
+  <!-- URL of the MizAR root dir -->
+  <xsl:param name="ltptproot">
+    <xsl:text>http://octopi.mizar.org/~mptp/</xsl:text>
+  </xsl:param>
   <!-- URL of the TPTP-processor CGI -->
   <xsl:param name="ltptpcgi">
-    <xsl:text>http://octopi.mizar.org/~mptp/cgi-bin/</xsl:text>
+    <xsl:value-of select="concat($ltptproot,&quot;cgi-bin/&quot;)"/>
   </xsl:param>
   <!-- URL of the showby CGI -->
   <xsl:param name="lbytptpcgi">
@@ -6390,7 +6394,7 @@
         <xsl:value-of select="concat(&quot;MizarTPTP&quot;,$lbytmpdir)"/>
       </xsl:attribute>
       <xsl:attribute name="src">
-        <xsl:text>TPTP.gif</xsl:text>
+        <xsl:value-of select="concat($ltptproot,&quot;TPTP.gif&quot;)"/>
       </xsl:attribute>
       <xsl:attribute name="height">
         <xsl:text>17</xsl:text>
