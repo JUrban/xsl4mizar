@@ -7,7 +7,7 @@
 <!-- provided the included .xsl files are available in the same directory -->
 <xsl:stylesheet version="1.0" extension-element-prefixes="dc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.68 $ -->
+  <!-- $Revision: 1.69 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -6393,21 +6393,23 @@
       <xsl:attribute name="target">
         <xsl:value-of select="concat(&quot;MizarTPTP&quot;,$lbytmpdir)"/>
       </xsl:attribute>
-      <xsl:attribute name="src">
-        <xsl:value-of select="concat($ltptproot,&quot;TPTP.gif&quot;)"/>
-      </xsl:attribute>
-      <xsl:attribute name="height">
-        <xsl:text>17</xsl:text>
-      </xsl:attribute>
-      <xsl:attribute name="width">
-        <xsl:text>17</xsl:text>
-      </xsl:attribute>
-      <xsl:attribute name="alt">
-        <xsl:text>Show TPTP problem</xsl:text>
-      </xsl:attribute>
-      <xsl:attribute name="title">
-        <xsl:text>Show TPTP problem</xsl:text>
-      </xsl:attribute>
+      <xsl:element name="img">
+        <xsl:attribute name="src">
+          <xsl:value-of select="concat($ltptproot,&quot;TPTP.gif&quot;)"/>
+        </xsl:attribute>
+        <xsl:attribute name="height">
+          <xsl:text>17</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="width">
+          <xsl:text>17</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="alt">
+          <xsl:text>Show TPTP problem</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="title">
+          <xsl:text>Show TPTP problem</xsl:text>
+        </xsl:attribute>
+      </xsl:element>
     </xsl:element>
   </xsl:template>
 

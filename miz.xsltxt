@@ -11,7 +11,7 @@ xmlns dc "http://purl.org/dc/elements/1.1/";
 output method=html;
 
 
-// $Revision: 1.117 $
+// $Revision: 1.118 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -3019,11 +3019,14 @@ tpl tptp_for_thm(#line, #col)
   {
     @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir)`; 
     @target= `concat("MizarTPTP",$lbytmpdir)`;
-    @src= `concat($ltptproot,"TPTP.gif")`;
-    @height= "17";
-    @width= "17";
-    @alt= "Show TPTP problem";
-    @title= "Show TPTP problem";
+    <img
+    {
+       @src= `concat($ltptproot,"TPTP.gif")`;
+       @height= "17";
+       @width= "17";
+       @alt= "Show TPTP problem";
+       @title= "Show TPTP problem";
+    }
   }
 } 
 
