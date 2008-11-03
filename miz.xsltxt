@@ -11,7 +11,7 @@ xmlns dc "http://purl.org/dc/elements/1.1/";
 output method=html;
 
 
-// $Revision: 1.114 $
+// $Revision: 1.115 $
 //
 // File: mhtml_main.xsltxt - html-ization of Mizar XML, main file
 //
@@ -140,7 +140,13 @@ $print_lab_identifiers = { "1"; }
 $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // URL of the TPTP-processor CGI
-#lbytptpcgi= { "http://octopi.mizar.org/~mptp/cgi-bin/showby.cgi"; }
+#ltptpcgi= { "http://octopi.mizar.org/~mptp/cgi-bin/"; }
+
+// URL of the showby CGI
+#lbytptpcgi= { `concat($ltptpcgi,"showby.cgi")`; }
+
+// URL of the showtmpfile CGI
+#ltmpftptpcgi= { `concat($ltptpcgi,"showtmpfile.cgi")`; }
 
 // tells if by action is fetched through AJAX; default is off
 #ajax_by = { "0"; }
@@ -148,6 +154,13 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // temporary dir with  the tptp by files, needs to be passed as a param
 #lbytmpdir = { ""; }
+
+// additional params for lbytptpcgi, needs to be passed as a param
+#lbycgiparams = { ""; }
+
+
+// add links to tptp files for thms
+#thms_tptp_links = { "0"; }
 
 // tells if linkage of proof elements is done; default is off
 #proof_links = { "0"; }
@@ -2112,7 +2125,7 @@ tpl linkbyif(#line,#col,#by)
 	 { 
 	    when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
 	    when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } 
-	    when [$linkby=3] { `concat($lbytptpcgi,"?article=",$anamelc,"&lc=",$line,"_",$col,"&tmp=",$lbytmpdir)`; } 
+	    when [$linkby=3] { `concat($lbytptpcgi,"?article=",$anamelc,"&lc=",$line,"_",$col,"&tmp=",$lbytmpdir,$lbycgiparams)`; } 
 
 	 } 
       }
@@ -2920,6 +2933,10 @@ tpl jt
        { 
           idv_for_item(#k="t", #nr=$nr1);
        }
+       if [$thms_tptp_links = 1]
+       {
+          tptp_for_thm(#line=`Proposition[1]/@line`, #col=`Proposition[1]/@col`);
+       }
 
        <br;
     }
@@ -2990,6 +3007,22 @@ tpl idv_for_item(#k,#nr)
   }
 }
 
+
+tpl tptp_for_thm(#line, #col)
+{
+  $tptp_file = `concat("problems/",$anamelc,"/",$anamelc,"__",$line,"_",$col)`;
+  " ::";
+  <a
+  {
+    @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir)`; 
+    @target= `concat("MizarTPTP",$PidNr)`;
+    @src= "TPTP.gif";
+    @height= "17";
+    @width= "17";
+    @alt= "Show TPTP problem";
+    @title= "Show TPTP problem";
+  }
+} 
 
 tpl [DefTheorem] 
 { 

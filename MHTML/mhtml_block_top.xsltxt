@@ -4,7 +4,7 @@ output method=html;
 
 include mhtml_reasoning.xsl;
 
-// $Revision: 1.15 $
+// $Revision: 1.16 $
 //
 // File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements
 //
@@ -241,6 +241,10 @@ tpl jt
        { 
           idv_for_item(#k="t", #nr=$nr1);
        }
+       if [$thms_tptp_links = 1]
+       {
+          tptp_for_thm(#line=`Proposition[1]/@line`, #col=`Proposition[1]/@col`);
+       }
 
        <br;
     }
@@ -311,6 +315,22 @@ tpl idv_for_item(#k,#nr)
   }
 }
 
+
+tpl tptp_for_thm(#line, #col)
+{
+  $tptp_file = `concat("problems/",$anamelc,"/",$anamelc,"__",$line,"_",$col)`;
+  " ::";
+  <a
+  {
+    @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir)`; 
+    @target= `concat("MizarTPTP",$PidNr)`;
+    @src= "TPTP.gif";
+    @height= "17";
+    @width= "17";
+    @alt= "Show TPTP problem";
+    @title= "Show TPTP problem";
+  }
+} 
 
 tpl [DefTheorem] 
 { 

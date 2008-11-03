@@ -2,7 +2,7 @@ stylesheet 1.0;
 
 output method=html;
 
-// $Revision: 1.22 $
+// $Revision: 1.23 $
 //
 // File: params.xsltxt - html-ization of Mizar XML, top-level parameters
 //
@@ -112,6 +112,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // additional params for lbytptpcgi, needs to be passed as a param
 #lbycgiparams = { ""; }
 
+
+// add links to tptp files for thms
+#thms_tptp_links = { "0"; }
 
 // tells if linkage of proof elements is done; default is off
 #proof_links = { "0"; }
