@@ -222,7 +222,7 @@ tpl [Theorem|Constructor|Pattern](#s) {
 	     }
              apply(#s=$s); }}
 
-tpl [Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp](#s)
+tpl [Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp|Identify](#s)
 { 
   $n=`name()`; <$n 
   { 
