@@ -6049,7 +6049,7 @@
   <xsl:template match="IdentifyWithExp|Identify">
     <xsl:variable name="iname" select="name()"/>
     <!-- to deal with both versions -->
-    <xsl:variable name="nr1" select="1 + count(preceding::$iname)"/>
+    <xsl:variable name="nr1" select="1 + count(preceding::*[name() = $iname])"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
         <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html"> 
@@ -6071,7 +6071,7 @@
         <xsl:with-param name="el" select="Typ"/>
       </xsl:call-template>
     </xsl:if>
-    <xsl:variable name="nr1" select="1 + count(preceding::$iname)"/>
+    <xsl:variable name="nr1" select="1 + count(preceding::*[name() = $iname])"/>
     <xsl:element name="a">
       <xsl:attribute name="NAME">
         <xsl:value-of select="concat(&quot;IY&quot;,$nr1)"/>
