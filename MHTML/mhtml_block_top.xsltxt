@@ -80,8 +80,8 @@ tpl fc
 
 tpl [IdentifyWithExp|Identify] 
 { 
-    $name = `name()`; // to deal with both versions
-    $nr1 = `1 + count(preceding::$name)`;
+    $iname = `name()`; // to deal with both versions
+    $nr1 = `1 + count(preceding::$iname)`;
     if [$generate_items>0]	
     { 
 // <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html">
@@ -94,13 +94,13 @@ tpl [IdentifyWithExp|Identify]
 
 tpl iy
 { 
-   $name = `name()`; // to deal with both versions
+   $iname = `name()`; // to deal with both versions
    if [($mml="1") or ($generate_items>0)] 
    { 
       argtypes(#el=`Typ`);
    }
 
-   $nr1 = `1 + count(preceding::$name)`;
+   $nr1 = `1 + count(preceding::$iname)`;
 
    <a 
    { 
@@ -111,7 +111,7 @@ tpl iy
    if [ErrorIdentify] { "erroridentify"; }
    else { if [($mml="1") or ($generate_items>0)] 
    { 
-       if [$name = 'Identify']
+       if [$iname = 'Identify']
        {
            apply[Func[1]];
 	   <b {" with ";} 
