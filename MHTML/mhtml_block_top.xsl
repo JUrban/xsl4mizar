@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_reasoning.xsl"/>
 
-  <!-- $Revision: 1.7 $ -->
+  <!-- $Revision: 1.19 $ -->
   <!--  -->
   <!-- File: block_top.xsltxt - html-ization of Mizar XML, code for bloc and top elements -->
   <!--  -->
@@ -154,8 +154,10 @@
     </xsl:if>
   </xsl:template>
 
-  <xsl:template match="IdentifyWithExp">
-    <xsl:variable name="nr1" select="1 + count(preceding::IdentifyWithExp)"/>
+  <xsl:template match="IdentifyWithExp|Identify">
+    <xsl:variable name="iname" select="name()"/>
+    <!-- to deal with both versions -->
+    <xsl:variable name="nr1" select="1 + count(preceding::$iname)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
         <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html"> 
@@ -170,12 +172,14 @@
   </xsl:template>
 
   <xsl:template name="iy">
+    <xsl:variable name="iname" select="name()"/>
+    <!-- to deal with both versions -->
     <xsl:if test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
       <xsl:call-template name="argtypes">
         <xsl:with-param name="el" select="Typ"/>
       </xsl:call-template>
     </xsl:if>
-    <xsl:variable name="nr1" select="1 + count(preceding::IdentifyWithExp)"/>
+    <xsl:variable name="nr1" select="1 + count(preceding::$iname)"/>
     <xsl:element name="a">
       <xsl:attribute name="NAME">
         <xsl:value-of select="concat(&quot;IY&quot;,$nr1)"/>
@@ -191,11 +195,22 @@
       <xsl:otherwise>
         <xsl:choose>
           <xsl:when test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
-            <xsl:apply-templates select="*[position() = last() - 1]"/>
-            <xsl:element name="b">
-              <xsl:text> with </xsl:text>
-            </xsl:element>
-            <xsl:apply-templates select="*[position() = last()]"/>
+            <xsl:choose>
+              <xsl:when test="$iname = &apos;Identify&apos;">
+                <xsl:apply-templates select="Func[1]"/>
+                <xsl:element name="b">
+                  <xsl:text> with </xsl:text>
+                </xsl:element>
+                <xsl:apply-templates select="Func[2]"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:apply-templates select="*[position() = last() - 1]"/>
+                <xsl:element name="b">
+                  <xsl:text> with </xsl:text>
+                </xsl:element>
+                <xsl:apply-templates select="*[position() = last()]"/>
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:when>
           <xsl:otherwise>
             <xsl:for-each select="following-sibling::*[1]/Proposition/*[1]">
@@ -388,6 +403,12 @@
           <xsl:with-param name="nr" select="$nr1"/>
         </xsl:call-template>
       </xsl:if>
+      <xsl:if test="$thms_tptp_links = 1">
+        <xsl:call-template name="tptp_for_thm">
+          <xsl:with-param name="line" select="Proposition[1]/@line"/>
+          <xsl:with-param name="col" select="Proposition[1]/@col"/>
+        </xsl:call-template>
+      </xsl:if>
       <xsl:element name="br"/>
     </xsl:element>
     <xsl:choose>
@@ -479,6 +500,38 @@
             <xsl:value-of select="$tptp_file"/>
           </xsl:attribute>
         </xsl:element>
+      </xsl:element>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="tptp_for_thm">
+    <xsl:param name="line"/>
+    <xsl:param name="col"/>
+    <xsl:variable name="tptp_file" select="concat(&quot;problems/&quot;,$anamelc,&quot;/&quot;,$anamelc,&quot;__&quot;,$line,&quot;_&quot;,$col)"/>
+    <xsl:text> ::</xsl:text>
+    <xsl:element name="a">
+      <xsl:attribute name="href">
+        <xsl:value-of select="concat($ltmpftptpcgi,&quot;?file=&quot;,$tptp_file,&quot;&amp;tmp=&quot;,$lbytmpdir)"/>
+      </xsl:attribute>
+      <xsl:attribute name="target">
+        <xsl:value-of select="concat(&quot;MizarTPTP&quot;,$lbytmpdir)"/>
+      </xsl:attribute>
+      <xsl:element name="img">
+        <xsl:attribute name="src">
+          <xsl:value-of select="concat($ltptproot,&quot;TPTP.gif&quot;)"/>
+        </xsl:attribute>
+        <xsl:attribute name="height">
+          <xsl:text>17</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="width">
+          <xsl:text>17</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="alt">
+          <xsl:text>Show TPTP problem</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="title">
+          <xsl:text>Show TPTP problem</xsl:text>
+        </xsl:attribute>
       </xsl:element>
     </xsl:element>
   </xsl:template>
@@ -1364,9 +1417,11 @@
   <!-- separate top-level items by additional newline -->
   <xsl:template match="Article">
     <xsl:element name="div">
-      <xsl:call-template name="pcomment0">
-        <xsl:with-param name="str" select="concat($aname, &quot;  semantic presentation&quot;)"/>
-      </xsl:call-template>
+      <xsl:if test="not($mk_header &gt; 0)">
+        <xsl:call-template name="pcomment0">
+          <xsl:with-param name="str" select="concat($aname, &quot;  semantic presentation&quot;)"/>
+        </xsl:call-template>
+      </xsl:if>
       <xsl:if test="$idv &gt; 0">
         <xsl:call-template name="idv_for_top"/>
       </xsl:if>
