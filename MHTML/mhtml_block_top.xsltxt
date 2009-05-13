@@ -81,7 +81,7 @@ tpl fc
 tpl [IdentifyWithExp|Identify] 
 { 
     $iname = `name()`; // to deal with both versions
-    $nr1 = `1 + count(preceding::$iname)`;
+    $nr1 = `1 + count(preceding::*[name() = $iname])`;
     if [$generate_items>0]	
     { 
 // <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html">
@@ -100,7 +100,7 @@ tpl iy
       argtypes(#el=`Typ`);
    }
 
-   $nr1 = `1 + count(preceding::$iname)`;
+   $nr1 = `1 + count(preceding::*[name() = $iname])`;
 
    <a 
    { 
