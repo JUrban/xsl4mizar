@@ -78,24 +78,29 @@ tpl fc
 }
 
 
-tpl [IdentifyWithExp] { 
-    $nr1 = `1 + count(preceding::IdentifyWithExp)`;
-    if [$generate_items>0]	{ 
+tpl [IdentifyWithExp|Identify] 
+{ 
+    $name = `name()`; // to deal with both versions
+    $nr1 = `1 + count(preceding::$name)`;
+    if [$generate_items>0]	
+    { 
 // <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html">
        iy();
 // </xsl:document>
    $bogus=`1`;
- } 
-    else { iy(); } }
+    } 
+    else { iy(); } 
+}
 
 tpl iy
 { 
+   $name = `name()`; // to deal with both versions
    if [($mml="1") or ($generate_items>0)] 
    { 
       argtypes(#el=`Typ`);
    }
 
-   $nr1 = `1 + count(preceding::IdentifyWithExp)`;
+   $nr1 = `1 + count(preceding::$name)`;
 
    <a 
    { 
@@ -106,10 +111,18 @@ tpl iy
    if [ErrorIdentify] { "erroridentify"; }
    else { if [($mml="1") or ($generate_items>0)] 
    { 
-       apply[*[position() = last() - 1]]; 
-       <b {" with ";} 
-       apply[*[position() = last()]]; 
-     
+       if [$name = 'Identify']
+       {
+           apply[Func[1]];
+	   <b {" with ";} 
+	   apply[Func[2]];
+       }
+       else
+       {
+	   apply[*[position() = last() - 1]]; 
+       	   <b {" with ";} 
+       	   apply[*[position() = last()]]; 
+       }
    }
    else // try nice display from the compatibility formula
    {
