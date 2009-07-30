@@ -187,8 +187,9 @@ tpl pp(#k, #nr, #args, #parenth, #pid, #loci, #i)
 	    for-each [key($pkey,$nr)[$pid=@relnr]] 
 	    {
 	       $npid =  { if [@redefnr>0] { $pid; } }
+	       $vis = { if [$k = "V"] { `Visible/Int[position() < last()]`; } else { `Visible/Int`; } }
 
-	       pp1(#k = $k, #nr = $nr, #args = $args, #vis = `Visible/Int`, 
+	       pp1(#k = $k, #nr = $nr, #args = $args, #vis = $vis, 
 	           #fnr = `@formatnr`, #parenth = $parenth, #loci = $loci, #pid = $npid, #i = $i);
             }
 	 }
@@ -214,7 +215,8 @@ tpl pp(#k, #nr, #args, #parenth, #pid, #loci, #i)
 	    for-each [key($pkey,$nr)[position()=1]] 
 	    {
                $npid =  { if [@redefnr>0] { `@relnr`; } }
-	       pp1(#k = $k, #nr = $nr, #args = $args, #vis = `Visible/Int`, 
+	       $vis = { if [$k = "V"] { `Visible/Int[position() < last()]`; } else { `Visible/Int`; } }
+	       pp1(#k = $k, #nr = $nr, #args = $args, #vis = $vis, 
 		   #fnr = `@formatnr`, #parenth = $parenth, #loci = $loci, #pid = $npid, #i = $i);
             }
          }
@@ -240,8 +242,12 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i)
 {
     $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
             else { for-each [document($formats,/)] {
-                     for-each [key('F',$fnr)] { 
-                       if [@leftargnr] { `@leftargnr`;} else { "0";} }}} }
+                     for-each [key('F',$fnr)] 
+		     { 
+		       if [@kind="V"] { `@argnr - 1`;}
+                       else { if [@leftargnr] { `@leftargnr`;} else { "0";} }
+                     }}} 
+          }
     // try if right bracket - returns '' if not
     $rsym = { if [($k='K') and ($la='0')] { abs1(#k=$k, #nr=$nr, #fnr=$fnr, #r="1"); } }
     $np = { if [not($vis) or ($k='G')] { "0"; } else {
