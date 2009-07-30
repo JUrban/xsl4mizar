@@ -204,11 +204,17 @@ tpl [And](#i,#pr) { $e1= is_equiv(#el=`.`);
     else { "( "; // if[not(@pid)] { " NOPID ";} 
            ilist(#separ=" & ", #elems=`*`, #i=$i,#pr="1"); " )"; }}}
 
-tpl [Pred](#i,#not,#pr) {
-    choose {
-      when [@kind='P'] { pschpvar(#nr=`@nr`); 
-	   "["; ilist(#separ=",", #elems=`*`, #i = $i); "]";}
-      when [(@kind='V') or (@kind='R')]  { 
+tpl [Pred](#i,#not,#pr) 
+{
+    choose 
+    {
+      when [@kind='P'] 
+      { 
+         pschpvar(#nr=`@nr`); 
+	 "["; ilist(#separ=",", #elems=`*`, #i = $i); "]";
+      }
+      when [(@kind='V') or (@kind='R')]  
+      { 
 	   $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
 	   $fnr = car(#l=$pi);
 	   $antonym = cadr(#l=$pi);
@@ -218,12 +224,20 @@ tpl [Pred](#i,#not,#pr) {
 	   $neg = { if [$not="1"] { `($antonym + $not) mod 2`; }
 		    else { `$antonym mod 2`; }}
            if [$neg="1"] { "not ";}
-       if [(@kind='V') and ($predattr="0")] {
-	  apply[*[position() = last()]](#i = $i); " is ";  
-	  abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr, #pid=$pid)); }
-       else { pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#pid=`@pid`,#i=$i); }} }}
+           if [(@kind='V') and ($predattr="0")] 
+       	   {
+	       apply[*[position() = last()]](#i = $i); " is ";  
+	       pp(#k=`@kind`,#nr=`@nr`,#args=`*[position() < last()]`,#pid=`@pid`,#i=$i);
+	       // abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr, #pid=$pid)); 
+           }
+           else { pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#pid=`@pid`,#i=$i); }
+      } 
+    }
+}
 //,#sym1=abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`))); }}
 //  "[ "; list(#separ=",", #elems=`*`); "]"; }
+
+
 tpl [PrivPred](#i,#pr,#not) { if [$not="1"] { " not "; } pppred(#nr=`@nr`); "["; 
     ilist(#separ=",", #elems=`*[position() < last()]`, #i = $i); "]"; }
 tpl [Is](#i,#pr,#not) { apply[*[1]](#i = $i); " is "; if [$not="1"] { " not "; } apply[*[2]](#i = $i); } 
@@ -547,8 +561,8 @@ tpl [Adjective](#i)
         "non ";
      }
 
-     abs(#k="V", #nr=`@nr`, 
-         #sym=abs1(#k="V", #nr=`@nr`, #fnr=$fnr, #pid=$pid), #pid = $pid); 
+     pp(#k="V",#nr=`@nr`,#args=`*`,#pid=`@pid`,#i=$i);
+//     abs(#k="V", #nr=`@nr`,#sym=abs1(#k="V", #nr=`@nr`, #fnr=$fnr, #pid=$pid), #pid = $pid); 
 }
 
 
