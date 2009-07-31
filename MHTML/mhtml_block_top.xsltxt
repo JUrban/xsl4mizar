@@ -993,7 +993,8 @@ tpl [Constructor](#indef,#nl,#argt,#nrt)
           if [$loci = 1] { ploci(#nr = $nr1); }
 	  else { ppconst(#nr = $nr1, #vid = `$argt[position() = $nr1]/@vid`); }
 	  " is ";  
-	  abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
+       	  pp(#k=`@kind`,#nr=`@relnr`, #args = `$argt[position() < last()]`, #loci=$loci);
+	  // abs(#k=`@kind`, #nr=`@relnr`, #sym=abs1(#k=`@kind`, #nr=`@relnr`)); 
        }
        else { pp(#k=`@kind`,#nr=`@relnr`, #args = $argt, #loci=$loci); }
        // "( ";  arglist(#separ=",", #elems=`ArgTypes/Typ`); ")"; 
