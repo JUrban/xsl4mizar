@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_print_complex.xsl"/>
 
-  <!-- $Revision: 1.5 $ -->
+  <!-- $Revision: 1.12 $ -->
   <!--  -->
   <!-- File: frmtrm.xsltxt - html-ization of Mizar XML, code for terms, formulas, and types -->
   <!--  -->
@@ -873,17 +873,12 @@
               <xsl:with-param name="i" select="$i"/>
             </xsl:apply-templates>
             <xsl:text> is </xsl:text>
-            <xsl:call-template name="abs">
+            <xsl:call-template name="pp">
               <xsl:with-param name="k" select="@kind"/>
               <xsl:with-param name="nr" select="@nr"/>
-              <xsl:with-param name="sym">
-                <xsl:call-template name="abs1">
-                  <xsl:with-param name="k" select="@kind"/>
-                  <xsl:with-param name="nr" select="@nr"/>
-                  <xsl:with-param name="fnr" select="$fnr"/>
-                  <xsl:with-param name="pid" select="$pid"/>
-                </xsl:call-template>
-              </xsl:with-param>
+              <xsl:with-param name="args" select="*[position() &lt; last()]"/>
+              <xsl:with-param name="pid" select="@pid"/>
+              <xsl:with-param name="i" select="$i"/>
             </xsl:call-template>
           </xsl:when>
           <xsl:otherwise>
@@ -1173,9 +1168,17 @@
       <xsl:when test="($print_identifiers &gt; 0)  and ((@vid&gt;0) or ($proof_links&gt;0))">
         <xsl:choose>
           <xsl:when test="@vid &gt; 0">
+            <xsl:variable name="pl">
+              <xsl:if test="$const_links=2">
+                <xsl:call-template name="get_nearest_level">
+                  <xsl:with-param name="el" select=".."/>
+                </xsl:call-template>
+              </xsl:if>
+            </xsl:variable>
             <xsl:call-template name="ppconst">
               <xsl:with-param name="nr" select="@nr"/>
               <xsl:with-param name="vid" select="@vid"/>
+              <xsl:with-param name="pl" select="$pl"/>
             </xsl:call-template>
           </xsl:when>
           <xsl:otherwise>
@@ -1299,6 +1302,15 @@
     <xsl:param name="p"/>
     <xsl:param name="i"/>
     <xsl:text>errortrm</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="Choice">
+    <xsl:param name="p"/>
+    <xsl:param name="i"/>
+    <xsl:text>the </xsl:text>
+    <xsl:apply-templates select="Typ">
+      <xsl:with-param name="i" select="$i"/>
+    </xsl:apply-templates>
   </xsl:template>
 
   <xsl:template match="Fraenkel">
@@ -1703,22 +1715,14 @@
     <xsl:if test="$neg=&quot;1&quot;">
       <xsl:text>non </xsl:text>
     </xsl:if>
-    <xsl:call-template name="abs">
+    <xsl:call-template name="pp">
       <xsl:with-param name="k">
         <xsl:text>V</xsl:text>
       </xsl:with-param>
       <xsl:with-param name="nr" select="@nr"/>
-      <xsl:with-param name="sym">
-        <xsl:call-template name="abs1">
-          <xsl:with-param name="k">
-            <xsl:text>V</xsl:text>
-          </xsl:with-param>
-          <xsl:with-param name="nr" select="@nr"/>
-          <xsl:with-param name="fnr" select="$fnr"/>
-          <xsl:with-param name="pid" select="$pid"/>
-        </xsl:call-template>
-      </xsl:with-param>
-      <xsl:with-param name="pid" select="$pid"/>
+      <xsl:with-param name="args" select="*"/>
+      <xsl:with-param name="pid" select="@pid"/>
+      <xsl:with-param name="i" select="$i"/>
     </xsl:call-template>
   </xsl:template>
 </xsl:stylesheet>

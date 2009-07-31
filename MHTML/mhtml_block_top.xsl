@@ -1604,15 +1604,11 @@
               </xsl:otherwise>
             </xsl:choose>
             <xsl:text> is </xsl:text>
-            <xsl:call-template name="abs">
+            <xsl:call-template name="pp">
               <xsl:with-param name="k" select="@kind"/>
               <xsl:with-param name="nr" select="@relnr"/>
-              <xsl:with-param name="sym">
-                <xsl:call-template name="abs1">
-                  <xsl:with-param name="k" select="@kind"/>
-                  <xsl:with-param name="nr" select="@relnr"/>
-                </xsl:call-template>
-              </xsl:with-param>
+              <xsl:with-param name="args" select="$argt[position() &lt; last()]"/>
+              <xsl:with-param name="loci" select="$loci"/>
             </xsl:call-template>
           </xsl:when>
           <xsl:otherwise>
