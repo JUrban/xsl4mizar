@@ -1841,10 +1841,19 @@ tpl pp(#k, #nr, #args, #parenth, #pid, #loci, #i)
 	    for-each [key($pkey,$nr)[$pid=@relnr]] 
 	    {
 	       $npid =  { if [@redefnr>0] { $pid; } }
-	       $vis = { if [$k = "V"] { `Visible/Int[position() < last()]`; } else { `Visible/Int`; } }
+	       // $vis = { if [$k = "V"] { `Visible/Int[position() < last()]`; } else { `Visible/Int`; } }
 
-	       pp1(#k = $k, #nr = $nr, #args = $args, #vis = $vis, 
-	           #fnr = `@formatnr`, #parenth = $parenth, #loci = $loci, #pid = $npid, #i = $i);
+	       if [$k = "V"] 
+	       { 
+	          pp1(#k = $k, #nr = $nr, #args = $args, #vis = `Visible/Int[position() < last()]`,
+	              #fnr = `@formatnr`, #parenth = $parenth, #loci = $loci, #pid = $npid, #i = $i);
+	       }
+	       else 
+	       {
+	       	  pp1(#k = $k, #nr = $nr, #args = $args, #vis = `Visible/Int`,
+	              #fnr = `@formatnr`, #parenth = $parenth, #loci = $loci, #pid = $npid, #i = $i);
+	       }
+
             }
 	 }
 	 //  failure, print in absolute notation 
@@ -1869,9 +1878,17 @@ tpl pp(#k, #nr, #args, #parenth, #pid, #loci, #i)
 	    for-each [key($pkey,$nr)[position()=1]] 
 	    {
                $npid =  { if [@redefnr>0] { `@relnr`; } }
-	       $vis = { if [$k = "V"] { `Visible/Int[position() < last()]`; } else { `Visible/Int`; } }
-	       pp1(#k = $k, #nr = $nr, #args = $args, #vis = $vis, 
-		   #fnr = `@formatnr`, #parenth = $parenth, #loci = $loci, #pid = $npid, #i = $i);
+//	       $vis = { if [$k = "V"] { `Visible/Int[position() < last()]`; } else { `Visible/Int`; } }
+  	       if [$k = "V"] 
+	       { 
+	         pp1(#k = $k, #nr = $nr, #args = $args, #vis = `Visible/Int[position() < last()]`,
+	             #fnr = `@formatnr`, #parenth = $parenth, #loci = $loci, #pid = $npid, #i = $i);
+	       }
+	       else 
+	       {
+	       	 pp1(#k = $k, #nr = $nr, #args = $args, #vis = `Visible/Int`,
+	             #fnr = `@formatnr`, #parenth = $parenth, #loci = $loci, #pid = $npid, #i = $i);
+	       }
             }
          }
 	 //  failure, print in absolute notation 
@@ -1898,8 +1915,12 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i)
             else { for-each [document($formats,/)] {
                      for-each [key('F',$fnr)] 
 		     { 
-		       if [@kind="V"] { `@argnr - 1`;}
-                       else { if [@leftargnr] { `@leftargnr`;} else { "0";} }
+		       choose
+		       { 
+		         when [@kind="V"] { `@argnr - 1`;}
+                         when [@leftargnr] { `@leftargnr`;} 
+			 otherwise { "0";} 
+                       }
                      }}} 
           }
     // try if right bracket - returns '' if not
