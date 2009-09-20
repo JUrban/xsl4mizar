@@ -524,7 +524,7 @@ tpl plab1(#nr,#txt)
    } 
 }
 
-tpl pkeyword(#str) { <b { $str; } }
+tpl pkeyword(#str) { <span { @class = "kw"; $str; } }
 
 tpl pcomment0(#str) { <i { if [$colored="1"] {
 <font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}
@@ -3867,6 +3867,7 @@ a.ref:link { color:green; }
 a.ref:hover { color: red; } 
 a.txt:link { color:black; } 
 a.txt:hover { color: red; } 
+span.kw {font-weight: bold; }
 span.hide { display: none; }
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
 span.p2:hover { color : inherit; background-color : #FFCACA; }

@@ -181,7 +181,7 @@ tpl plab1(#nr,#txt)
    } 
 }
 
-tpl pkeyword(#str) { <b { $str; } }
+tpl pkeyword(#str) { <span { @class = "kw"; $str; } }
 
 tpl pcomment0(#str) { <i { if [$colored="1"] {
 <font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}

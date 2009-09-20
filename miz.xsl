@@ -814,7 +814,10 @@
 
   <xsl:template name="pkeyword">
     <xsl:param name="str"/>
-    <xsl:element name="b">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>kw</xsl:text>
+      </xsl:attribute>
       <xsl:value-of select="$str"/>
     </xsl:element>
   </xsl:template>
@@ -7941,6 +7944,7 @@ a.ref:link { color:green; }
 a.ref:hover { color: red; } 
 a.txt:link { color:black; } 
 a.txt:hover { color: red; } 
+span.kw {font-weight: bold; }
 span.hide { display: none; }
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
 span.p2:hover { color : inherit; background-color : #FFCACA; }

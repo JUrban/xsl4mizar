@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" extension-element-prefixes="dc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.4 $ -->
+  <!-- $Revision: 1.8 $ -->
   <!--  -->
   <!-- File: mhtml_main.xsltxt - html-ization of Mizar XML, main file -->
   <!--  -->
@@ -64,6 +64,7 @@ a.ref:link { color:green; }
 a.ref:hover { color: red; } 
 a.txt:link { color:black; } 
 a.txt:hover { color: red; } 
+span.kw {font-weight: bold; }
 span.hide { display: none; }
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
 span.p2:hover { color : inherit; background-color : #FFCACA; }
@@ -76,6 +77,20 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 </xsl:text>
           </xsl:element>
           <xsl:element name="head">
+            <xsl:element name="title">
+              <xsl:choose>
+                <xsl:when test="$mk_header &gt; 0">
+                  <xsl:value-of select="$aname"/>
+                  <xsl:text>: </xsl:text>
+                  <xsl:for-each select="document($hdr,/)/Header/dc:title">
+                    <xsl:value-of select="text()"/>
+                  </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:value-of select="$aname"/>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:element>
             <xsl:element name="script">
               <xsl:attribute name="type">
                 <xsl:text>text/javascript</xsl:text>
@@ -171,21 +186,16 @@ return tstp_dump;
               </xsl:element>
             </xsl:if>
             <xsl:element name="base">
-              <xsl:choose>
-                <xsl:when test="$linking = &quot;s&quot;">
-                  <xsl:attribute name="target">
-                    <xsl:text>_self</xsl:text>
-                  </xsl:attribute>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:attribute name="target">
-                    <xsl:text>mmlquery</xsl:text>
-                  </xsl:attribute>
-                </xsl:otherwise>
-              </xsl:choose>
+              <xsl:attribute name="target">
+                <xsl:value-of select="$default_target"/>
+              </xsl:attribute>
             </xsl:element>
           </xsl:element>
           <xsl:element name="body">
+            <xsl:if test="$mk_header &gt; 0">
+              <xsl:apply-templates select="document($hdr,/)/Header/*"/>
+              <xsl:element name="br"/>
+            </xsl:if>
             <!-- first read the keys for imported stuff -->
             <!-- apply[document($constrs,/)/Constructors/Constructor]; -->
             <!-- apply[document($thms,/)/Theorems/Theorem]; -->
@@ -196,5 +206,37 @@ return tstp_dump;
         </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <!-- tpl [*] { copy { apply [@*]; apply; } } -->
+  <!-- tpl [@*] { copy-of `.`; } -->
+  <!-- Header rules -->
+  <xsl:template match="dc:title">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="text()"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:creator">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;by &quot;, text())"/>
+    </xsl:call-template>
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str">
+        <xsl:text/>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:date">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;Received &quot;, text())"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:rights">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;Copyright &quot;, text())"/>
+    </xsl:call-template>
   </xsl:template>
 </xsl:stylesheet>
