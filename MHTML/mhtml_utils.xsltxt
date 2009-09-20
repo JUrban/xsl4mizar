@@ -293,7 +293,7 @@ tpl nlist(#separ,#elems) {
 // newlined andlist
 tpl andlist(#elems) { 
  for-each [$elems] {
-  apply[.]; if [not(position()=last())] { <b { "and "; } <br; } }
+  apply[.]; if [not(position()=last())] { pkeyword(#str="and "); <br; } }
 }
 
 

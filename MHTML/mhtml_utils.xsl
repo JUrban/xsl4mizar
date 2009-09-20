@@ -3,7 +3,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
   <xsl:include href="mhtml_print_simple.xsl"/>
-  <!-- $Revision: 1.4 $ -->
+  <!-- $Revision: 1.9 $ -->
   <!--  -->
   <!-- File: utils.xsltxt - html-ization of Mizar XML, various utility functions -->
   <!--  -->
@@ -835,9 +835,11 @@
     <xsl:for-each select="$elems">
       <xsl:apply-templates select="."/>
       <xsl:if test="not(position()=last())">
-        <xsl:element name="b">
-          <xsl:text>and </xsl:text>
-        </xsl:element>
+        <xsl:call-template name="pkeyword">
+          <xsl:with-param name="str">
+            <xsl:text>and </xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
         <xsl:element name="br"/>
       </xsl:if>
     </xsl:for-each>
@@ -862,13 +864,31 @@
   <!-- the Typ is printed only once. -->
   <!-- #sep2 is now either "be " or "being ", -->
   <!-- comma is added automatically. -->
+  <!-- #pl passes proolevel if after addabsrefs processing -->
+  <!-- (needed for const_links) -->
   <xsl:template name="jtlist">
     <xsl:param name="j"/>
     <xsl:param name="sep2"/>
     <xsl:param name="elems"/>
+    <xsl:param name="pl"/>
+    <xsl:variable name="addpl">
+      <xsl:if test="$const_links&gt;0">
+        <xsl:call-template name="addp">
+          <xsl:with-param name="pl" select="$pl"/>
+        </xsl:call-template>
+      </xsl:if>
+    </xsl:variable>
     <xsl:for-each select="$elems">
+      <xsl:variable name="nr1" select="$j+position()"/>
+      <xsl:if test="$const_links&gt;0">
+        <xsl:element name="a">
+          <xsl:attribute name="NAME">
+            <xsl:value-of select="concat(&quot;c&quot;,$nr1,$addpl)"/>
+          </xsl:attribute>
+        </xsl:element>
+      </xsl:if>
       <xsl:call-template name="ppconst">
-        <xsl:with-param name="nr" select="$j+position()"/>
+        <xsl:with-param name="nr" select="$nr1"/>
         <xsl:with-param name="vid" select="@vid"/>
       </xsl:call-template>
       <xsl:choose>

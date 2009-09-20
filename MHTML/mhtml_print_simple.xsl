@@ -5,7 +5,7 @@
   <xsl:include href="mhtml_params.xsl"/>
   <xsl:include href="mhtml_keys.xsl"/>
 
-  <!-- $Revision: 1.4 $ -->
+  <!-- $Revision: 1.7 $ -->
   <!--  -->
   <!-- File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs -->
   <!--  -->
@@ -107,32 +107,73 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- #pl gives the optional proof level -->
   <xsl:template name="ppconst">
     <xsl:param name="nr"/>
     <xsl:param name="vid"/>
+    <xsl:param name="pl"/>
     <xsl:choose>
       <xsl:when test="($print_identifiers &gt; 0) and ($vid &gt; 0)">
+        <xsl:variable name="ctarget">
+          <xsl:choose>
+            <xsl:when test="($const_links&gt;0) and  ($pl)">
+              <xsl:text>c</xsl:text>
+              <xsl:value-of select="$nr"/>
+              <xsl:call-template name="addp">
+                <xsl:with-param name="pl" select="$pl"/>
+              </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="concat(&quot;c&quot;,$nr)"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
         <xsl:variable name="nm">
           <xsl:call-template name="get_vid_name">
             <xsl:with-param name="vid" select="$vid"/>
           </xsl:call-template>
         </xsl:variable>
         <xsl:choose>
-          <xsl:when test="$colored = &quot;1&quot;">
-            <xsl:element name="font">
-              <xsl:attribute name="color">
-                <xsl:value-of select="$constcolor"/>
+          <xsl:when test="($const_links=2)">
+            <xsl:element name="a">
+              <xsl:attribute name="class">
+                <xsl:text>txt</xsl:text>
               </xsl:attribute>
-              <xsl:if test="$titles=&quot;1&quot;">
-                <xsl:attribute name="title">
-                  <xsl:value-of select="concat(&quot;c&quot;,$nr)"/>
+              <xsl:attribute name="href">
+                <xsl:value-of select="concat(&quot;#&quot;,$ctarget)"/>
+              </xsl:attribute>
+              <xsl:element name="font">
+                <xsl:attribute name="color">
+                  <xsl:value-of select="$constcolor"/>
                 </xsl:attribute>
-              </xsl:if>
-              <xsl:value-of select="$nm"/>
+                <xsl:if test="$titles=&quot;1&quot;">
+                  <xsl:attribute name="title">
+                    <xsl:value-of select="$ctarget"/>
+                  </xsl:attribute>
+                </xsl:if>
+                <xsl:value-of select="$nm"/>
+              </xsl:element>
             </xsl:element>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:value-of select="$nm"/>
+            <xsl:choose>
+              <xsl:when test="$colored = &quot;1&quot;">
+                <xsl:element name="font">
+                  <xsl:attribute name="color">
+                    <xsl:value-of select="$constcolor"/>
+                  </xsl:attribute>
+                  <xsl:if test="$titles=&quot;1&quot;">
+                    <xsl:attribute name="title">
+                      <xsl:value-of select="$ctarget"/>
+                    </xsl:attribute>
+                  </xsl:if>
+                  <xsl:value-of select="$nm"/>
+                </xsl:element>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="$nm"/>
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
@@ -371,6 +412,13 @@
           <xsl:value-of select="$nr"/>
         </xsl:otherwise>
       </xsl:choose>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="pkeyword">
+    <xsl:param name="str"/>
+    <xsl:element name="b">
+      <xsl:value-of select="$str"/>
     </xsl:element>
   </xsl:template>
 

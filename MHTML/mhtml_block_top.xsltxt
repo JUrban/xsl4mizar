@@ -30,7 +30,7 @@ tpl rc
   <a 
   { 
     @NAME=`concat("RC",$nr1)`;
-    <b { "cluster "; } 
+    pkeyword(#str="cluster "); 
   }
   if [ErrorCluster] { "errorcluster"; } else { apply[*[3]]; " "; apply[*[2]]; }
   ";"; <br; if [$mml="1"] { <br; }
@@ -50,9 +50,9 @@ tpl [CCluster] {
 tpl cc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
 		 $nr1 = `1 + count(preceding::CCluster)`;
 		 <a { @NAME=`concat("CC",$nr1)`;
-		      <b { "cluster "; } }
+		      pkeyword(#str="cluster "); }
                  if [ErrorCluster] { "errorcluster"; }
-	         else { apply[*[2]]; <b {" -> ";} apply[*[4]]; " "; 
+	         else { apply[*[2]]; pkeyword(#str=" -> "); apply[*[4]]; " "; 
                         apply[*[3]]; }
                  ";"; <br; if [$mml="1"] { <br; }}
 
@@ -71,9 +71,9 @@ tpl fc
    if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
    $nr1 = `1 + count(preceding::FCluster)`;
    <a { @NAME=`concat("FC",$nr1)`;
-   <b { "cluster "; } }
+   pkeyword(#str="cluster "); }
    if [ErrorCluster] { "errorcluster"; }
-   else { apply[*[2]]; <b {" -> ";} apply[*[3]]; apply[Typ];}
+   else { apply[*[2]]; pkeyword(#str=" -> "); apply[*[3]]; apply[Typ];}
    ";"; <br; if [$mml="1"] { <br; }
 }
 
@@ -105,7 +105,7 @@ tpl iy
    <a 
    { 
       @NAME=`concat("IY",$nr1)`;
-      <b { "identify "; } 
+      pkeyword(#str="identify "); 
    }
 
    if [ErrorIdentify] { "erroridentify"; }
@@ -114,13 +114,13 @@ tpl iy
        if [$iname = 'Identify']
        {
            apply[Func[1]];
-	   <b {" with ";} 
+	   pkeyword(#str=" with "); 
 	   apply[Func[2]];
        }
        else
        {
 	   apply[*[position() = last() - 1]]; 
-       	   <b {" with ";} 
+       	   pkeyword(#str=" with "); 
        	   apply[*[position() = last()]]; 
        }
    }
@@ -131,7 +131,7 @@ tpl iy
        if [name() = "Pred"] // equality - terms
        { 
          apply[*[1]]; 
-	 <b {" with ";} 
+	 pkeyword(#str=" with "); 
 	 apply[*[2]];
        }
        else { if [name() = "And"] // equivalence - predicates
@@ -140,7 +140,7 @@ tpl iy
 	 if [$e1="1"] 
 	 { 
 	   apply[*[1]/*[1]/*[1]]; 
-	   <b {" with ";}
+	   pkeyword(#str=" with ");
 	   apply[*[1]/*[1]/*[2]/*[1]];
 	 }
 	 else 
@@ -160,7 +160,7 @@ tpl iy
 	     if [name() = "Pred"] 
 	     {
 	       apply[*[1]]; 
-	       <b {" with ";} 
+	       pkeyword(#str=" with "); 
 	       apply[*[2]];
 	     }
 	     else 
@@ -169,7 +169,7 @@ tpl iy
 	       if [$e1="1"] 
 	       { 
 	         apply[*[1]/*[1]/*[1]]; 
-		 <b {" with ";}
+		 pkeyword(#str=" with ");
 		 apply[*[1]/*[1]/*[2]/*[1]];
                }
 	       else 
@@ -179,7 +179,7 @@ tpl iy
 	       }
 	     }
 	   }
-	   <b {" when ";}
+	   pkeyword(#str=" when ");
 	   ilist(#separ = ", ", #elems=`*[1]/*[not(@pid=$pid_Impl_RightNot)]`); 
 	 }
        }}
@@ -231,7 +231,7 @@ tpl jt
 {
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
 
-    <b { "theorem "; } 
+    pkeyword(#str="theorem "); 
 
     if [($proof_links > 0) and ($print_lab_identifiers = 0)]
     { 
@@ -278,7 +278,7 @@ tpl jt
 
           if [Proposition/Verum] 
 	  { 
-	     <b { "canceled; "; }
+	     pkeyword(#str="canceled; ");
 	  }
 	  else 
 	  { 
@@ -366,7 +366,7 @@ tpl dt
 {
   $nr1 = `1+count(preceding-sibling::DefTheorem)`;
 
-  ":: "; <b { "deftheorem "; }
+  ":: "; pkeyword(#str="deftheorem ");
 
   if [($proof_links > 0) and ($print_lab_identifiers = 0)]
   { 
@@ -405,7 +405,7 @@ tpl dt
 
 	if [Proposition/Verum] 
 	{ 
-	   <b { "canceled; "; } 
+	   pkeyword(#str="canceled; "); 
         }
 	else 
 	{ 
@@ -423,7 +423,9 @@ tpl [JustifiedProperty]
    <a 
    { 
       add_hs_attrs(); 
-      <b { if [$nm = "antisymmetry"] { "asymmetry"; } else { $nm; } " "; }
+      if [$nm = "antisymmetry"] { pkeyword(#str="asymmetry"); } 
+      else { pkeyword(#str=$nm); } " "; 
+     
    }
 
    <span { @class="hide"; <br; apply[*[2]]; }
@@ -436,7 +438,8 @@ tpl [UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness]
    <a 
    { 
       add_hs_attrs();
-      <b { lc(#s = `name()`); " "; }
+      $nm = { lc(#s = `name()`); }
+      pkeyword(#str=$nm); " ";
    }
 
    <span { @class="hide"; <br; apply[*[1]]; }
@@ -445,16 +448,16 @@ tpl [UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness]
 
 // CorrectnessCondition*, elProposition, Justification
 tpl [Correctness] { 
-<a { add_hs_attrs(); <b { "correctness "; } }
+<a { add_hs_attrs(); pkeyword(#str="correctness "); }
 // apply to subconditions , skip their conjunction
 <span { @class="hide"; <br; apply[*[position()<(last()-1)]]; }
 apply[*[position()=last()]]; }
 
-tpl [Canceled] { <b { "canceled;"; } <br; }
+tpl [Canceled] { pkeyword(#str="canceled;"); <br; }
 
 tpl [SchemeFuncDecl] { 
      pschfvar(#nr=`@nr`); "(";
-     list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
+     list(#separ=",", #elems=`ArgTypes/Typ`); ") "; pkeyword(#str="-> ");
      apply[*[2]]; }
 
 tpl [SchemePredDecl] { 
@@ -480,7 +483,7 @@ tpl sd
   { 
     <a 
     { 
-      @NAME=`concat("S",@schemenr)`; <b { "scheme  "; }
+      @NAME=`concat("S",@schemenr)`; pkeyword(#str="scheme  ");
       pcomment(#str=`concat($aname,":sch ",@schemenr)`); 
     }
 //     "s"; `@schemenr`; 
@@ -500,7 +503,7 @@ tpl sd
     <div { @class="add"; apply[Proposition]; } 
     if [SchemePremises/Proposition] 
     { 
-       <b { "provided"; }
+       pkeyword(#str="provided");
        <div 
        { 
           @class="add"; 
@@ -532,7 +535,7 @@ tpl [Definition]
           <a 
 	  { 
 	     @NAME=`concat("NM", @nr)`;
-	     <b { "mode ";}  
+	     pkeyword(#str="mode ");  
 	     abs1(#k = "M", #fnr = `@formatnr`);
 
 	     if [Visible/Int] 
@@ -554,7 +557,7 @@ tpl [Definition]
                 }
              }
 
-	     <b { " is "; } 
+	     pkeyword(#str=" is "); 
           }
  
 	  apply[Expansion/Typ]; ";"; 
@@ -631,7 +634,7 @@ tpl dfs()
 	  if [$cnstr = 0] 
 	  {
              // here the redefined constructor is retrieved from definiens 
-	     <b { "redefine "; }
+	     pkeyword(#str="redefine ");
 
 	     $doc = { if [key($ckind, $cnr)] { ""; } else { $constrs; } }
 
@@ -641,7 +644,8 @@ tpl dfs()
 	     } 
           }
 
-	  <b { if [DefMeaning/@kind = 'e'] { " equals "; } else { " means "; } }
+	  if [DefMeaning/@kind = 'e'] { pkeyword(#str=" equals "); } 
+	  else { pkeyword(#str=" means "); }
 
 	  if [$nr1 > 0]  
 	  { 
@@ -670,7 +674,7 @@ tpl dfs()
 	 for-each [DefMeaning/PartialDef] 
 	 { 
 	    apply[*[1]]; 
-	    <b { " if "; } 
+	    pkeyword(#str=" if "); 
 	    apply[*[2]]; 
 	    <br; 
 	 }
@@ -679,7 +683,7 @@ tpl dfs()
 	    and (DefMeaning/*[(position() = last()) 
 		and not(name()="PartialDef")])] 
          { 
-	    <b { " otherwise "; }
+	    pkeyword(#str=" otherwise ");
 	 }
 
 	 apply[DefMeaning/*[(position() = last()) and not(name()="PartialDef")]]; 
@@ -697,9 +701,9 @@ tpl [DefinitionBlock]
 {
    <div 
    { 
-      <b { "definition"; }
+      pkeyword(#str="definition");
       <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
-      <b { "end;"; }
+      pkeyword(#str="end;");
    }
 }
 
@@ -713,16 +717,16 @@ tpl [IdentifyRegistration] { apply; }
 //   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
 tpl [RegistrationBlock] 
 {
-    <div { <b { "registration"; }
+    <div { pkeyword(#str="registration");
     <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
-    <b { "end;"; } }  
+    pkeyword(#str="end;"); }  
 } 
 
 tpl [NotationBlock] 
 {
-    <div { <b { "notation"; }
+    <div { pkeyword(#str="notation");
     <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
-    <b { "end;";  } }  
+    pkeyword(#str="end;"); }  
 } 
 
 
@@ -733,18 +737,18 @@ tpl [BlockThesis] { } // "blockthesis: "; apply; ";"; <br; }
 //   |  ( elCase, Reasoning, elBlockThesis ) )
 tpl [CaseBlock] 
 { 
-    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "case "; } }
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } pkeyword(#str="case "); }
     apply[Case];
     <div { @class="add"; apply[*[not(name()='Case')]]; }
-    <b { "end;"; } } 
+    pkeyword(#str="end;"); } 
 }
 
 tpl [SupposeBlock] 
 {
-    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } <b { "suppose "; } } 
+    <div { <a { add_hsNdiv_attrs(); if [$proof_links>0] { @title=`@newlevel`; } pkeyword(#str="suppose "); } 
     apply[Suppose];
     <div { @class="add"; apply[*[not(name()='Suppose')]]; }
-    <b { "end;"; } } 
+    pkeyword(#str="end;"); } 
 }
 
 //   (  ( elBlockThesis, ( elCaseBlock+ | elSupposeBlock+ ),
@@ -759,7 +763,7 @@ tpl [PerCasesReasoning]
        { 
           add_hsNdiv_attrs(); 
 	  if [$proof_links>0] { @title=`@newlevel`; } 
-	  <b { "per "; } 
+	  pkeyword(#str="per "); 
        }
 
        apply[PerCases];
@@ -771,7 +775,7 @@ tpl [PerCasesReasoning]
 	  apply[CaseBlock | SupposeBlock]; 
        }
 
-       <b { "end;"; } 
+       pkeyword(#str="end;"); 
     } 
 }
 
@@ -787,11 +791,11 @@ tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock
        { 
           add_hs2_attrs(); 
 	  if [$proof_links>0] { @title=`@newlevel`; } 
-	  <b { "proof "; } 
+	  pkeyword(#str="proof "); 
        }
 
        <div { @class="add"; apply; }
-       <b { "end;"; } 
+       pkeyword(#str="end;"); 
     } 
 }
 
@@ -805,7 +809,7 @@ tpl [Proof] {
 	 <a { 
 	    if [$ajax_proofs>0]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
 	    if [$proof_links>0] { @title=`@newlevel`; } 
-	    <b { "proof "; } 
+	    pkeyword(#str="proof "); 
 	    }
          if [$ajax_proofs>0]	{ <span; 
 // <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html">
@@ -814,7 +818,7 @@ tpl [Proof] {
    $bogus=`1`;
  }
 	 else { <div { @class="add"; apply; } }
-	 <b { "end;"; } 
+	 pkeyword(#str="end;"); 
 	 } 
      }
 
@@ -834,12 +838,12 @@ tpl [Now](#nkw)
 	  { 
 	     add_hs2_attrs(); 
 	     if [$proof_links>0] { @title=`@newlevel`; } 
-	     <b {  "now "; } 
+	     pkeyword(#str="now "); 
           }
 
           now_body();
 
-	  <b { "end;"; } 
+	  pkeyword(#str="end;"); 
        }
     }
     else {  now_body(); }
@@ -901,7 +905,7 @@ tpl idv_for_top()
 //     <div { <b { if [not($nkw="1")] { "now ";} }
 //     <div { @class="add"; apply[BlockThesis];
 //            apply[*[not(name()='BlockThesis')]]; } 
-//     <b { "end;"; } } } 
+//     pkeyword(#str="end;"); } } 
 
 // separate top-level items by additional newline
 tpl [Article] 
@@ -929,9 +933,9 @@ tpl [Article]
 // processing of imported documents
 tpl [Theorem] 
 { 
-   <b { "theorem "; } 
+   pkeyword(#str="theorem "); 
    mkref(#aid=`@aid`, #nr=`@nr`, #k=`@kind`); <br; 
-   if [Verum] { <b { "canceled; "; } } else { apply; } 
+   if [Verum] { pkeyword(#str="canceled; "); } else { apply; } 
    <br; <br; 
 }
 
@@ -942,7 +946,7 @@ tpl argtypes(#el)
 { 
    if [$el] 
    { 
-      <b { "let "; } 
+      pkeyword(#str="let "); 
       ploci(#nr="1");
       " be "; 
       alist(#j="1", #sep1=", ", #sep2=" be ", #elems=`$el`); 
@@ -967,10 +971,12 @@ tpl [Constructor](#indef,#nl,#argt,#nrt)
        pcomment0(#str = "original: ");
        abs(#k=`@kind`,#nr=`@redefnr`,#sym=abs1(#k=`@kind`, #nr=`@redefnr`));
        <br;
-       <b { "redefine "; }
+       pkeyword(#str="redefine ");
     }
 
-    <a { @NAME=`concat(@kind,@nr)`; <b { mkind(#kind=`@kind`); }  " "; }
+    $mk = { mkind(#kind=`@kind`); }
+
+    <a { @NAME=`concat(@kind,@nr)`; pkeyword(#str=$mk);  " "; }
  
     if [@kind="G"] 
     { 
@@ -1004,7 +1010,7 @@ tpl [Constructor](#indef,#nl,#argt,#nrt)
         ((@kind = 'M') or (@kind = 'K') or (@kind= 'G') 
          or (@kind= 'U') or (@kind= 'L'))] 
     { 
-       <b {" -> ";}
+       pkeyword(#str=" -> ");
        // note that loci in Typs here can be translated to constants and identifiers
        // - see definition of LocusVar
        list(#separ=",",#elems=`Typ`); 
@@ -1018,18 +1024,22 @@ tpl [Constructor](#indef,#nl,#argt,#nrt)
 }
 
 // display synonym and antonym definiiotns
-tpl [NotationBlock/Pattern] {
+tpl [NotationBlock/Pattern] 
+{
 // pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
 // #fnr=`@formatnr`, #loci="1"); <br;
-$loci = { if [$mml="1"] { "1"; } else { "2"; }}
-$argtypes = `../Let/Typ`;
-<a { @NAME=`concat("N",@kind,@nr)`;
-<b { if [@antonymic] { "antonym "; } else { "synonym "; }}
-pp1(#k=`@constrkind`,#nr=`@constrnr`, #args = $argtypes, #vis=`Visible/Int`,
-#fnr=`@formatnr`, #loci=$loci); } <b { " for "; } 
+  $loci = { if [$mml="1"] { "1"; } else { "2"; }}
+  $argtypes = `../Let/Typ`;
+  <a { 
+       @NAME=`concat("N",@kind,@nr)`;
+       if [@antonymic] { pkeyword(#str="antonym "); } else { pkeyword(#str="synonym "); }
+       pp1(#k=`@constrkind`,#nr=`@constrnr`, #args = $argtypes, #vis=`Visible/Int`,
+       #fnr=`@formatnr`, #loci=$loci); 
+  } 
+  pkeyword(#str=" for "); 
 
-pp(#k=`@constrkind`,#nr=`@constrnr`, #args = $argtypes,
-#pid=`@redefnr`, #loci=$loci); ";"; <br;
+  pp(#k=`@constrkind`,#nr=`@constrnr`, #args = $argtypes,
+  #pid=`@redefnr`, #loci=$loci); ";"; <br;
 
 }
 
@@ -1046,7 +1056,7 @@ tpl [Notations/Pattern] {
 
 //	     $alc = lc(#s=`@aid`);
 	     $sym = abs1(#k = "M", #fnr = `@formatnr`);
-	     <b { "mode ";}  
+	     pkeyword(#str="mode ");  
 
 	     absref(#elems = `.`, #c = "0", #sym = $sym, #pid = `@relnr`);
 
@@ -1067,7 +1077,7 @@ tpl [Notations/Pattern] {
                 }
              }
 
-	     <b { " is "; } 
+	     pkeyword(#str=" is "); 
           
  
 	  apply[Expansion/Typ]; ";"; 
@@ -1076,7 +1086,9 @@ tpl [Notations/Pattern] {
       else 
       {
          $loci = { if [$mml="1"] { "1"; } else { "2"; }}
-	 <b { mkind(#kind=`@kind`); }  " ";
+	 $mk = { mkind(#kind=`@kind`); }
+
+	 pkeyword(#str=$mk); " ";
 	 pp1(#k=`@constrkind`,#nr=`@constrnr`,#vis=`Visible/Int`,
 	     #fnr=`@formatnr`, #loci="1"); 
 

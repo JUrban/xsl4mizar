@@ -1084,9 +1084,11 @@
         </xsl:variable>
         <xsl:choose>
           <xsl:when test="(@nr = $maxnr) and ($it_possible=&quot;1&quot;)">
-            <xsl:element name="b">
-              <xsl:text>it</xsl:text>
-            </xsl:element>
+            <xsl:call-template name="pkeyword">
+              <xsl:with-param name="str">
+                <xsl:text>it</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
           </xsl:when>
           <xsl:otherwise>
             <xsl:choose>

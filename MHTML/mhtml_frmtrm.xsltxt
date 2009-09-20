@@ -304,7 +304,7 @@ tpl [LocusVar](#p, #i)
 
        if [(@nr = $maxnr) and ($it_possible="1")] 
        { 
-          <b { "it"; } 
+          pkeyword(#str="it"); 
        }
        else 
        {

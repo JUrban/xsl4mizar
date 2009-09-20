@@ -4,7 +4,7 @@
   <xsl:output method="html"/>
   <xsl:include href="mhtml_frmtrm.xsl"/>
 
-  <!-- $Revision: 1.8 $ -->
+  <!-- $Revision: 1.37 $ -->
   <!--  -->
   <!-- File: reasoning.xsltxt - html-ization of Mizar XML, code for reasoning items -->
   <!--  -->
@@ -25,9 +25,11 @@
     <xsl:if test="following-sibling::*[1][(name()=&quot;By&quot;) and (@linked=&quot;true&quot;)]">
       <xsl:if test="not((name(..) = &quot;Consider&quot;) or (name(..) = &quot;Reconsider&quot;) 
            or (name(..) = &quot;Conclusion&quot;))">
-        <xsl:element name="b">
-          <xsl:text>then </xsl:text>
-        </xsl:element>
+        <xsl:call-template name="pkeyword">
+          <xsl:with-param name="str">
+            <xsl:text>then </xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
       </xsl:if>
     </xsl:if>
     <xsl:if test="@nr&gt;0">
@@ -80,6 +82,12 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template name="mk_by_title">
+    <xsl:param name="line"/>
+    <xsl:param name="col"/>
+    <xsl:value-of select="concat(&quot;Explain line &quot;, $line, &quot; column &quot;, $col)"/>
+  </xsl:template>
+
   <!-- Justifications -->
   <xsl:template name="linkbyif">
     <xsl:param name="line"/>
@@ -95,29 +103,63 @@
             <xsl:when test="$linkby=2">
               <xsl:value-of select="concat($lbydlicgipref,$anamelc,&quot;/&quot;,$line,&quot;_&quot;,$col,&quot;.dli&quot;)"/>
             </xsl:when>
+            <xsl:when test="$linkby=3">
+              <xsl:value-of select="concat($lbytptpcgi,&quot;?article=&quot;,$anamelc,&quot;&amp;lc=&quot;,$line,&quot;_&quot;,$col,&quot;&amp;tmp=&quot;,$lbytmpdir,$lbycgiparams)"/>
+            </xsl:when>
           </xsl:choose>
         </xsl:variable>
         <xsl:element name="a">
-          <xsl:attribute name="href">
-            <xsl:value-of select="$byurl"/>
-          </xsl:attribute>
-          <xsl:attribute name="class">
-            <xsl:text>txt</xsl:text>
-          </xsl:attribute>
-          <xsl:attribute name="target">
-            <xsl:text>byATP</xsl:text>
-          </xsl:attribute>
-          <xsl:element name="b">
-            <xsl:value-of select="$by"/>
-            <xsl:text> </xsl:text>
-          </xsl:element>
-        </xsl:element>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:element name="b">
-          <xsl:value-of select="$by"/>
+          <xsl:choose>
+            <xsl:when test="$ajax_by &gt; 0">
+              <xsl:call-template name="add_ajax_attrs">
+                <xsl:with-param name="u" select="$byurl"/>
+              </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:attribute name="href">
+                <xsl:value-of select="$byurl"/>
+              </xsl:attribute>
+              <xsl:attribute name="class">
+                <xsl:text>txt</xsl:text>
+              </xsl:attribute>
+              <xsl:choose>
+                <xsl:when test="$linkbytoself &gt; 0">
+                  <xsl:attribute name="target">
+                    <xsl:text>_self</xsl:text>
+                  </xsl:attribute>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:attribute name="target">
+                    <xsl:text>byATP</xsl:text>
+                  </xsl:attribute>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:if test="$by_titles&gt;0">
+            <xsl:attribute name="title">
+              <xsl:call-template name="mk_by_title">
+                <xsl:with-param name="line" select="$line"/>
+                <xsl:with-param name="col" select="$col"/>
+              </xsl:call-template>
+            </xsl:attribute>
+          </xsl:if>
+          <xsl:call-template name="pkeyword">
+            <xsl:with-param name="str" select="$by"/>
+          </xsl:call-template>
           <xsl:text> </xsl:text>
         </xsl:element>
+        <xsl:if test="$ajax_by &gt; 0">
+          <xsl:element name="span">
+            <xsl:text> </xsl:text>
+          </xsl:element>
+        </xsl:if>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="pkeyword">
+          <xsl:with-param name="str" select="$by"/>
+        </xsl:call-template>
+        <xsl:text> </xsl:text>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -128,7 +170,7 @@
   <xsl:template match="By	">
     <xsl:param name="nbr"/>
     <xsl:choose>
-      <xsl:when test="(count(*)&gt;0)">
+      <xsl:when test="(count(Ref)&gt;0)">
         <xsl:call-template name="linkbyif">
           <xsl:with-param name="line" select="@line"/>
           <xsl:with-param name="col" select="@col"/>
@@ -141,7 +183,7 @@
             <xsl:with-param name="separ">
               <xsl:text>, </xsl:text>
             </xsl:with-param>
-            <xsl:with-param name="elems" select="*"/>
+            <xsl:with-param name="elems" select="Ref"/>
           </xsl:call-template>
         </xsl:element>
         <xsl:text>;</xsl:text>
@@ -169,7 +211,7 @@
   </xsl:template>
 
   <xsl:template match="IterStep/By">
-    <xsl:if test="(count(*)&gt;0)">
+    <xsl:if test="(count(Ref)&gt;0)">
       <xsl:call-template name="linkbyif">
         <xsl:with-param name="line" select="@line"/>
         <xsl:with-param name="col" select="@col"/>
@@ -182,7 +224,7 @@
           <xsl:with-param name="separ">
             <xsl:text>, </xsl:text>
           </xsl:with-param>
-          <xsl:with-param name="elems" select="*"/>
+          <xsl:with-param name="elems" select="Ref"/>
         </xsl:call-template>
       </xsl:element>
     </xsl:if>
@@ -190,9 +232,13 @@
 
   <xsl:template match="From">
     <xsl:param name="nbr"/>
-    <xsl:element name="b">
-      <xsl:text>from </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="linkbyif">
+      <xsl:with-param name="line" select="@line"/>
+      <xsl:with-param name="col" select="@col"/>
+      <xsl:with-param name="by">
+        <xsl:text>from</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:element name="i">
       <xsl:call-template name="getref">
         <xsl:with-param name="k">
@@ -206,7 +252,7 @@
         <xsl:with-param name="separ">
           <xsl:text>, </xsl:text>
         </xsl:with-param>
-        <xsl:with-param name="elems" select="*"/>
+        <xsl:with-param name="elems" select="Ref"/>
       </xsl:call-template>
       <xsl:text>)</xsl:text>
       <xsl:text>;</xsl:text>
@@ -217,9 +263,13 @@
   </xsl:template>
 
   <xsl:template match="IterStep/From">
-    <xsl:element name="b">
-      <xsl:text>from </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="linkbyif">
+      <xsl:with-param name="line" select="@line"/>
+      <xsl:with-param name="col" select="@col"/>
+      <xsl:with-param name="by">
+        <xsl:text>from</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:element name="i">
       <xsl:call-template name="getref">
         <xsl:with-param name="k">
@@ -233,7 +283,7 @@
         <xsl:with-param name="separ">
           <xsl:text>, </xsl:text>
         </xsl:with-param>
-        <xsl:with-param name="elems" select="*"/>
+        <xsl:with-param name="elems" select="Ref"/>
       </xsl:call-template>
       <xsl:text>)</xsl:text>
     </xsl:element>
@@ -334,8 +384,9 @@
                 <xsl:attribute name="class">
                   <xsl:text>txt</xsl:text>
                 </xsl:attribute>
+                <!-- @href  = `concat($anamelc, ".", $ext, "#",$txt)`; -->
                 <xsl:attribute name="href">
-                  <xsl:value-of select="concat($anamelc, &quot;.&quot;, $ext, &quot;#&quot;,$txt)"/>
+                  <xsl:value-of select="concat(&quot;#&quot;,$txt)"/>
                 </xsl:attribute>
                 <xsl:call-template name="pplab">
                   <xsl:with-param name="nr" select="@nr"/>
@@ -462,18 +513,22 @@
 
   <xsl:template match="SkippedProof">
     <xsl:param name="nbr"/>
-    <xsl:element name="b">
-      <xsl:text>@proof .. end;</xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>@proof .. end;</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:if test="not($nbr=&quot;1&quot;)">
       <xsl:element name="br"/>
     </xsl:if>
   </xsl:template>
 
   <xsl:template match="IterStep/SkippedProof">
-    <xsl:element name="b">
-      <xsl:text>@proof .. end;</xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>@proof .. end;</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
   </xsl:template>
 
   <!-- Term, elIterStep+ -->
@@ -481,9 +536,11 @@
     <xsl:param name="nbr"/>
     <xsl:if test="IterStep[1]/By[@linked=&quot;true&quot;]">
       <xsl:if test="not(name(..)=&quot;Conclusion&quot;)">
-        <xsl:element name="b">
-          <xsl:text>then </xsl:text>
-        </xsl:element>
+        <xsl:call-template name="pkeyword">
+          <xsl:with-param name="str">
+            <xsl:text>then </xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
       </xsl:if>
     </xsl:if>
     <xsl:if test="@nr&gt;0">
@@ -512,7 +569,7 @@
   </xsl:template>
 
   <!-- Skeleton steps -->
-  <!-- tpl [Let] { $j=`@nr`; <b { "let "; } pconst(#nr=$j); -->
+  <!-- tpl [Let] { $j=`@nr`; pkeyword(#str="let "); pconst(#nr=$j); -->
   <!-- " be "; -->
   <!-- jlist(#j=$j, #sep2=" be ", #elems=`*`); -->
   <!-- ";"; try_th_exps(); <br; } -->
@@ -566,6 +623,18 @@
         <xsl:choose>
           <xsl:when test="$beg">
             <xsl:text>, </xsl:text>
+            <xsl:if test="$const_links&gt;0">
+              <xsl:variable name="addpl">
+                <xsl:call-template name="addp">
+                  <xsl:with-param name="pl" select="@plevel"/>
+                </xsl:call-template>
+              </xsl:variable>
+              <xsl:element name="a">
+                <xsl:attribute name="NAME">
+                  <xsl:value-of select="concat(&quot;c&quot;,@nr,$addpl)"/>
+                </xsl:attribute>
+              </xsl:element>
+            </xsl:if>
             <xsl:call-template name="ppconst">
               <xsl:with-param name="nr" select="@nr"/>
               <xsl:with-param name="vid" select="Typ/@vid"/>
@@ -594,11 +663,25 @@
             </xsl:choose>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:element name="b">
-              <xsl:text>let </xsl:text>
-            </xsl:element>
+            <xsl:call-template name="pkeyword">
+              <xsl:with-param name="str">
+                <xsl:text>let </xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
             <xsl:choose>
               <xsl:when test="$next=&quot;1&quot;">
+                <xsl:if test="$const_links&gt;0">
+                  <xsl:variable name="addpl">
+                    <xsl:call-template name="addp">
+                      <xsl:with-param name="pl" select="@plevel"/>
+                    </xsl:call-template>
+                  </xsl:variable>
+                  <xsl:element name="a">
+                    <xsl:attribute name="NAME">
+                      <xsl:value-of select="concat(&quot;c&quot;,@nr,$addpl)"/>
+                    </xsl:attribute>
+                  </xsl:element>
+                </xsl:if>
                 <xsl:call-template name="ppconst">
                   <xsl:with-param name="nr" select="@nr"/>
                   <xsl:with-param name="vid" select="Typ/@vid"/>
@@ -617,6 +700,7 @@
                     <xsl:text> be </xsl:text>
                   </xsl:with-param>
                   <xsl:with-param name="elems" select="Typ"/>
+                  <xsl:with-param name="pl" select="@plevel"/>
                 </xsl:call-template>
                 <xsl:text>;</xsl:text>
                 <xsl:call-template name="try_th_exps"/>
@@ -635,13 +719,17 @@
   </xsl:template>
 
   <xsl:template match="Assume">
-    <xsl:element name="b">
-      <xsl:text>assume </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>assume </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:if test="count(*)&gt;1">
-      <xsl:element name="b">
-        <xsl:text>that </xsl:text>
-      </xsl:element>
+      <xsl:call-template name="pkeyword">
+        <xsl:with-param name="str">
+          <xsl:text>that </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
       <xsl:element name="br"/>
     </xsl:if>
     <xsl:call-template name="andlist">
@@ -656,19 +744,24 @@
   <!-- at the first position, and also the old version without it -->
   <xsl:template match="Given">
     <xsl:variable name="j" select="@nr - 1"/>
-    <xsl:element name="b">
-      <xsl:text>given </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>given </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:call-template name="jtlist">
       <xsl:with-param name="j" select="$j"/>
       <xsl:with-param name="sep2">
         <xsl:text> being </xsl:text>
       </xsl:with-param>
       <xsl:with-param name="elems" select="Typ"/>
+      <xsl:with-param name="pl" select="@plevel"/>
     </xsl:call-template>
-    <xsl:element name="b">
-      <xsl:text> such that </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text> such that </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:call-template name="andlist">
       <xsl:with-param name="elems" select="*[(name()=&quot;Proposition&quot;) and (position() &gt; 1)]"/>
     </xsl:call-template>
@@ -678,9 +771,11 @@
   </xsl:template>
 
   <xsl:template match="Take">
-    <xsl:element name="b">
-      <xsl:text>take </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>take </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:apply-templates/>
     <xsl:text>;</xsl:text>
     <xsl:call-template name="try_th_exps"/>
@@ -688,9 +783,23 @@
   </xsl:template>
 
   <xsl:template match="TakeAsVar">
-    <xsl:element name="b">
-      <xsl:text>take </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>take </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
+    <xsl:if test="$const_links&gt;0">
+      <xsl:variable name="addpl">
+        <xsl:call-template name="addp">
+          <xsl:with-param name="pl" select="@plevel"/>
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:element name="a">
+        <xsl:attribute name="NAME">
+          <xsl:value-of select="concat(&quot;c&quot;,@nr,$addpl)"/>
+        </xsl:attribute>
+      </xsl:element>
+    </xsl:if>
     <xsl:call-template name="ppconst">
       <xsl:with-param name="nr" select="@nr"/>
       <xsl:with-param name="vid" select="Typ[1]/@vid"/>
@@ -706,9 +815,11 @@
     <xsl:choose>
       <xsl:when test="(By[@linked = &quot;true&quot;]) or 
        (IterEquality/IterStep[1]/By[@linked = &quot;true&quot;])">
-        <xsl:element name="b">
-          <xsl:text>hence </xsl:text>
-        </xsl:element>
+        <xsl:call-template name="pkeyword">
+          <xsl:with-param name="str">
+            <xsl:text>hence </xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
         <xsl:apply-templates select="*[not(name() = &quot;By&quot;)]"/>
         <xsl:apply-templates select="By">
           <xsl:with-param name="nbr">
@@ -722,24 +833,30 @@
         <xsl:choose>
           <xsl:when test="Now">
             <xsl:element name="div">
-              <xsl:element name="b">
-                <xsl:text>hereby </xsl:text>
-              </xsl:element>
+              <xsl:call-template name="pkeyword">
+                <xsl:with-param name="str">
+                  <xsl:text>hereby </xsl:text>
+                </xsl:with-param>
+              </xsl:call-template>
               <xsl:call-template name="try_th_exps"/>
               <xsl:apply-templates>
                 <xsl:with-param name="nkw">
                   <xsl:text>1</xsl:text>
                 </xsl:with-param>
               </xsl:apply-templates>
-              <xsl:element name="b">
-                <xsl:text>end;</xsl:text>
-              </xsl:element>
+              <xsl:call-template name="pkeyword">
+                <xsl:with-param name="str">
+                  <xsl:text>end;</xsl:text>
+                </xsl:with-param>
+              </xsl:call-template>
             </xsl:element>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:element name="b">
-              <xsl:text>thus </xsl:text>
-            </xsl:element>
+            <xsl:call-template name="pkeyword">
+              <xsl:with-param name="str">
+                <xsl:text>thus </xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
             <xsl:choose>
               <xsl:when test="Proof">
                 <xsl:apply-templates select="Proposition"/>
@@ -777,23 +894,32 @@
   <!-- } -->
   <xsl:template match="Consider">
     <xsl:variable name="j" select="@nr - 1"/>
-    <xsl:element name="b">
-      <xsl:if test="By[@linked=&quot;true&quot;]">
-        <xsl:text>then </xsl:text>
-      </xsl:if>
-      <xsl:text>consider </xsl:text>
-    </xsl:element>
+    <xsl:if test="By[@linked=&quot;true&quot;]">
+      <xsl:call-template name="pkeyword">
+        <xsl:with-param name="str">
+          <xsl:text>then </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>consider </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:call-template name="jtlist">
       <xsl:with-param name="j" select="$j"/>
       <xsl:with-param name="sep2">
         <xsl:text> being </xsl:text>
       </xsl:with-param>
       <xsl:with-param name="elems" select="Typ"/>
+      <xsl:with-param name="pl" select="@plevel"/>
     </xsl:call-template>
     <xsl:if test="count(Proposition) &gt; 1">
-      <xsl:element name="b">
-        <xsl:text> such that </xsl:text>
-      </xsl:element>
+      <xsl:call-template name="pkeyword">
+        <xsl:with-param name="str">
+          <xsl:text> such that </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
       <xsl:element name="br"/>
       <xsl:call-template name="andlist">
         <xsl:with-param name="elems" select="Proposition[position() &gt; 1]"/>
@@ -817,17 +943,38 @@
   <!-- } -->
   <xsl:template match="Reconsider">
     <xsl:variable name="j" select="@nr"/>
-    <xsl:element name="b">
-      <xsl:if test="By[@linked=&quot;true&quot;]">
-        <xsl:text>then </xsl:text>
+    <xsl:if test="By[@linked=&quot;true&quot;]">
+      <xsl:call-template name="pkeyword">
+        <xsl:with-param name="str">
+          <xsl:text>then </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>reconsider </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
+    <xsl:variable name="addpl">
+      <xsl:if test="$const_links&gt;0">
+        <xsl:call-template name="addp">
+          <xsl:with-param name="pl" select="@plevel"/>
+        </xsl:call-template>
       </xsl:if>
-      <xsl:text>reconsider </xsl:text>
-    </xsl:element>
+    </xsl:variable>
     <!-- should work both for old and new reconsider -->
     <xsl:for-each select="*[(not(name() = &quot;Typ&quot;)) and (position() &lt; (last() - 1))]">
       <xsl:variable name="p1" select="position()"/>
+      <xsl:variable name="nr1" select="$j + $p1 - 1"/>
+      <xsl:if test="$const_links&gt;0">
+        <xsl:element name="a">
+          <xsl:attribute name="NAME">
+            <xsl:value-of select="concat(&quot;c&quot;,$nr1,$addpl)"/>
+          </xsl:attribute>
+        </xsl:element>
+      </xsl:if>
       <xsl:call-template name="ppconst">
-        <xsl:with-param name="nr" select="$j + position() - 1"/>
+        <xsl:with-param name="nr" select="$nr1"/>
         <xsl:with-param name="vid" select="../Typ[$p1]/@vid"/>
       </xsl:call-template>
       <xsl:text> = </xsl:text>
@@ -846,9 +993,23 @@
   </xsl:template>
 
   <xsl:template match="Set">
-    <xsl:element name="b">
-      <xsl:text>set </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>set </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
+    <xsl:if test="$const_links&gt;0">
+      <xsl:variable name="addpl">
+        <xsl:call-template name="addp">
+          <xsl:with-param name="pl" select="@plevel"/>
+        </xsl:call-template>
+      </xsl:variable>
+      <xsl:element name="a">
+        <xsl:attribute name="NAME">
+          <xsl:value-of select="concat(&quot;c&quot;,@nr,$addpl)"/>
+        </xsl:attribute>
+      </xsl:element>
+    </xsl:if>
     <xsl:call-template name="ppconst">
       <xsl:with-param name="nr" select="@nr"/>
       <xsl:with-param name="vid" select="Typ/@vid"/>
@@ -860,9 +1021,11 @@
   </xsl:template>
 
   <xsl:template match="DefFunc">
-    <xsl:element name="b">
-      <xsl:text>deffunc </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>deffunc </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:call-template name="ppfunc">
       <xsl:with-param name="nr" select="@nr"/>
     </xsl:call-template>
@@ -874,9 +1037,11 @@
       <xsl:with-param name="elems" select="ArgTypes/Typ"/>
     </xsl:call-template>
     <xsl:text>) </xsl:text>
-    <xsl:element name="b">
-      <xsl:text>-&gt; </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>-&gt; </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:apply-templates select="*[3]"/>
     <xsl:text> = </xsl:text>
     <xsl:apply-templates select="*[2]"/>
@@ -885,9 +1050,11 @@
   </xsl:template>
 
   <xsl:template match="DefPred">
-    <xsl:element name="b">
-      <xsl:text>defpred </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>defpred </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:call-template name="pppred">
       <xsl:with-param name="nr" select="@nr"/>
     </xsl:call-template>
@@ -899,9 +1066,11 @@
       <xsl:with-param name="elems" select="ArgTypes/Typ"/>
     </xsl:call-template>
     <xsl:text>] </xsl:text>
-    <xsl:element name="b">
-      <xsl:text>means </xsl:text>
-    </xsl:element>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>means </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
     <xsl:apply-templates select="*[2]"/>
     <xsl:text>;</xsl:text>
     <xsl:element name="br"/>
@@ -1025,9 +1194,11 @@
   <!-- element Case { Proposition+ } -->
   <xsl:template match="Case|Suppose">
     <xsl:if test="count(*)&gt;1">
-      <xsl:element name="b">
-        <xsl:text>that </xsl:text>
-      </xsl:element>
+      <xsl:call-template name="pkeyword">
+        <xsl:with-param name="str">
+          <xsl:text>that </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
     </xsl:if>
     <xsl:call-template name="andlist">
       <xsl:with-param name="elems" select="*"/>
@@ -1045,9 +1216,11 @@
   <xsl:template match="PerCases">
     <xsl:element name="a">
       <xsl:call-template name="add_hs_attrs"/>
-      <xsl:element name="b">
-        <xsl:text>cases </xsl:text>
-      </xsl:element>
+      <xsl:call-template name="pkeyword">
+        <xsl:with-param name="str">
+          <xsl:text>cases </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
     </xsl:element>
     <xsl:element name="span">
       <xsl:attribute name="class">

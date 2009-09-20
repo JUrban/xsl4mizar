@@ -23,7 +23,7 @@ tpl [Proposition]
        if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
            or (name(..) = "Conclusion"))] 
        { 
-          <b { "then "; } 
+          pkeyword(#str="then "); 
        }
     }
 
@@ -86,11 +86,11 @@ tpl linkbyif(#line,#col,#by)
 	       if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
             }
 	    if [$by_titles>0] { @title=mk_by_title(#line=$line,#col=$col); }
-	    <b { $by; " "; } 
+	    pkeyword(#str=$by); " ";  
 	 }
       if[$ajax_by > 0] { <span { " "; } } 
     }
-    else { <b { $by; " "; } }
+    else { pkeyword(#str=$by); " ";  }
 }
 
 // if #nbr=1 then no <br; is put in the end 
@@ -264,16 +264,16 @@ tpl [Ref]
 
 tpl [ErrorInf](#nbr) { "errorinference;"; if [not($nbr="1")] { <br;  } }
 tpl [IterStep/ErrorInf] { "errorinference"; }
-tpl [SkippedProof](#nbr) { <b { "@proof .. end;"; } 
+tpl [SkippedProof](#nbr) { pkeyword(#str="@proof .. end;"); 
 			   if [not($nbr="1")] { <br;  } }
-tpl [IterStep/SkippedProof] { <b { "@proof .. end;"; } }
+tpl [IterStep/SkippedProof] { pkeyword(#str="@proof .. end;"); }
 
 //   Term, elIterStep+
 tpl [IterEquality](#nbr) 
 { 
    if [IterStep[1]/By[@linked="true"]] 
    {
-      if [not(name(..)="Conclusion")] { <b { "then ";}}
+      if [not(name(..)="Conclusion")] { pkeyword(#str="then ");}
    }
 
    if [@nr>0] {  pplab(#nr = `@nr`, #vid = `@vid`); ": ";}
@@ -288,7 +288,7 @@ tpl [IterEquality](#nbr)
 tpl [IterStep] { apply;  }
 
 // Skeleton steps
-//tpl [Let] { $j=`@nr`; <b { "let "; } pconst(#nr=$j);
+//tpl [Let] { $j=`@nr`; pkeyword(#str="let "); pconst(#nr=$j);
 //             " be "; 
 //            jlist(#j=$j, #sep2=" be ", #elems=`*`); 
 //	    ";"; try_th_exps(); <br; }
@@ -341,7 +341,7 @@ tpl [Let](#fst,#beg) {
    }
   else  // start of sequence
    {
-       <b { "let "; }
+       pkeyword(#str="let ");
        if [$next="1"] // not ending here; no thesis guaranteed, only one const guaranteed
        {
           if [$const_links>0] 
@@ -363,8 +363,8 @@ tpl [Let](#fst,#beg) {
 
 tpl [Assume] 
 { 
-  <b { "assume "; }  
-  if [count(*)>1] { <b { "that ";} <br; }
+  pkeyword(#str="assume ");  
+  if [count(*)>1] { pkeyword(#str="that "); <br; }
   andlist(#elems=`*`); ";"; 
   try_th_exps(); <br; 
 } 
@@ -374,17 +374,17 @@ tpl [Assume]
 tpl [Given] 
 { 
   $j=`@nr - 1`; 
-  <b {"given ";} 
+  pkeyword(#str="given "); 
   jtlist(#j=$j, #sep2=" being ", #elems=`Typ`, #pl=`@plevel`); 
-  <b {" such that ";}
+  pkeyword(#str=" such that ");
   andlist(#elems=`*[(name()="Proposition") and (position() > 1)]`); ";"; 
   try_th_exps(); <br; 
 }
 
-tpl [Take] { <b { "take ";} apply; ";"; try_th_exps(); <br; }
+tpl [Take] { pkeyword(#str="take "); apply; ";"; try_th_exps(); <br; }
 tpl [TakeAsVar] 
 { 
-   <b { "take "; } 
+   pkeyword(#str="take "); 
    if [$const_links>0] 
    {   
       $addpl = { addp(#pl=`@plevel`); } 
@@ -400,7 +400,7 @@ tpl [Conclusion]
    if [(By[@linked = "true"]) or 
        (IterEquality/IterStep[1]/By[@linked = "true"])] 
    { 
-      <b { "hence "; } 
+      pkeyword(#str="hence "); 
       apply[*[not(name() = "By")]]; 
       apply[By](#nbr = "1"); 
       try_th_exps(); 
@@ -412,15 +412,15 @@ tpl [Conclusion]
       {  
          <div 
 	 { 
-	    <b {  "hereby "; } 
+	    pkeyword(#str="hereby "); 
 	    try_th_exps();
 	    apply(#nkw = "1");  
-	    <b { "end;"; } 
+	    pkeyword(#str="end;"); 
 	 } 
       }
       else 
       { 
-         <b { "thus "; } 
+         pkeyword(#str="thus "); 
 
 	 if [Proof] 
 	 { 
@@ -455,18 +455,16 @@ tpl [Consider]
 { 
    $j=`@nr - 1`; 
 
-   <b 
-   { 
-      if [By[@linked="true"]] { "then "; }
+    
+    if [By[@linked="true"]] { pkeyword(#str="then "); }
 
-      "consider ";
-   }
+    pkeyword(#str="consider ");
 
    jtlist(#j = $j, #sep2 = " being ", #elems = `Typ`, #pl=`@plevel`);
 
    if [count(Proposition) > 1] 
    { 
-      <b {" such that "; } 
+      pkeyword(#str=" such that "); 
       <br; 
       andlist(#elems = `Proposition[position() > 1]`); 
    } 
@@ -490,7 +488,8 @@ tpl [Consider]
 tpl [Reconsider] 
 { 
    $j=`@nr`; 
-   <b { if [By[@linked="true"]] { "then "; } "reconsider "; }
+   if [By[@linked="true"]] { pkeyword(#str="then "); } 
+   pkeyword(#str="reconsider ");
    $addpl = { if [$const_links>0] { addp(#pl=`@plevel`); } }
 // should work both for old and new reconsider
     for-each [*[(not(name() = "Typ")) and (position() < (last() - 1))]] {
@@ -510,7 +509,7 @@ tpl [Reconsider]
 
 tpl [Set] 
 { 
-   <b { "set ";} 
+   pkeyword(#str="set "); 
    if [$const_links>0] 
    {   
       $addpl = { addp(#pl=`@plevel`); } 
@@ -519,12 +518,12 @@ tpl [Set]
    ppconst(#nr=`@nr`, #vid=`Typ/@vid`); " = "; apply[*[1]]; ";"; <br; 
 }
 
-tpl [DefFunc] { <b { "deffunc "; } ppfunc(#nr=`@nr`); "(";  
-                list(#separ=",", #elems=`ArgTypes/Typ`); ") "; <b {"-> ";}
+tpl [DefFunc] { pkeyword(#str="deffunc "); ppfunc(#nr=`@nr`); "(";  
+                list(#separ=",", #elems=`ArgTypes/Typ`); ") "; pkeyword(#str="-> ");
                 apply[*[3]]; " = ";
 	        apply[*[2]]; ";"; <br; }
-tpl [DefPred] { <b { "defpred ";} pppred(#nr=`@nr`); "["; 
-                list(#separ=",", #elems=`ArgTypes/Typ`); "] "; <b { "means "; }
+tpl [DefPred] { pkeyword(#str="defpred "); pppred(#nr=`@nr`); "["; 
+                list(#separ=",", #elems=`ArgTypes/Typ`); "] "; pkeyword(#str="means ");
 	        apply[*[2]]; ";"; <br; }
 
 // Thesis after skeleton item, with definiens numbers
@@ -609,7 +608,7 @@ tpl [Case|Suppose]
 {
   if [count(*)>1] 
   {
-    <b { "that "; }
+    pkeyword(#str="that ");
   }
    
   andlist(#elems = `*`); ";"; 
@@ -627,7 +626,7 @@ tpl [PerCases]
   <a 
   {
      add_hs_attrs();
-     <b { "cases "; }
+     pkeyword(#str="cases ");
   }
 
   <span 
