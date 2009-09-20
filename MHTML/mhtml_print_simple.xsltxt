@@ -139,8 +139,9 @@ tpl pplab(#nr, #vid, #txt)
 
        $nm = { get_vid_name(#vid = $vid); }
 
-       <i
+       <span 
        {
+          @class="lab";
           if [$colored = "1"] 
 	  { 
 	     <font 
@@ -165,8 +166,9 @@ tpl pplab(#nr, #vid, #txt)
 
 tpl plab(#nr) 
 { 
-   <i 
+   <span
    {  
+      @class="lab";
       if [$colored="1"] { <font { @color=$labcolor; "E"; $nr;} }  
       else { "E"; $nr;} 
    } 
@@ -174,8 +176,9 @@ tpl plab(#nr)
 
 tpl plab1(#nr,#txt) 
 { 
-   <i 
+   <span
    {  
+      @class="lab";
       if [$colored="1"] { <font { @color=$labcolor; $txt; $nr;} }  
       else { $txt; $nr;} 
    } 
@@ -183,7 +186,7 @@ tpl plab1(#nr,#txt)
 
 tpl pkeyword(#str) { <span { @class = "kw"; $str; } }
 
-tpl pcomment0(#str) { <i { if [$colored="1"] {
+tpl pcomment0(#str) { <span { @class="comment"; if [$colored="1"] {
 <font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}
 
 tpl pcomment(#str) { pcomment0(#str=$str); <br;}

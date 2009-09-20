@@ -333,7 +333,10 @@
             <xsl:with-param name="vid" select="$vid"/>
           </xsl:call-template>
         </xsl:variable>
-        <xsl:element name="i">
+        <xsl:element name="span">
+          <xsl:attribute name="class">
+            <xsl:text>lab</xsl:text>
+          </xsl:attribute>
           <xsl:choose>
             <xsl:when test="$colored = &quot;1&quot;">
               <xsl:element name="font">
@@ -374,7 +377,10 @@
 
   <xsl:template name="plab">
     <xsl:param name="nr"/>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>lab</xsl:text>
+      </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">
           <xsl:element name="font">
@@ -396,7 +402,10 @@
   <xsl:template name="plab1">
     <xsl:param name="nr"/>
     <xsl:param name="txt"/>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>lab</xsl:text>
+      </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">
           <xsl:element name="font">
@@ -427,7 +436,10 @@
 
   <xsl:template name="pcomment0">
     <xsl:param name="str"/>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>comment</xsl:text>
+      </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">
           <xsl:element name="font">

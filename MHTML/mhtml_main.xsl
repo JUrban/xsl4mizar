@@ -65,6 +65,8 @@ a.ref:hover { color: red; }
 a.txt:link { color:black; } 
 a.txt:hover { color: red; } 
 span.kw {font-weight: bold; }
+span.lab {font-style: italic; }
+span.comment {font-style: italic; }
 span.hide { display: none; }
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
 span.p2:hover { color : inherit; background-color : #FFCACA; }

@@ -178,7 +178,10 @@
             <xsl:text>by</xsl:text>
           </xsl:with-param>
         </xsl:call-template>
-        <xsl:element name="i">
+        <xsl:element name="span">
+          <xsl:attribute name="class">
+            <xsl:text>lab</xsl:text>
+          </xsl:attribute>
           <xsl:call-template name="list">
             <xsl:with-param name="separ">
               <xsl:text>, </xsl:text>
@@ -219,7 +222,10 @@
           <xsl:text>by</xsl:text>
         </xsl:with-param>
       </xsl:call-template>
-      <xsl:element name="i">
+      <xsl:element name="span">
+        <xsl:attribute name="class">
+          <xsl:text>lab</xsl:text>
+        </xsl:attribute>
         <xsl:call-template name="list">
           <xsl:with-param name="separ">
             <xsl:text>, </xsl:text>
@@ -239,7 +245,10 @@
         <xsl:text>from</xsl:text>
       </xsl:with-param>
     </xsl:call-template>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>lab</xsl:text>
+      </xsl:attribute>
       <xsl:call-template name="getref">
         <xsl:with-param name="k">
           <xsl:text>S</xsl:text>
@@ -270,7 +279,10 @@
         <xsl:text>from</xsl:text>
       </xsl:with-param>
     </xsl:call-template>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>lab</xsl:text>
+      </xsl:attribute>
       <xsl:call-template name="getref">
         <xsl:with-param name="k">
           <xsl:text>S</xsl:text>

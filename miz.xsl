@@ -730,7 +730,10 @@
             <xsl:with-param name="vid" select="$vid"/>
           </xsl:call-template>
         </xsl:variable>
-        <xsl:element name="i">
+        <xsl:element name="span">
+          <xsl:attribute name="class">
+            <xsl:text>lab</xsl:text>
+          </xsl:attribute>
           <xsl:choose>
             <xsl:when test="$colored = &quot;1&quot;">
               <xsl:element name="font">
@@ -771,7 +774,10 @@
 
   <xsl:template name="plab">
     <xsl:param name="nr"/>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>lab</xsl:text>
+      </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">
           <xsl:element name="font">
@@ -793,7 +799,10 @@
   <xsl:template name="plab1">
     <xsl:param name="nr"/>
     <xsl:param name="txt"/>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>lab</xsl:text>
+      </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">
           <xsl:element name="font">
@@ -824,7 +833,10 @@
 
   <xsl:template name="pcomment0">
     <xsl:param name="str"/>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>comment</xsl:text>
+      </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">
           <xsl:element name="font">
@@ -4934,7 +4946,10 @@
             <xsl:text>by</xsl:text>
           </xsl:with-param>
         </xsl:call-template>
-        <xsl:element name="i">
+        <xsl:element name="span">
+          <xsl:attribute name="class">
+            <xsl:text>lab</xsl:text>
+          </xsl:attribute>
           <xsl:call-template name="list">
             <xsl:with-param name="separ">
               <xsl:text>, </xsl:text>
@@ -4975,7 +4990,10 @@
           <xsl:text>by</xsl:text>
         </xsl:with-param>
       </xsl:call-template>
-      <xsl:element name="i">
+      <xsl:element name="span">
+        <xsl:attribute name="class">
+          <xsl:text>lab</xsl:text>
+        </xsl:attribute>
         <xsl:call-template name="list">
           <xsl:with-param name="separ">
             <xsl:text>, </xsl:text>
@@ -4995,7 +5013,10 @@
         <xsl:text>from</xsl:text>
       </xsl:with-param>
     </xsl:call-template>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>lab</xsl:text>
+      </xsl:attribute>
       <xsl:call-template name="getref">
         <xsl:with-param name="k">
           <xsl:text>S</xsl:text>
@@ -5026,7 +5047,10 @@
         <xsl:text>from</xsl:text>
       </xsl:with-param>
     </xsl:call-template>
-    <xsl:element name="i">
+    <xsl:element name="span">
+      <xsl:attribute name="class">
+        <xsl:text>lab</xsl:text>
+      </xsl:attribute>
       <xsl:call-template name="getref">
         <xsl:with-param name="k">
           <xsl:text>S</xsl:text>
@@ -7945,6 +7969,8 @@ a.ref:hover { color: red; }
 a.txt:link { color:black; } 
 a.txt:hover { color: red; } 
 span.kw {font-weight: bold; }
+span.lab {font-style: italic; }
+span.comment {font-style: italic; }
 span.hide { display: none; }
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
 span.p2:hover { color : inherit; background-color : #FFCACA; }

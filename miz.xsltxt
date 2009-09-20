@@ -482,8 +482,9 @@ tpl pplab(#nr, #vid, #txt)
 
        $nm = { get_vid_name(#vid = $vid); }
 
-       <i
+       <span 
        {
+          @class="lab";
           if [$colored = "1"] 
 	  { 
 	     <font 
@@ -508,8 +509,9 @@ tpl pplab(#nr, #vid, #txt)
 
 tpl plab(#nr) 
 { 
-   <i 
+   <span
    {  
+      @class="lab";
       if [$colored="1"] { <font { @color=$labcolor; "E"; $nr;} }  
       else { "E"; $nr;} 
    } 
@@ -517,8 +519,9 @@ tpl plab(#nr)
 
 tpl plab1(#nr,#txt) 
 { 
-   <i 
+   <span
    {  
+      @class="lab";
       if [$colored="1"] { <font { @color=$labcolor; $txt; $nr;} }  
       else { $txt; $nr;} 
    } 
@@ -526,7 +529,7 @@ tpl plab1(#nr,#txt)
 
 tpl pkeyword(#str) { <span { @class = "kw"; $str; } }
 
-tpl pcomment0(#str) { <i { if [$colored="1"] {
+tpl pcomment0(#str) { <span { @class="comment"; if [$colored="1"] {
 <font {@color=$commentcolor; ":: "; $str;}} else { ":: "; $str;}}}
 
 tpl pcomment(#str) { pcomment0(#str=$str); <br;}
@@ -2199,7 +2202,7 @@ tpl [By	](#nbr)
    if [(count(Ref)>0)] 
    { 
       linkbyif(#line = `@line`, #col = `@col`,#by = "by");
-      <i { list(#separ = ", ", #elems = `Ref`); } 
+      <span { @class="lab"; list(#separ = ", ", #elems = `Ref`); } 
       ";"; 
    }
    else 
@@ -2213,12 +2216,13 @@ tpl [By	](#nbr)
 
 tpl [IterStep/By] { if [(count(Ref)>0)] { 
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
-      <i { list(#separ=", ", #elems=`Ref`); } }}
+      <span { @class="lab"; list(#separ=", ", #elems=`Ref`); } }}
 tpl [From](#nbr) 
 { 
     linkbyif(#line=`@line`,#col=`@col`,#by="from");
-    <i 
+    <span 
     { 
+        @class="lab";
         getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
 	list(#separ=", ", #elems=`Ref`); ")"; ";"; 
 	if [not($nbr="1")] { <br;  } 
@@ -2227,7 +2231,7 @@ tpl [From](#nbr)
 tpl [IterStep/From] 
 { 
    linkbyif(#line=`@line`,#col=`@col`,#by="from");
-   <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
+   <span { @class="lab"; getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
         list(#separ=", ", #elems=`Ref`); ")"; } 
 }
 
@@ -3868,6 +3872,8 @@ a.ref:hover { color: red; }
 a.txt:link { color:black; } 
 a.txt:hover { color: red; } 
 span.kw {font-weight: bold; }
+span.lab {font-style: italic; }
+span.comment {font-style: italic; }
 span.hide { display: none; }
 span.p1:hover { color : inherit; background-color : #BAFFFF; } 
 span.p2:hover { color : inherit; background-color : #FFCACA; }

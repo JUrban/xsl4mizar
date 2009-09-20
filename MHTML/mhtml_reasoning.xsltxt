@@ -101,7 +101,7 @@ tpl [By	](#nbr)
    if [(count(Ref)>0)] 
    { 
       linkbyif(#line = `@line`, #col = `@col`,#by = "by");
-      <i { list(#separ = ", ", #elems = `Ref`); } 
+      <span { @class="lab"; list(#separ = ", ", #elems = `Ref`); } 
       ";"; 
    }
    else 
@@ -115,12 +115,13 @@ tpl [By	](#nbr)
 
 tpl [IterStep/By] { if [(count(Ref)>0)] { 
       linkbyif(#line=`@line`,#col=`@col`,#by="by");
-      <i { list(#separ=", ", #elems=`Ref`); } }}
+      <span { @class="lab"; list(#separ=", ", #elems=`Ref`); } }}
 tpl [From](#nbr) 
 { 
     linkbyif(#line=`@line`,#col=`@col`,#by="from");
-    <i 
+    <span 
     { 
+        @class="lab";
         getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
 	list(#separ=", ", #elems=`Ref`); ")"; ";"; 
 	if [not($nbr="1")] { <br;  } 
@@ -129,7 +130,7 @@ tpl [From](#nbr)
 tpl [IterStep/From] 
 { 
    linkbyif(#line=`@line`,#col=`@col`,#by="from");
-   <i { getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
+   <span { @class="lab"; getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
         list(#separ=", ", #elems=`Ref`); ")"; } 
 }
 
