@@ -2,7 +2,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html"/>
-  <!-- $Revision: 1.5 $ -->
+  <!-- $Revision: 1.24 $ -->
   <!--  -->
   <!-- File: params.xsltxt - html-ization of Mizar XML, top-level parameters -->
   <!--  -->
@@ -53,6 +53,17 @@
       </xsl:when>
     </xsl:choose>
   </xsl:param>
+  <!-- default target frame for links -->
+  <xsl:param name="default_target">
+    <xsl:choose>
+      <xsl:when test="$linking = &quot;s&quot;">
+        <xsl:text>_self</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>mmlquery</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:param>
   <!-- put titles to links or not -->
   <xsl:param name="titles">
     <xsl:text>0</xsl:text>
@@ -75,10 +86,19 @@
   <xsl:param name="relnames">
     <xsl:text>1</xsl:text>
   </xsl:param>
-  <!-- link by inferences to ATP solutions rendered by MMLQuery; experimental - off -->
+  <!-- link by (now also from) inferences to ATP solutions rendered by MMLQuery; experimental - off -->
   <!-- 1 - static linking (to pre-generated html) -->
   <!-- 2 - dynamic linking to MML Query (static dli sent to MMLQuery DLI-processor) -->
+  <!-- 3 - dynamic linking to the TPTP-processor CGI ($lbytptpcgi) -->
   <xsl:param name="linkby">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- if > 0, call the mk_by_title function to create a title for by|from|; -->
+  <xsl:param name="by_titles">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- If 1, the target frame for by explanations is _self -->
+  <xsl:param name="linkbytoself">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- directory with by ATP solutions in HTML; each article in its own subdir -->
@@ -98,8 +118,47 @@
   <xsl:variable name="lbydlicgipref">
     <xsl:value-of select="concat($lbydlicgi,&quot;?url=&quot;,$lbydliurl)"/>
   </xsl:variable>
+  <!-- URL of the MizAR root dir -->
+  <xsl:param name="ltptproot">
+    <xsl:text>http://octopi.mizar.org/~mptp/</xsl:text>
+  </xsl:param>
+  <!-- URL of the TPTP-processor CGI -->
+  <xsl:param name="ltptpcgi">
+    <xsl:value-of select="concat($ltptproot,&quot;cgi-bin/&quot;)"/>
+  </xsl:param>
+  <!-- URL of the showby CGI -->
+  <xsl:param name="lbytptpcgi">
+    <xsl:value-of select="concat($ltptpcgi,&quot;showby.cgi&quot;)"/>
+  </xsl:param>
+  <!-- URL of the showtmpfile CGI -->
+  <xsl:param name="ltmpftptpcgi">
+    <xsl:value-of select="concat($ltptpcgi,&quot;showtmpfile.cgi&quot;)"/>
+  </xsl:param>
+  <!-- tells if by action is fetched through AJAX; default is off -->
+  <xsl:param name="ajax_by">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- temporary dir with  the tptp by files, needs to be passed as a param -->
+  <xsl:param name="lbytmpdir">
+    <xsl:text/>
+  </xsl:param>
+  <!-- additional params for lbytptpcgi, needs to be passed as a param -->
+  <xsl:param name="lbycgiparams">
+    <xsl:text/>
+  </xsl:param>
+  <!-- add links to tptp files for thms -->
+  <xsl:param name="thms_tptp_links">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- tells if linkage of proof elements is done; default is off -->
   <xsl:param name="proof_links">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- tells if linkage of constants is done; default is 0 (off), -->
+  <!-- 1 tells to only create the anchors, 2 tells to also link constants -->
+  <!-- ##TODO: 2 is implement incorrectly and should not be used now, -->
+  <!-- it should be done like privname (via the C key, not like now) -->
+  <xsl:param name="const_links">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- tells if proofs are fetched through AJAX; default is off -->
@@ -125,6 +184,15 @@
   </xsl:param>
   <!-- add IDV links and icons -->
   <xsl:param name="idv">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- create header info from .hdr file -->
+  <xsl:param name="mk_header">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- Suppress the header and trailer of the final document. -->
+  <!-- Thus, you can insert the resulting document into a larger one. -->
+  <xsl:param name="body_only">
     <xsl:text>0</xsl:text>
   </xsl:param>
   <xsl:variable name="lcletters">
@@ -200,6 +268,10 @@
   <!-- .dfs file with imported definientia -->
   <xsl:param name="dfs">
     <xsl:value-of select="concat($anamelc, &apos;.dfs&apos;)"/>
+  </xsl:param>
+  <!-- .hdr file with header info (done by mkxmlhdr.pl) -->
+  <xsl:param name="hdr">
+    <xsl:value-of select="concat($anamelc, &apos;.hdr&apos;)"/>
   </xsl:param>
   <xsl:param name="varcolor">
     <xsl:text>Olive</xsl:text>

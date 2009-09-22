@@ -222,6 +222,11 @@
   <xsl:param name="mk_header">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- Suppress the header and trailer of the final document. -->
+  <!-- Thus, you can insert the resulting document into a larger one. -->
+  <xsl:param name="body_only">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <xsl:variable name="lcletters">
     <xsl:text>abcdefghijklmnopqrstuvwxyz</xsl:text>
   </xsl:variable>
@@ -7952,13 +7957,15 @@
         </xsl:for-each>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:element name="html">
-          <!-- output the css defaults for div and p (for indenting) -->
-          <xsl:element name="style">
-            <xsl:attribute name="type">
-              <xsl:text>text/css</xsl:text>
-            </xsl:attribute>
-            <xsl:text>
+        <xsl:choose>
+          <xsl:when test="$body_only = &quot;0&quot;">
+            <xsl:element name="html">
+              <!-- output the css defaults for div and p (for indenting) -->
+              <xsl:element name="style">
+                <xsl:attribute name="type">
+                  <xsl:text>text/css</xsl:text>
+                </xsl:attribute>
+                <xsl:text>
 div { padding: 0 0 0 0; margin: 0 0 0 0; } 
 div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
 p { margin: 0 0 0 0; } 
@@ -7982,27 +7989,27 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 .default { background-color: white; color: black; } 
 .default:hover { background-color: white; color: black; }
 </xsl:text>
-          </xsl:element>
-          <xsl:element name="head">
-            <xsl:element name="title">
-              <xsl:choose>
-                <xsl:when test="$mk_header &gt; 0">
-                  <xsl:value-of select="$aname"/>
-                  <xsl:text>: </xsl:text>
-                  <xsl:for-each select="document($hdr,/)/Header/dc:title">
-                    <xsl:value-of select="text()"/>
-                  </xsl:for-each>
-                </xsl:when>
-                <xsl:otherwise>
-                  <xsl:value-of select="$aname"/>
-                </xsl:otherwise>
-              </xsl:choose>
-            </xsl:element>
-            <xsl:element name="script">
-              <xsl:attribute name="type">
-                <xsl:text>text/javascript</xsl:text>
-              </xsl:attribute>
-              <xsl:text>
+              </xsl:element>
+              <xsl:element name="head">
+                <xsl:element name="title">
+                  <xsl:choose>
+                    <xsl:when test="$mk_header &gt; 0">
+                      <xsl:value-of select="$aname"/>
+                      <xsl:text>: </xsl:text>
+                      <xsl:for-each select="document($hdr,/)/Header/dc:title">
+                        <xsl:value-of select="text()"/>
+                      </xsl:for-each>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:value-of select="$aname"/>
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:element>
+                <xsl:element name="script">
+                  <xsl:attribute name="type">
+                    <xsl:text>text/javascript</xsl:text>
+                  </xsl:attribute>
+                  <xsl:text>
 &lt;!-- 
 function hs(obj)
 {
@@ -8071,13 +8078,13 @@ function insertRequest(obj,http_request) {
 	    }}
 // End --&gt;
 </xsl:text>
-            </xsl:element>
-            <xsl:if test="$idv&gt;0">
-              <xsl:element name="script">
-                <xsl:attribute name="type">
-                  <xsl:text>text/javascript</xsl:text>
-                </xsl:attribute>
-                <xsl:text>
+                </xsl:element>
+                <xsl:if test="$idv&gt;0">
+                  <xsl:element name="script">
+                    <xsl:attribute name="type">
+                      <xsl:text>text/javascript</xsl:text>
+                    </xsl:attribute>
+                    <xsl:text>
 &lt;!--
 var tstp_dump;
 function openSoTSTP (dump) {
@@ -8090,27 +8097,37 @@ return tstp_dump;
 }
 // End --&gt;
 </xsl:text>
+                  </xsl:element>
+                </xsl:if>
+                <xsl:element name="base">
+                  <xsl:attribute name="target">
+                    <xsl:value-of select="$default_target"/>
+                  </xsl:attribute>
+                </xsl:element>
               </xsl:element>
-            </xsl:if>
-            <xsl:element name="base">
-              <xsl:attribute name="target">
-                <xsl:value-of select="$default_target"/>
-              </xsl:attribute>
+              <xsl:element name="body">
+                <xsl:if test="$mk_header &gt; 0">
+                  <xsl:apply-templates select="document($hdr,/)/Header/*"/>
+                  <xsl:element name="br"/>
+                </xsl:if>
+                <!-- first read the keys for imported stuff -->
+                <!-- apply[document($constrs,/)/Constructors/Constructor]; -->
+                <!-- apply[document($thms,/)/Theorems/Theorem]; -->
+                <!-- apply[document($schms,/)/Schemes/Scheme]; -->
+                <!-- then process the whole document -->
+                <xsl:apply-templates/>
+              </xsl:element>
             </xsl:element>
-          </xsl:element>
-          <xsl:element name="body">
+          </xsl:when>
+          <!-- $body_only > 0 -->
+          <xsl:otherwise>
             <xsl:if test="$mk_header &gt; 0">
               <xsl:apply-templates select="document($hdr,/)/Header/*"/>
               <xsl:element name="br"/>
             </xsl:if>
-            <!-- first read the keys for imported stuff -->
-            <!-- apply[document($constrs,/)/Constructors/Constructor]; -->
-            <!-- apply[document($thms,/)/Theorems/Theorem]; -->
-            <!-- apply[document($schms,/)/Schemes/Scheme]; -->
-            <!-- then process the whole document -->
             <xsl:apply-templates/>
-          </xsl:element>
-        </xsl:element>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>

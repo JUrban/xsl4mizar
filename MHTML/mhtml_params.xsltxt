@@ -150,6 +150,10 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // create header info from .hdr file
 #mk_header =  { "0"; }
 
+// Suppress the header and trailer of the final document. 
+// Thus, you can insert the resulting document into a larger one.
+#body_only = { "0"; }
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 

@@ -196,6 +196,10 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // create header info from .hdr file
 #mk_header =  { "0"; }
 
+// Suppress the header and trailer of the final document. 
+// Thus, you can insert the resulting document into a larger one.
+#body_only = { "0"; }
+
 $lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
 $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
 
@@ -3852,13 +3856,15 @@ tpl [/] { if [$generate_items = "1"] {
    for-each [/*/Proposition] 
    {
 // <xsl:document href="proofhtml/lemma/{$anamelc}.{@propnr}" format="html">
-apply[`.`];
+      apply[`.`];
 // </xsl:document>
    $bogus=`1`;
    } 
 }
 
-else { <html { 
+else { 
+  if [$body_only = "0"] { 
+    <html { 
 
 // output the css defaults for div and p (for indenting)
         <style { @type="text/css";  "
@@ -3998,7 +4004,16 @@ return tstp_dump;
 //          apply[document($schms,/)/Schemes/Scheme];
  
 // then process the whole document
-          apply; }} }}
+          apply; }}}
+  
+     // $body_only > 0
+     else 
+     {
+       if[$mk_header > 0] { apply[document($hdr,/)/Header/*]; <br; }
+       apply;
+     }
+  }
+}
   
 // tpl [*] { copy { apply [@*]; apply; } }
 // tpl [@*] { copy-of `.`; }
