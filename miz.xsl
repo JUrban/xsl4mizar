@@ -7561,6 +7561,15 @@
     </xsl:for-each>
   </xsl:template>
 
+  <xsl:template match="Section">
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>begin</xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
+    <xsl:element name="br"/>
+  </xsl:template>
+
   <!-- processing of imported documents -->
   <xsl:template match="Theorem">
     <xsl:call-template name="pkeyword">

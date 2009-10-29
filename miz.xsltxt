@@ -3690,6 +3690,8 @@ tpl [Article]
     } 
 }
 
+tpl [Section] { pkeyword(#str="begin"); <br; }
+
 // processing of imported documents
 tpl [Theorem] 
 { 
