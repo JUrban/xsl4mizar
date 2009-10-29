@@ -1,0 +1,207 @@
+
+mhtml_print_simple.xsltxt,1161
+tpl get_vid_name(#vid)get_vid_name24,405
+tpl pqvar(#nr, #vid) pqvar32,520
+tpl pvar(#nr) { if [$colored="1"] { <font { @color=$varcolor; pvar59,919
+tpl pconst(#nr) {  if [$colored="1"] { <font { @color=$constcolor; pconst62,1038
+tpl ppconst(#nr, #vid, #pl) ppconst66,1200
+tpl pploci(#nr) pploci106,2007
+tpl ploci(#nr) {  if [$colored="1"] { <font { @color=$locicolor; ploci119,2231
+tpl pschpvar(#nr) {  if [$colored="1"] { <font { @color=$schpcolor; pschpvar122,2353
+tpl pschfvar(#nr) {  if [$colored="1"] { <font { @color=$schfcolor; pschfvar125,2478
+tpl pppred(#nr) {  if [$colored="1"] { <font { @color=$ppcolor; pppred128,2603
+tpl ppfunc(#nr) {  if [$colored="1"] { <font { @color=$pfcolor; ppfunc131,2724
+tpl pplab(#nr, #vid, #txt)pplab135,2846
+tpl plab(#nr) plab167,3387
+tpl plab1(#nr,#txt) plab1177,3542
+tpl pkeyword(#str) { <span { @class = "kw"; $str; } }pkeyword187,3705
+tpl pcomment0(#str) { <span { @class="comment"; if [$colored="1"] {pcomment0189,3760
+tpl pcomment(#str) { pcomment0(#str=$str); <br;}pcomment192,3896
+tpl arglist(#separ,#elems) arglist195,3963
+tpl alist(#j, #sep1, #sep2, #elems) alist206,4142
+
+mhtml_utils.xsltxt,3337
+tpl is_positive(#el) { for-each [$el] {is_positive30,823
+tpl is_negative(#el) { $pos = { is_positive(#el=$el); } `1 - $pos`;}is_negative46,1308
+tpl count_positive(#els,#nr) {  count_positive48,1378
+tpl put_positive(#separ,#els,#nr,#neg,#i) { if [$nr > 0] {put_positive59,1730
+tpl is_or(#el) { for-each [$el] { if [(@pid=$pid_Or) is_or76,2429
+tpl is_or1(#el) { for-each [$el] { if [((@pid=$pid_Or) or (@pid=$pid_Impl)) is_or183,2703
+tpl is_or3(#el) { for-each [$el] { if [(@pid=$pid_Or) is_or389,2898
+tpl is_or4(#el) { for-each [$el] { if [(@pid=$pid_Or) is_or497,3180
+tpl is_impl(#el) { for-each [$el] { if [(@pid=$pid_Impl) is_impl101,3325
+tpl is_impl1(#el) { for-each [$el] { if [(@pid=$pid_Impl) is_impl1107,3515
+tpl is_impl2(#el) { for-each [$el] { if [(@pid=$pid_Impl) is_impl2119,3910
+tpl is_impl3(#el) { for-each [$el] { if [(@pid=$pid_Impl) is_impl3125,4129
+tpl is_impl4(#el) { for-each [$el] { if [(@pid=$pid_Impl) is_impl4131,4349
+tpl is_impl5(#el) { for-each [$el] { if [(@pid=$pid_Impl) is_impl5137,4574
+tpl is_equiv(#el) { for-each [$el] {is_equiv143,4725
+tpl are_equal(#el1,#el2) { are_equal159,5288
+tpl are_equal_many(#els1,#els2,#nr) { if [$nr > 0] {are_equal_many169,5658
+tpl are_equal_vid(#el1,#el2) { are_equal_vid177,6017
+tpl are_equal_many_vid(#els1,#els2,#nr) { if [$nr > 0] {are_equal_many_vid187,6445
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }lc198,6746
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }uc199,6802
+tpl addp(#pl) { if [string-length($pl)>0] { ":"; $pl; }}addp203,6896
+tpl propname(#n,#pl) { "E"; $n; addp(#pl=$pl); }propname204,6953
+tpl cons(#h,#t) { `concat($h,":",$t)`; }cons208,7065
+tpl car(#l) { `substring-before($l,":")`;}car209,7106
+tpl cdr(#l) { `substring-after($l,":")`;}cdr210,7149
+tpl cadr(#l) { car(#l=cdr(#l=$l));}cadr211,7191
+tpl cddr(#l) { cdr(#l=cdr(#l=$l));}cddr212,7227
+tpl third(#l) { car(#l=cddr(#l=$l)); }third213,7263
+tpl cdddr(#l) { cdr(#l=cddr(#l=$l));}cdddr214,7302
+tpl arr_ref(#array,#index) arr_ref223,7543
+tpl apush(#array,#obj) apush231,7669
+tpl arr_set(#array,#index,#obj) arr_set239,7762
+tpl arr_zeros(#l) arr_zeros251,8049
+tpl arr_pad_obj(#obj)arr_pad_obj265,8270
+tpl list(#separ,#elems) { list276,8440
+tpl ilist(#separ,#elems,#i,#pr) { ilist282,8615
+tpl nlist(#separ,#elems) { nlist288,8760
+tpl andlist(#elems) { andlist294,8891
+tpl dlist(#separ,#elems) { dlist300,9013
+tpl jtlist(#j,#sep2,#elems,#pl) jtlist314,9458
+tpl mkind(#kind) mkind342,10034
+tpl refkind(#kind) refkind357,10391
+tpl abs1(#k, #nr, #r, #fnr, #pid) abs1372,10807
+tpl formt_nr(#k, #nr, #pid) formt_nr439,12305
+tpl mk_vis_list(#els) mk_vis_list446,12423
+tpl encode_std_pattern(#k)encode_std_pattern453,12565
+tpl patt_info(#k, #nr, #pid) patt_info468,13126
+tpl get_parent_level(#pl, #ls, #n) get_parent_level529,14563
+tpl add_hs_attrs { @class="txt"; @onclick="hs(this)"; @href="javascript:()"; }add_hs_attrs 546,14855
+tpl add_hs2_attrs { @class="txt"; @onclick="hs2(this)"; @href="javascript:()"; }add_hs2_attrs 548,14935
+tpl add_hsNdiv_attrs { @class="txt"; @onclick="hsNdiv(this)"; @href="javascript:()"; }add_hsNdiv_attrs 550,15017
+tpl add_ajax_attrs(#u) { @class="txt"; @onclick=`concat("makeRequest(this,'",$u,"')")`; @href="javascript:()"; }add_ajax_attrs552,15105
+
+mhtml_frmtrm.xsltxt,1474
+tpl [For](#i,#k,#ex,#pr) { For27,688
+tpl check_for_not(#el) { check_for_not92,3310
+tpl [Not](#i,#pr,#st) Not98,3605
+tpl [And](#i,#pr) { $e1= is_equiv(#el=`.`); And166,6642
+tpl [Pred](#i,#not,#pr) Pred207,8608
+tpl [PrivPred](#i,#pr,#not) { if [$not="1"] { " not "; } pppred(#nr=`@nr`); "["; PrivPred241,9739
+tpl [Is](#i,#pr,#not) { apply[*[1]](#i = $i); " is "; if [$not="1"] { " not "; } apply[*[2]](#i = $i); } Is243,9893
+tpl [Verum](#i,#pr,#not) { if [$not="1"] { "contradiction"; } else { "verum";} }Verum244,9999
+tpl [ErrorFrm](#i,#pr,#not) { if [$not="1"] { " not "; } "errorfrm"; }ErrorFrm245,10080
+tpl [Var](#p,#i) { Var250,10227
+tpl get_vid(#up) {get_vid263,10638
+tpl [LocusVar](#p, #i) LocusVar294,11788
+tpl [FreeVar](#p,#i) { "X"; `@nr`; }FreeVar362,13648
+tpl [Const](#p,#i) Const363,13685
+tpl [InfConst](#p,#i) { "D"; `@nr`; }InfConst383,14136
+tpl [Num](#p,#i) {  `@nr`; }Num384,14174
+tpl [Func](#p,#i) { Func385,14203
+tpl [PrivFunc](#p,#i) { ppfunc(#nr=`@nr`); "("; PrivFunc397,14721
+tpl [ErrorTrm](#p,#i) { "errortrm"; }ErrorTrm399,14835
+tpl [Choice](#p,#i) { "the "; apply[Typ](#i = $i); }Choice400,14873
+tpl [Fraenkel](#p,#i) {Fraenkel401,14926
+tpl [Typ](#i) Typ438,16181
+tpl descent_many_vis(#patt,#fix,#vis,#i) { if [$vis] {descent_many_vis489,17724
+tpl descent_many(#patts,#fixs,#lnr,#nr,#i) { if [$nr > 0] {descent_many500,18173
+tpl [Cluster](#i) Cluster525,19366
+tpl [Adjective](#i) Adjective549,19818
+
+mhtml_print_complex.xsltxt,450
+tpl mkref(#aid, #nr, #k, #c, #nm) mkref22,468
+tpl absref(#elems, #c, #sym, #pid)absref80,1451
+tpl abs(#k, #nr, #sym, #pid) abs143,3001
+tpl pp(#k, #nr, #args, #parenth, #pid, #loci, #i) pp174,4027
+tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i) pp1258,6322
+tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)pp2326,8282
+tpl getref(#k, #anr, #nr) getref378,9441
+tpl absconst(#nr,#pl) absconst402,9979
+
+mhtml_reasoning.xsltxt,1888
+tpl [Proposition] Proposition17,246
+tpl mk_by_title(#line, #col) { `concat("Explain line ", $line, " column ", $col)`; }mk_by_title63,1417
+tpl linkbyif(#line,#col,#by) linkbyif66,1521
+tpl [By	](#nbr) By	99,2489
+tpl [IterStep/By] { if [(count(Ref)>0)] { IterStep/By116,2839
+tpl [From](#nbr) From119,3000
+tpl [IterStep/From] IterStep/From130,3257
+tpl top_propname(#el) top_propname139,3530
+tpl privname(#nr,#pl) {privname176,4416
+tpl getcnr(#el) getcnr206,5202
+tpl get_nearest_level(#el) get_nearest_level212,5285
+tpl [Ref] Ref227,5479
+tpl [ErrorInf](#nbr) { "errorinference;"; if [not($nbr="1")] { <br;  } }ErrorInf266,6421
+tpl [IterStep/ErrorInf] { "errorinference"; }IterStep/ErrorInf267,6494
+tpl [SkippedProof](#nbr) { pkeyword(#str="@proof .. end;"); SkippedProof268,6540
+tpl [IterStep/SkippedProof] { pkeyword(#str="@proof .. end;"); }IterStep/SkippedProof270,6638
+tpl [IterEquality](#nbr) IterEquality273,6727
+tpl [IterStep] { apply;  }IterStep289,7042
+tpl [Let](#fst,#beg) { Let299,7366
+tpl [Assume] Assume365,9667
+tpl [Given] Given375,9952
+tpl [Take] { pkeyword(#str="take "); apply; ";"; try_th_exps(); <br; }Take385,10209
+tpl [TakeAsVar] TakeAsVar386,10280
+tpl [Conclusion] Conclusion399,10555
+tpl [Consider] Consider455,11719
+tpl [Reconsider] Reconsider489,12694
+tpl [Set] Set511,13451
+tpl [DefFunc] { pkeyword(#str="deffunc "); ppfunc(#nr=`@nr`); "(";  DefFunc522,13689
+tpl [DefPred] { pkeyword(#str="defpred "); pppred(#nr=`@nr`); "["; DefPred526,13913
+tpl [Thesis] { }Thesis532,14179
+tpl do_thesis(#nd)do_thesis534,14197
+tpl try_th_exps_oldtry_th_exps_old551,14444
+tpl try_th_exps(#nd)try_th_exps558,14662
+tpl [ThesisExpansions] { if [Pair] {ThesisExpansions582,15402
+tpl [ThesisExpansions/Pair] ThesisExpansions/Pair587,15529
+tpl [Case|Suppose] Case|Suppose608,15956
+tpl [PerCases] PerCases625,16392
+
+mhtml_block_top.xsltxt,2381
+tpl [RCluster] { RCluster16,270
+tpl rc rc 26,509
+tpl [CCluster] { CCluster39,820
+tpl cc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }cc         50,1062
+tpl [FCluster] { FCluster59,1473
+tpl fcfc69,1714
+tpl [IdentifyWithExp|Identify] IdentifyWithExp|Identify81,2051
+tpl iyiy95,2379
+tpl [Reservation/Typ] { ""; }Reservation/Typ194,4452
+tpl [Definiens/*] { ""; }Definiens/*195,4482
+tpl [JustifiedTheorem] JustifiedTheorem202,4704
+tpl jt jt 230,5407
+tpl idv_for_item(#k,#nr)idv_for_item292,6589
+tpl tptp_for_thm(#line, #col)tptp_for_thm332,7624
+tpl [DefTheorem] DefTheorem351,8065
+tpl dt dt 365,8373
+tpl [JustifiedProperty] JustifiedProperty419,9292
+tpl [UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness] UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness436,9634
+tpl [Correctness] { Correctness450,9995
+tpl [Canceled] { pkeyword(#str="canceled;"); <br; }Canceled456,10216
+tpl [SchemeFuncDecl] { SchemeFuncDecl458,10269
+tpl [SchemePredDecl] { SchemePredDecl463,10419
+tpl [SchemeBlock] {SchemeBlock470,10674
+tpl sd sd 480,10879
+tpl [Definition] Definition527,12021
+tpl dfs() dfs591,13475
+tpl [DefinitionBlock] DefinitionBlock700,16294
+tpl [Registration] { apply; }Registration712,16562
+tpl [IdentifyRegistration] { apply; }IdentifyRegistration715,16655
+tpl [RegistrationBlock] RegistrationBlock718,16771
+tpl [NotationBlock] NotationBlock725,16939
+tpl [BlockThesis] { } // "blockthesis: "; apply; ";"; <br; }BlockThesis734,17110
+tpl [CaseBlock] CaseBlock738,17274
+tpl [SupposeBlock] SupposeBlock746,17507
+tpl [PerCasesReasoning] PerCasesReasoning758,17963
+tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock/Proof]Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock/Proof786,18537
+tpl [Proof] {Proof806,19013
+tpl [Now](#nkw) Now829,19710
+tpl now_bodynow_body853,20071
+tpl idv_for_top()idv_for_top864,20202
+tpl [Article] Article911,21302
+tpl [Theorem] Theorem934,21675
+tpl [ArgTypes] { argtypes(#el = `*`); }ArgTypes943,21918
+tpl argtypes(#el)argtypes945,21959
+tpl [Constructor](#indef,#nl,#argt,#nrt) Constructor963,22488
+tpl [NotationBlock/Pattern] NotationBlock/Pattern1027,24284
+tpl [Notations/Pattern] {Notations/Pattern1047,24934
+tpl [Pattern] {}Pattern1104,26098
+
+mhtml_keys.xsltxt,0
+
+mhtml_params.xsltxt,0

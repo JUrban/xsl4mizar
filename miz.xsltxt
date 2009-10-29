@@ -1582,24 +1582,37 @@ tpl [Typ](#i)
    else { `@kind`; }
 }
 
-// gets two Typ, and list of Visible/Int;
-// tries to find and print the terms in #fix corresponding
+// Gets two Typ (#patt and #fix), and a list of Visible/Int .
+// Tries to find and print the terms in #fix corresponding
 // to the visible loci; #patt is structurally similar to
-// #fix, up to the loci
-// the handling of #i is potentially incorrect if there is a Fraenkel as 
-// a param of the type
-tpl descent_many_vis(#patt,#fix,#vis,#i) { if [$vis] {
+// #fix, up to the loci .
+// The handling of #i is potentially incorrect if there is a Fraenkel as 
+// a param of the type .
+// Newly we also descent through Clusters, because dependent adjectives
+// allow things like: mode ManySortedSet of I is  I -defined total Function .
+// We still optimize by starting with the terms (after "of"), the clusters
+// are used last (if nothing was found in terms).
+tpl descent_many_vis(#patt,#fix,#vis,#i)
+{ 
+  if [$vis] 
+  {
     $v1= `$vis[position()=1]/@x`;
     $v2= `$vis[position()>1]`;
 //DEBUG    "descen:"; $v1; ":"; apply[$patt]; ":"; 
-    descent_many(#patts=`$patt/*[not(name()="Cluster")]`,
-		 #fixs=`$fix/*[not(name()="Cluster")]`,#lnr=$v1,
-		 #nr=`count($patt/*[not(name()="Cluster")])`, #i = $i); 
+    descent_many(#patts = `$patt/*`,
+		 #fixs  = `$fix/*`,
+		 #lnr   = $v1,
+		 #nr    = `count($patt/*)`,
+		 #i     = $i); 
     if [$v2] { ","; descent_many_vis(#patt=$patt,#fix=$fix,
 		    #vis=`$vis[position()>1]`, #i = $i); }
-}}
+  }
+}
 
-tpl descent_many(#patts,#fixs,#lnr,#nr,#i) { if [$nr > 0] {
+tpl descent_many(#patts,#fixs,#lnr,#nr,#i)
+{ 
+  if [$nr > 0] 
+  {
     $patt=`$patts[position()=$nr]`;
     $fix =`$fixs[position()=$nr]`;
 //DEBUG "desone:"; $nr; ":"; `name($patt)`; ":"; `name($fix)`; ":";
@@ -1617,7 +1630,9 @@ tpl descent_many(#patts,#fixs,#lnr,#nr,#i) { if [$nr > 0] {
 	  descent_many(#patts=`$patt/*`,#fixs=`$fix/*`,
 		      #lnr=$lnr,#nr=`count($patt/*)`, #i = $i);  }
       else 
-      { descent_many(#patts=$patts,#fixs=$fixs,#lnr=$lnr,#nr=`$nr - 1`, #i = $i); }}}}
+      { descent_many(#patts=$patts,#fixs=$fixs,#lnr=$lnr,#nr=`$nr - 1`, #i = $i); }}
+  }
+}
 
 // Clusters
 // only attributes with pid are now printed, others are results of 

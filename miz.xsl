@@ -3756,12 +3756,16 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- gets two Typ, and list of Visible/Int; -->
-  <!-- tries to find and print the terms in #fix corresponding -->
+  <!-- Gets two Typ (#patt and #fix), and a list of Visible/Int . -->
+  <!-- Tries to find and print the terms in #fix corresponding -->
   <!-- to the visible loci; #patt is structurally similar to -->
-  <!-- #fix, up to the loci -->
-  <!-- the handling of #i is potentially incorrect if there is a Fraenkel as -->
-  <!-- a param of the type -->
+  <!-- #fix, up to the loci . -->
+  <!-- The handling of #i is potentially incorrect if there is a Fraenkel as -->
+  <!-- a param of the type . -->
+  <!-- Newly we also descent through Clusters, because dependent adjectives -->
+  <!-- allow things like: mode ManySortedSet of I is  I -defined total Function . -->
+  <!-- We still optimize by starting with the terms (after "of"), the clusters -->
+  <!-- are used last (if nothing was found in terms). -->
   <xsl:template name="descent_many_vis">
     <xsl:param name="patt"/>
     <xsl:param name="fix"/>
@@ -3772,10 +3776,10 @@
       <xsl:variable name="v2" select="$vis[position()&gt;1]"/>
       <!-- DEBUG    "descen:"; $v1; ":"; apply[$patt]; ":"; -->
       <xsl:call-template name="descent_many">
-        <xsl:with-param name="patts" select="$patt/*[not(name()=&quot;Cluster&quot;)]"/>
-        <xsl:with-param name="fixs" select="$fix/*[not(name()=&quot;Cluster&quot;)]"/>
+        <xsl:with-param name="patts" select="$patt/*"/>
+        <xsl:with-param name="fixs" select="$fix/*"/>
         <xsl:with-param name="lnr" select="$v1"/>
-        <xsl:with-param name="nr" select="count($patt/*[not(name()=&quot;Cluster&quot;)])"/>
+        <xsl:with-param name="nr" select="count($patt/*)"/>
         <xsl:with-param name="i" select="$i"/>
       </xsl:call-template>
       <xsl:if test="$v2">
