@@ -1598,11 +1598,12 @@ tpl descent_many_vis(#patt,#fix,#vis,#i)
   {
     $v1= `$vis[position()=1]/@x`;
     $v2= `$vis[position()>1]`;
+    $adjnrs = { for-each [$patt/Cluster[1]/Adjective] { ":"; `@nr`; ":"; } }
 //DEBUG    "descen:"; $v1; ":"; apply[$patt]; ":"; 
-    descent_many(#patts = `$patt/*`,
-		 #fixs  = `$fix/*`,
+    descent_many(#patts = `$patt/*[(not(name()="Cluster"))] | $patt/Cluster[1]/Adjective`,
+		 #fixs  = `$fix/*[(not(name()="Cluster"))] | $fix/Cluster[1]/Adjective[(contains($adjnrs, concat(":",@nr,":")))]`,
 		 #lnr   = $v1,
-		 #nr    = `count($patt/*)`,
+		 #nr    = `count($patt/*[(not(name()="Cluster"))]) + count($patt/Cluster[1]/Adjective)`,
 		 #i     = $i); 
     if [$v2] { ","; descent_many_vis(#patt=$patt,#fix=$fix,
 		    #vis=`$vis[position()>1]`, #i = $i); }

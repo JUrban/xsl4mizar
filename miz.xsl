@@ -3774,12 +3774,19 @@
     <xsl:if test="$vis">
       <xsl:variable name="v1" select="$vis[position()=1]/@x"/>
       <xsl:variable name="v2" select="$vis[position()&gt;1]"/>
+      <xsl:variable name="adjnrs">
+        <xsl:for-each select="$patt/Cluster[1]/Adjective">
+          <xsl:text>:</xsl:text>
+          <xsl:value-of select="@nr"/>
+          <xsl:text>:</xsl:text>
+        </xsl:for-each>
+      </xsl:variable>
       <!-- DEBUG    "descen:"; $v1; ":"; apply[$patt]; ":"; -->
       <xsl:call-template name="descent_many">
-        <xsl:with-param name="patts" select="$patt/*"/>
-        <xsl:with-param name="fixs" select="$fix/*"/>
+        <xsl:with-param name="patts" select="$patt/*[(not(name()=&quot;Cluster&quot;))] | $patt/Cluster[1]/Adjective"/>
+        <xsl:with-param name="fixs" select="$fix/*[(not(name()=&quot;Cluster&quot;))] | $fix/Cluster[1]/Adjective[(contains($adjnrs, concat(&quot;:&quot;,@nr,&quot;:&quot;)))]"/>
         <xsl:with-param name="lnr" select="$v1"/>
-        <xsl:with-param name="nr" select="count($patt/*)"/>
+        <xsl:with-param name="nr" select="count($patt/*[(not(name()=&quot;Cluster&quot;))]) + count($patt/Cluster[1]/Adjective)"/>
         <xsl:with-param name="i" select="$i"/>
       </xsl:call-template>
       <xsl:if test="$v2">

@@ -75,7 +75,7 @@ tpl add_hs2_attrs { @class="txt"; @onclick="hs2(this)"; @href="javascript:()"; }
 tpl add_hsNdiv_attrs { @class="txt"; @onclick="hsNdiv(this)"; @href="javascript:()"; }add_hsNdiv_attrs 550,15017
 tpl add_ajax_attrs(#u) { @class="txt"; @onclick=`concat("makeRequest(this,'",$u,"')")`; @href="javascript:()"; }add_ajax_attrs552,15105
 
-mhtml_frmtrm.xsltxt,1474
+mhtml_frmtrm.xsltxt,1443
 tpl [For](#i,#k,#ex,#pr) { For27,688
 tpl check_for_not(#el) { check_for_not92,3310
 tpl [Not](#i,#pr,#st) Not98,3605
@@ -98,10 +98,10 @@ tpl [ErrorTrm](#p,#i) { "errortrm"; }ErrorTrm399,14835
 tpl [Choice](#p,#i) { "the "; apply[Typ](#i = $i); }Choice400,14873
 tpl [Fraenkel](#p,#i) {Fraenkel401,14926
 tpl [Typ](#i) Typ438,16181
-tpl descent_many_vis(#patt,#fix,#vis,#i) { if [$vis] {descent_many_vis489,17724
-tpl descent_many(#patts,#fixs,#lnr,#nr,#i) { if [$nr > 0] {descent_many500,18173
-tpl [Cluster](#i) Cluster525,19366
-tpl [Adjective](#i) Adjective549,19818
+tpl descent_many_vis(#patt,#fix,#vis,#i)descent_many_vis493,18023
+tpl descent_many(#patts,#fixs,#lnr,#nr,#i)descent_many510,18437
+tpl [Cluster](#i) Cluster540,19640
+tpl [Adjective](#i) Adjective564,20092
 
 mhtml_print_complex.xsltxt,450
 tpl mkref(#aid, #nr, #k, #c, #nm) mkref22,468
@@ -152,7 +152,7 @@ tpl [ThesisExpansions/Pair] ThesisExpansions/Pair587,15529
 tpl [Case|Suppose] Case|Suppose608,15956
 tpl [PerCases] PerCases625,16392
 
-mhtml_block_top.xsltxt,2381
+mhtml_block_top.xsltxt,2446
 tpl [RCluster] { RCluster16,270
 tpl rc rc 26,509
 tpl [CCluster] { CCluster39,820
@@ -194,13 +194,14 @@ tpl [Now](#nkw) Now829,19710
 tpl now_bodynow_body853,20071
 tpl idv_for_top()idv_for_top864,20202
 tpl [Article] Article911,21302
-tpl [Theorem] Theorem934,21675
-tpl [ArgTypes] { argtypes(#el = `*`); }ArgTypes943,21918
-tpl argtypes(#el)argtypes945,21959
-tpl [Constructor](#indef,#nl,#argt,#nrt) Constructor963,22488
-tpl [NotationBlock/Pattern] NotationBlock/Pattern1027,24284
-tpl [Notations/Pattern] {Notations/Pattern1047,24934
-tpl [Pattern] {}Pattern1104,26098
+tpl [Section] { pkeyword(#str="begin"); <br; }Section933,21639
+tpl [Theorem] Theorem936,21723
+tpl [ArgTypes] { argtypes(#el = `*`); }ArgTypes945,21966
+tpl argtypes(#el)argtypes947,22007
+tpl [Constructor](#indef,#nl,#argt,#nrt) Constructor965,22536
+tpl [NotationBlock/Pattern] NotationBlock/Pattern1029,24332
+tpl [Notations/Pattern] {Notations/Pattern1049,24982
+tpl [Pattern] {}Pattern1106,26146
 
 mhtml_keys.xsltxt,0
 
