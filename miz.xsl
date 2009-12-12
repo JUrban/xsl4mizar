@@ -7088,6 +7088,9 @@
               <xsl:with-param name="nrt">
                 <xsl:text>1</xsl:text>
               </xsl:with-param>
+              <xsl:with-param name="old">
+                <xsl:text>1</xsl:text>
+              </xsl:with-param>
             </xsl:apply-templates>
           </xsl:for-each>
         </xsl:if>
@@ -7650,11 +7653,14 @@
   <!-- #argt is explicit list of argument types, useful for -->
   <!-- getting the @vid (identifier numbers) of loci -->
   <!-- #nrt tells not to showthe result type(s) -->
+  <!-- #old says that the constructor is from a redefinition and not new, -->
+  <!-- so an anchor should not be created -->
   <xsl:template match="Constructor">
     <xsl:param name="indef"/>
     <xsl:param name="nl"/>
     <xsl:param name="argt"/>
     <xsl:param name="nrt"/>
+    <xsl:param name="old"/>
     <xsl:variable name="loci">
       <xsl:choose>
         <xsl:when test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
@@ -7696,15 +7702,25 @@
         <xsl:with-param name="kind" select="@kind"/>
       </xsl:call-template>
     </xsl:variable>
-    <xsl:element name="a">
-      <xsl:attribute name="NAME">
-        <xsl:value-of select="concat(@kind,@nr)"/>
-      </xsl:attribute>
-      <xsl:call-template name="pkeyword">
-        <xsl:with-param name="str" select="$mk"/>
-      </xsl:call-template>
-      <xsl:text> </xsl:text>
-    </xsl:element>
+    <xsl:choose>
+      <xsl:when test="$old=&quot;1&quot;">
+        <xsl:call-template name="pkeyword">
+          <xsl:with-param name="str" select="$mk"/>
+        </xsl:call-template>
+        <xsl:text> </xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:element name="a">
+          <xsl:attribute name="NAME">
+            <xsl:value-of select="concat(@kind,@nr)"/>
+          </xsl:attribute>
+          <xsl:call-template name="pkeyword">
+            <xsl:with-param name="str" select="$mk"/>
+          </xsl:call-template>
+          <xsl:text> </xsl:text>
+        </xsl:element>
+      </xsl:otherwise>
+    </xsl:choose>
     <xsl:choose>
       <xsl:when test="@kind=&quot;G&quot;">
         <xsl:call-template name="abs">
