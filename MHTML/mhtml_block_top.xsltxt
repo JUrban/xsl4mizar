@@ -640,7 +640,7 @@ tpl dfs()
 
 	     for-each [document($doc, /)] 
 	     { 
-	        apply[key($ckind, $cnr)](#indef = "1", #nl = $nl, #argt = $argtypes, #nrt= "1"); 
+	        apply[key($ckind, $cnr)](#indef = "1", #nl = $nl, #argt = $argtypes, #nrt= "1",#old="1"); 
 	     } 
           }
 
@@ -962,7 +962,9 @@ tpl argtypes(#el)
 // #argt is explicit list of argument types, useful for
 // getting the @vid (identifier numbers) of loci
 // #nrt tells not to showthe result type(s)
-tpl [Constructor](#indef,#nl,#argt,#nrt) 
+// #old says that the constructor is from a redefinition and not new,
+//      so an anchor should not be created
+tpl [Constructor](#indef,#nl,#argt,#nrt,#old) 
 { 
     $loci = { if [($mml="1") or ($generate_items>0)] { "1"; } else { "2"; }}
 
@@ -978,7 +980,11 @@ tpl [Constructor](#indef,#nl,#argt,#nrt)
 
     $mk = { mkind(#kind=`@kind`); }
 
-    <a { @NAME=`concat(@kind,@nr)`; pkeyword(#str=$mk);  " "; }
+    if [$old="1"] { pkeyword(#str=$mk);  " "; }
+    else
+    {
+       <a { @NAME=`concat(@kind,@nr)`; pkeyword(#str=$mk);  " "; }
+    }
  
     if [@kind="G"] 
     { 
