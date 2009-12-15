@@ -477,7 +477,7 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp">
+  <xsl:template match="Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp|Identify">
     <xsl:param name="s"/>
     <xsl:variable name="n" select="name()"/>
     <xsl:element name="{$n}">
@@ -1209,7 +1209,7 @@
   <!-- adds the @plevel and @newlevel attributes. -->
   <!-- Each Definition, Registration, and IdentifyRegistration inside such blocks create -->
   <!-- their own block to properly number correctness conditions. -->
-  <xsl:template match="Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration|IdentifyRegistration">
+  <xsl:template match="Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration|IdentifyRegistration|SkippedProof">
     <xsl:param name="s"/>
     <xsl:variable name="s0">
       <xsl:call-template name="prevblocks">
@@ -1277,7 +1277,7 @@
 	or (name() = &quot;CaseBlock&quot;) or (name() = &quot;SupposeBlock&quot;) or 
 	(name() = &quot;PerCasesReasoning&quot;) or (name() = &quot;Definition&quot;) or
 	(name() = &quot;Registration&quot;) or (name() = &quot;IterEquality&quot;) or
-	(name() = &quot;IdentifyRegistration&quot;) or
+	(name() = &quot;IdentifyRegistration&quot;) or (name() = &quot;SkippedProof&quot;) or
 	(name() = &quot;DefinitionBlock&quot;) or (name() = &quot;RegistrationBlock&quot;) or 
 	(name() = &quot;NotationBlock&quot;) or (name() = &quot;SchemeBlock&quot;)]) +
 	count(preceding-sibling::*[(name() = &quot;Conclusion&quot;) 
@@ -1286,7 +1286,7 @@
 	 or (name() = &quot;Consistency&quot;) or (name() = &quot;Existence&quot;) 
 	 or (name() = &quot;Uniqueness&quot;) or (name() = &quot;Correctness&quot;)
 	 or (name() = &quot;JustifiedProperty&quot;)]/*[(name() = &quot;Proof&quot;) or 
-	 (name() = &quot;Now&quot;) or (name() = &quot;IterEquality&quot;)])"/>
+	 (name() = &quot;Now&quot;) or (name() = &quot;SkippedProof&quot;) or (name() = &quot;IterEquality&quot;)])"/>
           </xsl:for-each>
         </xsl:when>
         <xsl:otherwise>
@@ -1294,7 +1294,7 @@
 	or (name() = &quot;CaseBlock&quot;) or (name() = &quot;SupposeBlock&quot;) or 
 	(name() = &quot;PerCasesReasoning&quot;) or (name() = &quot;Definition&quot;) or
 	(name() = &quot;Registration&quot;) or (name() = &quot;IterEquality&quot;) or
-	(name() = &quot;IdentifyRegistration&quot;) or
+	(name() = &quot;IdentifyRegistration&quot;) or (name() = &quot;SkippedProof&quot;) or
 	(name() = &quot;DefinitionBlock&quot;) or (name() = &quot;RegistrationBlock&quot;) or 
 	(name() = &quot;NotationBlock&quot;) or (name() = &quot;SchemeBlock&quot;)]) +
          count(preceding-sibling::*[(name() = &quot;Conclusion&quot;) 
@@ -1303,7 +1303,7 @@
 	 or (name() = &quot;Consistency&quot;) or (name() = &quot;Existence&quot;) 
 	 or (name() = &quot;Uniqueness&quot;) or (name() = &quot;Correctness&quot;)
 	 or (name() = &quot;JustifiedProperty&quot;)]/*[(name() = &quot;Proof&quot;) or 
-	 (name() = &quot;Now&quot;) or (name() = &quot;IterEquality&quot;)])"/>
+	 (name() = &quot;Now&quot;) or (name() = &quot;SkippedProof&quot;) or (name() = &quot;IterEquality&quot;)])"/>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:for-each>
