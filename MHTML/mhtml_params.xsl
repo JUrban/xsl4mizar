@@ -119,8 +119,9 @@
     <xsl:value-of select="concat($lbydlicgi,&quot;?url=&quot;,$lbydliurl)"/>
   </xsl:variable>
   <!-- URL of the MizAR root dir -->
+  <!-- #ltptproot= { "http://octopi.mizar.org/~mptp/"; } -->
   <xsl:param name="ltptproot">
-    <xsl:text>http://octopi.mizar.org/~mptp/</xsl:text>
+    <xsl:text>http://mws.cs.ru.nl/~mptp/</xsl:text>
   </xsl:param>
   <!-- URL of the TPTP-processor CGI -->
   <xsl:param name="ltptpcgi">
