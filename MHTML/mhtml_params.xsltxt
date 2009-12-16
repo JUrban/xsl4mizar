@@ -94,7 +94,8 @@ $print_lab_identifiers = { "1"; }
 $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 
 // URL of the MizAR root dir
-#ltptproot= { "http://octopi.mizar.org/~mptp/"; }
+// #ltptproot= { "http://octopi.mizar.org/~mptp/"; }
+#ltptproot= { "http://mws.cs.ru.nl/~mptp/"; }
 
 // URL of the TPTP-processor CGI
 #ltptpcgi= { `concat($ltptproot,"cgi-bin/")`; }
