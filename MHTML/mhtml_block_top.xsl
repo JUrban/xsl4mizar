@@ -436,6 +436,11 @@
           <xsl:with-param name="line" select="Proposition[1]/@line"/>
           <xsl:with-param name="col" select="Proposition[1]/@col"/>
         </xsl:call-template>
+        <xsl:text> </xsl:text>
+        <xsl:call-template name="edit_for_thm">
+          <xsl:with-param name="line" select="Proposition[1]/@line"/>
+          <xsl:with-param name="col" select="Proposition[1]/@col"/>
+        </xsl:call-template>
       </xsl:if>
       <xsl:element name="br"/>
     </xsl:element>
@@ -563,6 +568,19 @@
           <xsl:text>Show TPTP problem</xsl:text>
         </xsl:attribute>
       </xsl:element>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="edit_for_thm">
+    <xsl:param name="line"/>
+    <xsl:param name="col"/>
+    <xsl:variable name="tptp_file" select="concat($anamelc,&quot;.miz&quot;)"/>
+    <xsl:text> ::</xsl:text>
+    <xsl:element name="a">
+      <xsl:attribute name="href">
+        <xsl:value-of select="concat($ltmpftptpcgi,&quot;?file=&quot;,$tptp_file,&quot;&amp;tmp=&quot;,$lbytmpdir,&quot;&amp;pos=&quot;,$line)"/>
+      </xsl:attribute>
+      <xsl:text>[edit]</xsl:text>
     </xsl:element>
   </xsl:template>
 

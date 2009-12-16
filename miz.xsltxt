@@ -3018,6 +3018,7 @@ tpl jt
        if [$thms_tptp_links = 1]
        {
           tptp_for_thm(#line=`Proposition[1]/@line`, #col=`Proposition[1]/@col`);
+	  " "; edit_for_thm(#line=`Proposition[1]/@line`, #col=`Proposition[1]/@col`);
        }
 
        <br;
@@ -3108,6 +3109,18 @@ tpl tptp_for_thm(#line, #col)
     }
   }
 } 
+
+tpl edit_for_thm(#line, #col)
+{
+  $tptp_file = `concat($anamelc,".miz")`;
+  " ::";
+  <a
+  {
+    @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir,"&pos=",$line)`; 
+    "[edit]";
+  }
+}
+
 
 tpl [DefTheorem] 
 { 
