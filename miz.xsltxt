@@ -3114,7 +3114,7 @@ tpl tptp_for_thm(#line, #col)
 tpl edit_for_thm(#line, #col)
 {
 //  $tptp_file = `concat($anamelc,".miz")`;
-  $thm_file = `concat($anamelc,"__",$line."_",$col)`;
+  $thm_file = `concat($anamelc,"__",$line,"_",$col)`;
   " ::";
   <a
   {

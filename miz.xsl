@@ -6606,7 +6606,7 @@
     <xsl:param name="line"/>
     <xsl:param name="col"/>
     <!-- $tptp_file = `concat($anamelc,".miz")`; -->
-    <xsl:variable name="thm_file" select="concat($anamelc,&quot;__&quot;,$line.&quot;_&quot;,$col)"/>
+    <xsl:variable name="thm_file" select="concat($anamelc,&quot;__&quot;,$line,&quot;_&quot;,$col)"/>
     <xsl:text> ::</xsl:text>
     <xsl:element name="a">
       <!-- @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir,"&pos=",$line)`; -->
