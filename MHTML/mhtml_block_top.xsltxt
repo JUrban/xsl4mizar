@@ -351,11 +351,13 @@ tpl tptp_for_thm(#line, #col)
 
 tpl edit_for_thm(#line, #col)
 {
-  $tptp_file = `concat($anamelc,".miz")`;
+//  $tptp_file = `concat($anamelc,".miz")`;
+  $thm_file = `concat($anamelc,"__",$line."_",$col)`;
   " ::";
   <a
   {
-    @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir,"&pos=",$line)`; 
+//    @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir,"&pos=",$line)`; 
+    @href= `concat($ltmpftptpcgi,"?file=",$thm_file,"&tmp=",$lbytmpdir)`; 
     "[edit]";
   }
 }

@@ -6605,11 +6605,13 @@
   <xsl:template name="edit_for_thm">
     <xsl:param name="line"/>
     <xsl:param name="col"/>
-    <xsl:variable name="tptp_file" select="concat($anamelc,&quot;.miz&quot;)"/>
+    <!-- $tptp_file = `concat($anamelc,".miz")`; -->
+    <xsl:variable name="thm_file" select="concat($anamelc,&quot;__&quot;,$line.&quot;_&quot;,$col)"/>
     <xsl:text> ::</xsl:text>
     <xsl:element name="a">
+      <!-- @href= `concat($ltmpftptpcgi,"?file=",$tptp_file,"&tmp=",$lbytmpdir,"&pos=",$line)`; -->
       <xsl:attribute name="href">
-        <xsl:value-of select="concat($ltmpftptpcgi,&quot;?file=&quot;,$tptp_file,&quot;&amp;tmp=&quot;,$lbytmpdir,&quot;&amp;pos=&quot;,$line)"/>
+        <xsl:value-of select="concat($ltmpftptpcgi,&quot;?file=&quot;,$thm_file,&quot;&amp;tmp=&quot;,$lbytmpdir)"/>
       </xsl:attribute>
       <xsl:text>[edit]</xsl:text>
     </xsl:element>
