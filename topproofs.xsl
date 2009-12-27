@@ -21,6 +21,6 @@
   </xsl:template>
 
   <xsl:template match="/">
-    <xsl:apply-templates select="//Proof[not((name(..)=&quot;Proof&quot;) or (name(..)=&quot;Now&quot;) or (name(..)=&quot;Hereby&quot;))]"/>
+    <xsl:apply-templates select="//Proof[not((name(..)=&quot;Proof&quot;) or (name(..)=&quot;Now&quot;) or (name(..)=&quot;Hereby&quot;) or (name(..)=&quot;CaseBlock&quot;) or (name(..)=&quot;SupposeBlock&quot;))]"/>
   </xsl:template>
 </xsl:stylesheet>
