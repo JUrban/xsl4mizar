@@ -10,6 +10,6 @@ stylesheet 1.0;
 
 output method=text;
 
-tpl [Proof] { `@line`; " "; `@col`; "\n";}
+tpl [Proof] { `@line`; " "; `@col`; " "; `EndPosition[(position()=last())]/@line`; " "; `EndPosition/@col`; "\n";}
 
 tpl [/] {  apply[//Proof[not((name(..)="Proof") or (name(..)="Now") or (name(..)="Hereby"))]]; }
