@@ -1,0 +1,15 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
+// printing top proof positions
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL topproofs.xsltxt > topproofs.xsl
+
+// Then e.g.: xsltproc topproofs.xsl ordinal2.parx > ordinal2.tpr
+
+output method=text;
+
+tpl [Proof] { `@line`; " "; `@col`; "\n";}
+
+tpl [/] {  apply[//Proof[not((name(..)="Proof") or (name(..)="Now") or (name(..)="Hereby"))]]; }
