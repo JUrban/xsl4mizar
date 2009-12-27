@@ -12,6 +12,10 @@
     <xsl:value-of select="@line"/>
     <xsl:text> </xsl:text>
     <xsl:value-of select="@col"/>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="EndPosition[(position()=last())]/@line"/>
+    <xsl:text> </xsl:text>
+    <xsl:value-of select="EndPosition/@col"/>
     <xsl:text>
 </xsl:text>
   </xsl:template>
