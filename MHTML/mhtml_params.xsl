@@ -163,6 +163,8 @@
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- tells if proofs are fetched through AJAX; default is off -->
+  <!-- value 2 tells to produce the proofs, but not to insert the ajax calls, -->
+  <!-- and instead insert tags for easy regexp-based post-insertion of files -->
   <xsl:param name="ajax_proofs">
     <xsl:text>0</xsl:text>
   </xsl:param>

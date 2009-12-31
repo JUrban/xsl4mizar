@@ -525,6 +525,13 @@
 
   <xsl:template match="SkippedProof">
     <xsl:param name="nbr"/>
+    <xsl:if test="$ajax_proofs=2">
+      <xsl:element name="span">
+        <xsl:attribute name="filebasedproofinsert">
+          <xsl:value-of select="@newlevel"/>
+        </xsl:attribute>
+      </xsl:element>
+    </xsl:if>
     <xsl:call-template name="pkeyword">
       <xsl:with-param name="str">
         <xsl:text>@proof .. end;</xsl:text>

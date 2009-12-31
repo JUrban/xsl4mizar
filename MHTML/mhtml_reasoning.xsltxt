@@ -265,8 +265,12 @@ tpl [Ref]
 
 tpl [ErrorInf](#nbr) { "errorinference;"; if [not($nbr="1")] { <br;  } }
 tpl [IterStep/ErrorInf] { "errorinference"; }
-tpl [SkippedProof](#nbr) { pkeyword(#str="@proof .. end;"); 
-			   if [not($nbr="1")] { <br;  } }
+tpl [SkippedProof](#nbr) 
+{ 
+  if[$ajax_proofs=2] { <span {  @filebasedproofinsert=`@newlevel`;}}
+  pkeyword(#str="@proof .. end;"); 
+  if [not($nbr="1")] { <br;  } 
+}
 tpl [IterStep/SkippedProof] { pkeyword(#str="@proof .. end;"); }
 
 //   Term, elIterStep+

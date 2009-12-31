@@ -130,6 +130,8 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 #const_links = { "0"; }
 
 // tells if proofs are fetched through AJAX; default is off
+// value 2 tells to produce the proofs, but not to insert the ajax calls,
+// and instead insert tags for easy regexp-based post-insertion of files
 #ajax_proofs = { "0"; }
 
 // the dir with proofs that are fetched through AJAX

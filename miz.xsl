@@ -195,6 +195,8 @@
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- tells if proofs are fetched through AJAX; default is off -->
+  <!-- value 2 tells to produce the proofs, but not to insert the ajax calls, -->
+  <!-- and instead insert tags for easy regexp-based post-insertion of files -->
   <xsl:param name="ajax_proofs">
     <xsl:text>0</xsl:text>
   </xsl:param>
@@ -5310,6 +5312,13 @@
 
   <xsl:template match="SkippedProof">
     <xsl:param name="nbr"/>
+    <xsl:if test="$ajax_proofs=2">
+      <xsl:element name="span">
+        <xsl:attribute name="filebasedproofinsert">
+          <xsl:value-of select="@newlevel"/>
+        </xsl:attribute>
+      </xsl:element>
+    </xsl:if>
     <xsl:call-template name="pkeyword">
       <xsl:with-param name="str">
         <xsl:text>@proof .. end;</xsl:text>
@@ -7408,7 +7417,7 @@
     <xsl:element name="div">
       <xsl:element name="a">
         <xsl:choose>
-          <xsl:when test="$ajax_proofs&gt;0">
+          <xsl:when test="$ajax_proofs=1">
             <xsl:call-template name="add_ajax_attrs">
               <xsl:with-param name="u" select="$nm"/>
             </xsl:call-template>
@@ -7430,7 +7439,13 @@
       </xsl:element>
       <xsl:choose>
         <xsl:when test="$ajax_proofs&gt;0">
-          <xsl:element name="span"/>
+          <xsl:element name="span">
+            <xsl:if test="$ajax_proofs=2">
+              <xsl:attribute name="filebasedproofinsert">
+                <xsl:value-of select="@newlevel"/>
+              </xsl:attribute>
+            </xsl:if>
+          </xsl:element>
           <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html"> 
           <xsl:element name="div">
             <xsl:attribute name="class">

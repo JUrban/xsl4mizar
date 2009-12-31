@@ -176,6 +176,8 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 #const_links = { "0"; }
 
 // tells if proofs are fetched through AJAX; default is off
+// value 2 tells to produce the proofs, but not to insert the ajax calls,
+// and instead insert tags for easy regexp-based post-insertion of files
 #ajax_proofs = { "0"; }
 
 // the dir with proofs that are fetched through AJAX
@@ -2387,8 +2389,12 @@ tpl [Ref]
 
 tpl [ErrorInf](#nbr) { "errorinference;"; if [not($nbr="1")] { <br;  } }
 tpl [IterStep/ErrorInf] { "errorinference"; }
-tpl [SkippedProof](#nbr) { pkeyword(#str="@proof .. end;"); 
-			   if [not($nbr="1")] { <br;  } }
+tpl [SkippedProof](#nbr) 
+{ 
+  if[$ajax_proofs=2] { <span {  @filebasedproofinsert=`@newlevel`;}}
+  pkeyword(#str="@proof .. end;"); 
+  if [not($nbr="1")] { <br;  } 
+}
 tpl [IterStep/SkippedProof] { pkeyword(#str="@proof .. end;"); }
 
 //   Term, elIterStep+
@@ -3584,11 +3590,11 @@ tpl [Proof] {
     $nm = `concat($ajax_proof_dir,"/",$anamelc,"/",@newlevel)`;
     <div { 
 	 <a { 
-	    if [$ajax_proofs>0]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
+	    if [$ajax_proofs=1]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
 	    if [$proof_links>0] { @title=`@newlevel`; } 
 	    pkeyword(#str="proof "); 
 	    }
-         if [$ajax_proofs>0]	{ <span; 
+         if [$ajax_proofs>0]	{ <span { if[$ajax_proofs=2] {@filebasedproofinsert=`@newlevel`;}} 
 // <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html">
 	    <div { @class="add"; apply; }
 // </xsl:document>
