@@ -47,14 +47,28 @@ tpl [CCluster] {
     else { cc(); } }
 
 
-tpl cc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
-		 $nr1 = `1 + count(preceding::CCluster)`;
-		 <a { @NAME=`concat("CC",$nr1)`;
-		      pkeyword(#str="cluster "); }
-                 if [ErrorCluster] { "errorcluster"; }
-	         else { apply[*[2]]; pkeyword(#str=" -> "); apply[*[4]]; " "; 
-                        apply[*[3]]; }
-                 ";"; <br; if [$mml="1"] { <br; }}
+tpl cc
+{ 
+  if [($mml="1") or ($generate_items>0)] 
+  { 
+     apply[ArgTypes]; 
+  }
+  
+  $nr1 = `1 + count(preceding::CCluster)`;
+  <a { 
+       @NAME=`concat("CC",$nr1)`;
+       pkeyword(#str="cluster "); }
+       if [ErrorCluster] { "errorcluster"; }
+       else 
+       { 
+          apply[*[2]]; 
+	  pkeyword(#str=" -> "); 
+	  apply[*[4]]; " "; 
+	  apply[*[3]]; 
+       }
+       ";"; <br; 
+       if [$mml="1"] { <br; }
+}
 
 tpl [FCluster] { 
     $nr1 = `1 + count(preceding::FCluster)`;
