@@ -1,3 +1,4 @@
+TOPDIR  = $(HOME)
 MFILES	= $(MIZFILES)
 MMLLAR  = $(MFILES)/mml.lar
 MMLLAR100  = $(MFILES)/mml.lar.100
@@ -5,14 +6,14 @@ MIZ100     = $(shell cat $(MMLLAR100))
 STANDARDMIZ     = $(shell cat $(MMLLAR))
 SHMIZ = $(shell shuffle < $(MMLLAR))
 
-XSLTPROC = /home/urban/mizwrk/xsltproc 
-XML2HTML = /home/urban/xsltxt/xsl4mizar/miz.xsl
-ADDABS = /home/urban/xsltxt/xsl4mizar/addabsrefs.xsl
-MKXMLHEAD = /home/urban/xsltxt/xsl4mizar/mkxmlhead.pl
+XSLTPROC = $(TOPDIR)/mizwrk/xsltproc 
+XML2HTML = $(TOPDIR)gitrepo/xsl4mizar/miz.xsl
+ADDABS = $(TOPDIR)/gitrepo/xsl4mizar/addabsrefs.xsl
+MKXMLHEAD = $(TOPDIR)/gitrepo/xsl4mizar/mkxmlhead.pl
 ACCOM = $(MFILES)/bin/accom 
 VERIFIER = $(MFILES)/bin/verifier
-MIZ2DLI = /home/urban/xsltxt/xsl4mizar/miz2dli.xsl
-MIZ2OUTREF = /home/urban/xsltxt/xsl4mizar/miz2outref.xsl
+MIZ2DLI = $(TOPDIR)/gitrepo/xsl4mizar/miz2dli.xsl
+MIZ2OUTREF = $(TOPDIR)/gitrepo/xsl4mizar/miz2outref.xsl
 
 %.acc: %.miz
 	$(ACCOM) $* > $*.acc 
