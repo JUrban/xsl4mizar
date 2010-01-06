@@ -19,9 +19,9 @@ export MIZFILES=`pwd`
 cd miztmp
 make -j8 allacc | tee 00acc.log
 make -j8 allhdr | tee 00hdr.log
-make -j8 allxml | tee 00xml.log
-make -j8 allxml1 | tee 00xml1.log
-make -j8 allhtmla1 | tee 00htmla1.log
+make -j16 allxml | tee 00xml.log
+make -j16 allxml1 | tee 00xml1.log
+make -j16 allhtmla1 | tee 00htmla1.log
 make hidden.acc
 make hidden.hdr
 make hidden.xml
