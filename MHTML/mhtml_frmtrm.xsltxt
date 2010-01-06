@@ -534,13 +534,14 @@ tpl descent_many(#patts,#fixs,#lnr,#nr,#i)
 }
 
 // Clusters
-// only attributes with pid are now printed, others are results of 
+// only attributes with pid are now printed, unless %all=1;
+// others are results of 
 // cluster mechanisms - this holds in the current article 
 // (.xml file) only, environmental files do not have the @pid 
 // info (yet), so we print everything for them
-tpl [Cluster](#i) 
+tpl [Cluster](#i,#all) 
 { 
-   if [$print_all_attrs = 1]
+   if [($print_all_attrs = 1) or ($all = 1)]
    {
       list(#separ=" ", #elems=`*`);
    }

@@ -1639,13 +1639,14 @@ tpl descent_many(#patts,#fixs,#lnr,#nr,#i)
 }
 
 // Clusters
-// only attributes with pid are now printed, others are results of 
+// only attributes with pid are now printed, unless %all=1;
+// others are results of 
 // cluster mechanisms - this holds in the current article 
 // (.xml file) only, environmental files do not have the @pid 
 // info (yet), so we print everything for them
-tpl [Cluster](#i) 
+tpl [Cluster](#i,#all) 
 { 
-   if [$print_all_attrs = 1]
+   if [($print_all_attrs = 1) or ($all = 1)]
    {
       list(#separ=" ", #elems=`*`);
    }
@@ -2800,7 +2801,7 @@ tpl rc
     @NAME=`concat("RC",$nr1)`;
     pkeyword(#str="cluster "); 
   }
-  if [ErrorCluster] { "errorcluster"; } else { apply[*[3]]; " "; apply[*[2]]; }
+  if [ErrorCluster] { "errorcluster"; } else { apply[*[3]](#all="1"); " "; apply[*[2]]; }
   ";"; <br; if [$mml="1"] { <br; }
 }
 
@@ -2815,14 +2816,28 @@ tpl [CCluster] {
     else { cc(); } }
 
 
-tpl cc         { if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
-		 $nr1 = `1 + count(preceding::CCluster)`;
-		 <a { @NAME=`concat("CC",$nr1)`;
-		      pkeyword(#str="cluster "); }
-                 if [ErrorCluster] { "errorcluster"; }
-	         else { apply[*[2]]; pkeyword(#str=" -> "); apply[*[4]]; " "; 
-                        apply[*[3]]; }
-                 ";"; <br; if [$mml="1"] { <br; }}
+tpl cc
+{ 
+  if [($mml="1") or ($generate_items>0)] 
+  { 
+     apply[ArgTypes]; 
+  }
+  
+  $nr1 = `1 + count(preceding::CCluster)`;
+  <a { 
+       @NAME=`concat("CC",$nr1)`;
+       pkeyword(#str="cluster "); }
+       if [ErrorCluster] { "errorcluster"; }
+       else 
+       { 
+          apply[*[2]](#all="1"); 
+	  pkeyword(#str=" -> "); 
+	  apply[*[4]]; " "; 
+	  apply[*[3]]; 
+       }
+       ";"; <br; 
+       if [$mml="1"] { <br; }
+}
 
 tpl [FCluster] { 
     $nr1 = `1 + count(preceding::FCluster)`;

@@ -32,7 +32,7 @@ tpl rc
     @NAME=`concat("RC",$nr1)`;
     pkeyword(#str="cluster "); 
   }
-  if [ErrorCluster] { "errorcluster"; } else { apply[*[3]]; " "; apply[*[2]]; }
+  if [ErrorCluster] { "errorcluster"; } else { apply[*[3]](#all="1"); " "; apply[*[2]]; }
   ";"; <br; if [$mml="1"] { <br; }
 }
 
@@ -61,7 +61,7 @@ tpl cc
        if [ErrorCluster] { "errorcluster"; }
        else 
        { 
-          apply[*[2]]; 
+          apply[*[2]](#all="1"); 
 	  pkeyword(#str=" -> "); 
 	  apply[*[4]]; " "; 
 	  apply[*[3]]; 

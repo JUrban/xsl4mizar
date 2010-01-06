@@ -3872,14 +3872,16 @@
   </xsl:template>
 
   <!-- Clusters -->
-  <!-- only attributes with pid are now printed, others are results of -->
+  <!-- only attributes with pid are now printed, unless %all=1; -->
+  <!-- others are results of -->
   <!-- cluster mechanisms - this holds in the current article -->
   <!-- (.xml file) only, environmental files do not have the @pid -->
   <!-- info (yet), so we print everything for them -->
   <xsl:template match="Cluster">
     <xsl:param name="i"/>
+    <xsl:param name="all"/>
     <xsl:choose>
-      <xsl:when test="$print_all_attrs = 1">
+      <xsl:when test="($print_all_attrs = 1) or ($all = 1)">
         <xsl:call-template name="list">
           <xsl:with-param name="separ">
             <xsl:text> </xsl:text>
@@ -6087,7 +6089,11 @@
         <xsl:text>errorcluster</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:apply-templates select="*[3]"/>
+        <xsl:apply-templates select="*[3]">
+          <xsl:with-param name="all">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:apply-templates>
         <xsl:text> </xsl:text>
         <xsl:apply-templates select="*[2]"/>
       </xsl:otherwise>
@@ -6134,7 +6140,11 @@
         <xsl:text>errorcluster</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:apply-templates select="*[2]"/>
+        <xsl:apply-templates select="*[2]">
+          <xsl:with-param name="all">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:apply-templates>
         <xsl:call-template name="pkeyword">
           <xsl:with-param name="str">
             <xsl:text> -&gt; </xsl:text>

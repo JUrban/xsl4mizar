@@ -47,7 +47,11 @@
         <xsl:text>errorcluster</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:apply-templates select="*[3]"/>
+        <xsl:apply-templates select="*[3]">
+          <xsl:with-param name="all">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:apply-templates>
         <xsl:text> </xsl:text>
         <xsl:apply-templates select="*[2]"/>
       </xsl:otherwise>
@@ -94,7 +98,11 @@
         <xsl:text>errorcluster</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:apply-templates select="*[2]"/>
+        <xsl:apply-templates select="*[2]">
+          <xsl:with-param name="all">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:apply-templates>
         <xsl:call-template name="pkeyword">
           <xsl:with-param name="str">
             <xsl:text> -&gt; </xsl:text>
