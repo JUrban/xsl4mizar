@@ -8050,7 +8050,7 @@
                 <xsl:text>
 div { padding: 0 0 0 0; margin: 0 0 0 0; } 
 div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
-div.box { border-width:thin; border-color:dotted blue; border-style:solid; }
+div.box { border-width:thin; border-color:blue; border-style:solid; }
 p { margin: 0 0 0 0; } 
 body {font-family: monospace;}
 a {text-decoration:none} a:hover { color: red; } 
