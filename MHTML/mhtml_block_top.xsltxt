@@ -366,7 +366,7 @@ tpl tptp_for_thm(#line, #col)
 
 tpl add_ar_iconif(#line,#col) 
 { 
-   if [$linkby>0] 
+   if [$linkarproofs>0] 
    { 
       $byurl = 
       { 
