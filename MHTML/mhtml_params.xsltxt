@@ -74,6 +74,9 @@ $print_lab_identifiers = { "1"; }
 // 3 - dynamic linking to the TPTP-processor CGI ($lbytptpcgi)
 #linkby= { "0"; }
 
+// if non zero, add icons for atp exlpanation calls to theorems and proofs in the same way as to by's
+#linkarproofs= { "0"; }
+
 // if > 0, call the mk_by_title function to create a title for by|from|;
 #by_titles = { "0"; }
 

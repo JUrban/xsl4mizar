@@ -587,7 +587,7 @@
   <xsl:template name="add_ar_iconif">
     <xsl:param name="line"/>
     <xsl:param name="col"/>
-    <xsl:if test="$linkby&gt;0">
+    <xsl:if test="$linkarproofs&gt;0">
       <xsl:variable name="byurl">
         <xsl:choose>
           <xsl:when test="$linkby=1">

@@ -93,6 +93,10 @@
   <xsl:param name="linkby">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- if non zero, add icons for atp exlpanation calls to theorems and proofs in the same way as to by's -->
+  <xsl:param name="linkarproofs">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- if > 0, call the mk_by_title function to create a title for by|from|; -->
   <xsl:param name="by_titles">
     <xsl:text>0</xsl:text>
