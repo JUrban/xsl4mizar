@@ -271,6 +271,7 @@ tpl jt
        if [$thms_tptp_links = 1]
        {
           tptp_for_thm(#line=`Proposition[1]/@line`, #col=`Proposition[1]/@col`);
+	  " "; add_ar_iconif(#line=`Proposition[1]/@line`, #col=`Proposition[1]/@col`); 
 	  " "; edit_for_thm(#line=`Proposition[1]/@line`, #col=`Proposition[1]/@col`);
        }
 
@@ -362,6 +363,43 @@ tpl tptp_for_thm(#line, #col)
     }
   }
 } 
+
+tpl add_ar_iconif(#line,#col) 
+{ 
+   if [$linkby>0] 
+   { 
+      $byurl = 
+      { 
+         choose 
+	 { 
+	    when [$linkby=1] { `concat($lbydir,$anamelc,"/",$line,"_",$col,".html")`; }
+	    when [$linkby=2] { `concat($lbydlicgipref,$anamelc,"/",$line,"_",$col,".dli")`; } 
+	    when [$linkby=3] { `concat($lbytptpcgi,"?article=",$anamelc,"&lc=",$line,"_",$col,"&tmp=",$lbytmpdir,$lbycgiparams)`; } 
+
+	 } 
+      }
+
+      <a { 
+            if[$ajax_by > 0] { add_ajax_attrs(#u=$byurl); }
+	    else
+	    {
+	       @href=$byurl; @class="txt"; 
+	       if[$linkbytoself > 0] {@target="_self"; } else {@target="byATP";} 
+            }
+	    $txt = { mk_by_title(#line=$line,#col=$col); }
+	    if [$by_titles>0] { @title=mk_by_title(#line=$line,#col=$col); }
+	    <img
+	    {
+       	       @src= `concat($ltptproot,"AR.gif")`;
+       	       @alt= $txt;
+	       if [$by_titles>0] { @title = $txt; }
+            }
+	    " ";  
+	 }
+      if[$ajax_by > 0] { <span { " "; } } 
+    }
+}
+
 
 tpl edit_for_thm(#line, #col)
 {
