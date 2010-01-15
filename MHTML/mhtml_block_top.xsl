@@ -1449,10 +1449,7 @@
           </xsl:with-param>
         </xsl:call-template>
       </xsl:element>
-      <xsl:call-template name="add_ar_iconif">
-        <xsl:with-param name="line" select="EndPosition[1]/@line"/>
-        <xsl:with-param name="col" select="EndPosition[1]/@col"/>
-      </xsl:call-template>
+      <!-- add_ar_iconif(#line=`EndPosition[1]/@line`, #col=`EndPosition[1]/@col`); -->
       <xsl:element name="div">
         <xsl:attribute name="class">
           <xsl:text>add</xsl:text>
@@ -1496,10 +1493,7 @@
           </xsl:with-param>
         </xsl:call-template>
       </xsl:element>
-      <xsl:call-template name="add_ar_iconif">
-        <xsl:with-param name="line" select="EndPosition[1]/@line"/>
-        <xsl:with-param name="col" select="EndPosition[1]/@col"/>
-      </xsl:call-template>
+      <!-- add_ar_iconif(#line=`EndPosition[1]/@line`, #col=`EndPosition[1]/@col`); -->
       <xsl:choose>
         <xsl:when test="$ajax_proofs&gt;0">
           <xsl:element name="span">
