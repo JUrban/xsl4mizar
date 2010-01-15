@@ -445,6 +445,11 @@
           <xsl:with-param name="col" select="Proposition[1]/@col"/>
         </xsl:call-template>
         <xsl:text> </xsl:text>
+        <xsl:call-template name="add_ar_iconif">
+          <xsl:with-param name="line" select="Proposition[1]/@line"/>
+          <xsl:with-param name="col" select="Proposition[1]/@col"/>
+        </xsl:call-template>
+        <xsl:text> </xsl:text>
         <xsl:call-template name="edit_for_thm">
           <xsl:with-param name="line" select="Proposition[1]/@line"/>
           <xsl:with-param name="col" select="Proposition[1]/@col"/>
@@ -577,6 +582,88 @@
         </xsl:attribute>
       </xsl:element>
     </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="add_ar_iconif">
+    <xsl:param name="line"/>
+    <xsl:param name="col"/>
+    <xsl:if test="$linkby&gt;0">
+      <xsl:variable name="byurl">
+        <xsl:choose>
+          <xsl:when test="$linkby=1">
+            <xsl:value-of select="concat($lbydir,$anamelc,&quot;/&quot;,$line,&quot;_&quot;,$col,&quot;.html&quot;)"/>
+          </xsl:when>
+          <xsl:when test="$linkby=2">
+            <xsl:value-of select="concat($lbydlicgipref,$anamelc,&quot;/&quot;,$line,&quot;_&quot;,$col,&quot;.dli&quot;)"/>
+          </xsl:when>
+          <xsl:when test="$linkby=3">
+            <xsl:value-of select="concat($lbytptpcgi,&quot;?article=&quot;,$anamelc,&quot;&amp;lc=&quot;,$line,&quot;_&quot;,$col,&quot;&amp;tmp=&quot;,$lbytmpdir,$lbycgiparams)"/>
+          </xsl:when>
+        </xsl:choose>
+      </xsl:variable>
+      <xsl:element name="a">
+        <xsl:choose>
+          <xsl:when test="$ajax_by &gt; 0">
+            <xsl:call-template name="add_ajax_attrs">
+              <xsl:with-param name="u" select="$byurl"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:attribute name="href">
+              <xsl:value-of select="$byurl"/>
+            </xsl:attribute>
+            <xsl:attribute name="class">
+              <xsl:text>txt</xsl:text>
+            </xsl:attribute>
+            <xsl:choose>
+              <xsl:when test="$linkbytoself &gt; 0">
+                <xsl:attribute name="target">
+                  <xsl:text>_self</xsl:text>
+                </xsl:attribute>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:attribute name="target">
+                  <xsl:text>byATP</xsl:text>
+                </xsl:attribute>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:variable name="txt">
+          <xsl:call-template name="mk_by_title">
+            <xsl:with-param name="line" select="$line"/>
+            <xsl:with-param name="col" select="$col"/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:if test="$by_titles&gt;0">
+          <xsl:attribute name="title">
+            <xsl:call-template name="mk_by_title">
+              <xsl:with-param name="line" select="$line"/>
+              <xsl:with-param name="col" select="$col"/>
+            </xsl:call-template>
+          </xsl:attribute>
+        </xsl:if>
+        <xsl:element name="img">
+          <xsl:attribute name="src">
+            <xsl:value-of select="concat($ltptproot,&quot;AR.gif&quot;)"/>
+          </xsl:attribute>
+          <xsl:attribute name="alt">
+            <xsl:value-of select="$txt"/>
+          </xsl:attribute>
+          <xsl:if test="$by_titles&gt;0">
+            <xsl:attribute name="title">
+              <xsl:value-of select="$txt"/>
+            </xsl:attribute>
+          </xsl:if>
+        </xsl:element>
+        <xsl:text> </xsl:text>
+      </xsl:element>
+      <xsl:if test="$ajax_by &gt; 0">
+        <xsl:element name="span">
+          <xsl:text> </xsl:text>
+        </xsl:element>
+      </xsl:if>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template name="edit_for_thm">
