@@ -51,6 +51,7 @@ strip-space "*";
 #srt_s = { "sort"; }
 #frank_s = { "all"; }
 #eq_s = { " = "; }
+#the_s = { "the"; }
 
 #derived_lemma = { "lemma_conjecture"; }
 
@@ -283,6 +284,7 @@ tpl [Func](#i,#pl) {
     if [count(*)>0] { "("; ilist(#separ=",", #elems=`*`, #i=$i,#pl=$pl); ")"; } }
 
 tpl [PrivFunc](#i,#pl) { apply[*[position() = 1]](#i=$i,#pl=$pl); }
+tpl [Choice](#i,#pl) { $the_s; "("; apply[*[position() = 1]](#i=$i,#pl=$pl); ")"; }
 tpl [ErrorTrm](#i,#pl) { "errortrm"; }
 tpl [Fraenkel](#i,#pl) { 
      $j = { if [$i>0] { $i;} else { "0"; } }
