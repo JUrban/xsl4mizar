@@ -1,0 +1,27 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
+// producing the pretty-printing names for constructor
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL constrnames.xsltxt >constrnames.xsl
+
+// Than run e.g. this way:
+// xsltproc constrnames.xsl xboole_0.xml > xboole_0.nam
+
+output method=text;
+
+strip-space "*";
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+tpl [/] { apply[/Environ]; "\n";}
+
+tpl [Environ] { lc(#s=`@aid`); ": "; apply; }
+
+tpl [Directive] { "("; lc(#s=`@name`); apply; ") "; }
+tpl [Ident] { " "; lc(#s=`@name`); " "; }
