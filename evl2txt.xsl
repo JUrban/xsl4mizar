@@ -2,11 +2,11 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <!-- XSLTXT (https://xsltxt.dev.java.net/) stylesheet -->
-  <!-- producing the pretty-printing names for constructor -->
+  <!-- producing one line of text for the .evl file with environ declarations -->
   <!-- To produce standard XSLT from this do e.g.: -->
-  <!-- java -jar xsltxt.jar toXSL constrnames.xsltxt >constrnames.xsl -->
+  <!-- java -jar xsltxt.jar toXSL evl2txt.xsltxt >evl2txt.xsl -->
   <!-- Than run e.g. this way: -->
-  <!-- xsltproc constrnames.xsl xboole_0.xml > xboole_0.nam -->
+  <!-- xsltproc evl2txt.xsl xboole_0.evl -->
   <xsl:output method="text"/>
   <xsl:strip-space elements="*"/>
   <xsl:variable name="lcletters">
@@ -54,6 +54,5 @@
     <xsl:call-template name="lc">
       <xsl:with-param name="s" select="@name"/>
     </xsl:call-template>
-    <xsl:text> </xsl:text>
   </xsl:template>
 </xsl:stylesheet>
