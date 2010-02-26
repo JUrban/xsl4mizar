@@ -2029,7 +2029,7 @@ tpl [ByExplanations](#i,#pl) { for-each [Typ] { if[position() = 2] { "non"; } "z
 tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Thesis|//PerCasesReasoning|/ByExplanations]; }
+	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations]; }
 	  else { apply; } }
 
 
