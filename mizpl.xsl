@@ -5085,7 +5085,7 @@
         <xsl:apply-templates select="//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Thesis|//PerCasesReasoning|/ByExplanations"/>
+	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates/>
