@@ -33,10 +33,6 @@
   </xsl:template>
 
   <xsl:template match="Environ">
-    <xsl:call-template name="lc">
-      <xsl:with-param name="s" select="@aid"/>
-    </xsl:call-template>
-    <xsl:text>: </xsl:text>
     <xsl:apply-templates/>
   </xsl:template>
 
