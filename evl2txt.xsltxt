@@ -23,5 +23,5 @@ tpl [/] { apply[/Environ]; "\n";}
 
 tpl [Environ] { apply; }
 
-tpl [Directive] { "("; lc(#s=`@name`); apply; ") "; }
+tpl [Directive] { "("; lc(#s=`@name`); apply; ")\n"; }
 tpl [Ident] { " "; lc(#s=`@name`);}

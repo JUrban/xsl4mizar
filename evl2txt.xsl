@@ -42,7 +42,8 @@
       <xsl:with-param name="s" select="@name"/>
     </xsl:call-template>
     <xsl:apply-templates/>
-    <xsl:text>) </xsl:text>
+    <xsl:text>)
+</xsl:text>
   </xsl:template>
 
   <xsl:template match="Ident">
