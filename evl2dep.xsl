@@ -36,8 +36,12 @@
     <xsl:call-template name="lc">
       <xsl:with-param name="s" select="@aid"/>
     </xsl:call-template>
-    <xsl:text>.dep</xsl:text>
+    <xsl:text>-dep</xsl:text>
     <xsl:text>: </xsl:text>
+    <xsl:call-template name="lc">
+      <xsl:with-param name="s" select="@aid"/>
+    </xsl:call-template>
+    <xsl:text>.miz</xsl:text>
     <xsl:apply-templates/>
   </xsl:template>
 
