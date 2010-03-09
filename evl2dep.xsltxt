@@ -21,7 +21,7 @@ tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
 
 tpl [/] { apply[/Environ]; "\n";}
 
-tpl [Environ] { lc(#s=`@aid`); ".dep"; ": "; apply; }
+tpl [Environ] { lc(#s=`@aid`); "-dep"; ": "; lc(#s=`@aid`); ".miz"; apply; }
 
 tpl [Directive] {  if[@name="Notations" or @name="Definitions" or @name="Theorems" or @name="Schemes" or @name="Registrations" or @name="Constructors"] { apply[Ident]; } }
 tpl [Ident] { " "; lc(#s=`@name`); "-prel";}
