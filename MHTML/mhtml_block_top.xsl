@@ -754,24 +754,25 @@
       <xsl:attribute name="class">
         <xsl:text>hide</xsl:text>
       </xsl:attribute>
-      <xsl:element name="div">
-        <xsl:attribute name="class">
-          <xsl:text>add</xsl:text>
-        </xsl:attribute>
-        <xsl:choose>
-          <xsl:when test="Proposition/Verum">
-            <xsl:call-template name="pkeyword">
-              <xsl:with-param name="str">
-                <xsl:text>canceled; </xsl:text>
-              </xsl:with-param>
-            </xsl:call-template>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:apply-templates select="*[1]/*[1]"/>
-            <xsl:text>;</xsl:text>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:element>
+      <!-- ##NOTE: div is not allowed inside span -->
+      <!-- <div -->
+      <!-- { -->
+      <!-- @class = "add"; -->
+      <xsl:choose>
+        <xsl:when test="Proposition/Verum">
+          <xsl:call-template name="pkeyword">
+            <xsl:with-param name="str">
+              <xsl:text>canceled; </xsl:text>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="*[1]/*[1]"/>
+          <xsl:text>;</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+      <!-- } -->
+      <xsl:element name="br"/>
     </xsl:element>
   </xsl:template>
 

@@ -3238,9 +3238,10 @@ tpl dt
   { 
      @class = "hide"; 
 
-     <div 
-     {   
-        @class = "add"; 
+// ##NOTE: div is not allowed inside span
+//     <div 
+//     {   
+//        @class = "add"; 
 
 	if [Proposition/Verum] 
 	{ 
@@ -3250,7 +3251,8 @@ tpl dt
 	{ 
 	   apply[*[1]/*[1]];  ";"; 
 	}  
-     } 
+//     }
+       <br; 
   }
 }
 
