@@ -8383,11 +8383,6 @@ return tstp_dump;
                           <xsl:text>Gitweb</xsl:text>
                         </xsl:element>
                       </xsl:element>
-                      <xsl:element name="li">
-                        <xsl:text>Clone:</xsl:text>
-                        <xsl:value-of select="$lgitclone"/>
-                        <xsl:element name="br"/>
-                      </xsl:element>
                     </xsl:element>
                   </xsl:element>
                 </xsl:if>

@@ -4146,7 +4146,7 @@ return tstp_dump;
 		<li {  <a { @href=`concat("../discussion/",$anamelc, ".html")`; "Discussion"; } }
 		<li {  <a { @href="../index.html"; "Index"; } }
 		<li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject)`; "Gitweb"; } }
-		<li {  "Clone:"; $lgitclone; <br; }
+//		<li {  "Clone:"; $lgitclone; <br; }
                }
             }
         }
