@@ -169,6 +169,35 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // add links to tptp files for thms
 #thms_tptp_links = { "0"; }
 
+// add editing, history, and possibly other links for wiki
+// the namespace for the scripts is taken from #ltptproot
+#wiki_links = { "0"; }
+
+// domain name of the "wiki" server
+#lwikihost = { "mws.cs.ru.nl"; }
+
+// URL of the "wiki" server
+#lwikiserver = { `concat("http://",$lwikihost)`; }
+
+// URL of the "wiki" editing cgi, calling the main editing script
+#leditcgi= { `concat($lwikiserver,"/cgi-bin/mwiki/edit.cgi")`; }
+
+// URL of the "wiki" raw cgi, showing the raw file
+#lrawcgi= { `concat($lwikiserver,"/cgi-bin/mwiki/raw.cgi")`; }
+
+// URL of the "gitweb" cgi, showing git history
+#lgitwebcgi= { `concat($lwikiserver,":1234/")`; }
+
+// name of the git repository (project) in which this page is contained -
+// used for gitweb history
+#lgitproject= { "mw1.git"; }
+
+// git clone address used for wiki cloning
+#lgitclone = { `concat("git://",$lwikihost,"/git/", $lgitproject)`; }
+
+// http clone address used for wiki cloning
+#lhttpclone = { `concat("http://",$lwikihost,"/git/", $lgitproject)`; }
+
 // tells if linkage of proof elements is done; default is off
 #proof_links = { "0"; }
 
@@ -3977,13 +4006,15 @@ div { padding: 0 0 0 0; margin: 0 0 0 0; }
 div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
 div.box { border-width:thin; border-color:blue; border-style:solid; }
 p { margin: 0 0 0 0; } 
-body {font-family: monospace;}
+body {font-family: monospace; margin: 0px;}
 a {text-decoration:none} a:hover { color: red; } 
 a.ref { font-size:x-small; }
 a.ref:link { color:green; } 
 a.ref:hover { color: red; } 
 a.txt:link { color:black; } 
 a.txt:hover { color: red; } 
+.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
+.wikiactions li { display: inline; padding: .2em .4em; }
 span.kw {font-weight: bold; }
 span.lab {font-style: italic; }
 span.comment {font-style: italic; }
@@ -4101,6 +4132,24 @@ return tstp_dump;
 // "; }
 }
         <body {  
+
+	if[$wiki_links=1]
+	{
+	   <div 
+	   {  
+	      @class="wikiactions";
+	      <ul
+	      {
+	        <li {  <a { @href=`concat($leditcgi,"?p=",$lgitproject,";f=mml/",$anamelc,".miz")`; @rel="nofollow"; "Edit"; } }
+	        <li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject,";a=history;f=mml/",$anamelc,".miz")`; "History"; } }
+		<li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject,";a=blob_plain;f=mml/",$anamelc,".miz")`; @rel="nofollow"; "Raw"; } }
+		<li {  <a { @href=`concat("../discussion/",$anamelc, ".html")`; "Discussion"; } }
+		<li {  <a { @href="../index.html"; "Index"; } }
+		<li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject)`; "Gitweb"; } }
+		<li {  "Clone:"; $lgitclone; <br; }
+               }
+            }
+        }
 
 	if[$mk_header > 0] { apply[document($hdr,/)/Header/*]; <br; }
 

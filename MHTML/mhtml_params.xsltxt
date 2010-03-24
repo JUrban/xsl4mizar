@@ -123,6 +123,35 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // add links to tptp files for thms
 #thms_tptp_links = { "0"; }
 
+// add editing, history, and possibly other links for wiki
+// the namespace for the scripts is taken from #ltptproot
+#wiki_links = { "0"; }
+
+// domain name of the "wiki" server
+#lwikihost = { "mws.cs.ru.nl"; }
+
+// URL of the "wiki" server
+#lwikiserver = { `concat("http://",$lwikihost)`; }
+
+// URL of the "wiki" editing cgi, calling the main editing script
+#leditcgi= { `concat($lwikiserver,"/cgi-bin/mwiki/edit.cgi")`; }
+
+// URL of the "wiki" raw cgi, showing the raw file
+#lrawcgi= { `concat($lwikiserver,"/cgi-bin/mwiki/raw.cgi")`; }
+
+// URL of the "gitweb" cgi, showing git history
+#lgitwebcgi= { `concat($lwikiserver,":1234/")`; }
+
+// name of the git repository (project) in which this page is contained -
+// used for gitweb history
+#lgitproject= { "mw1.git"; }
+
+// git clone address used for wiki cloning
+#lgitclone = { `concat("git://",$lwikihost,"/git/", $lgitproject)`; }
+
+// http clone address used for wiki cloning
+#lhttpclone = { `concat("http://",$lwikihost,"/git/", $lgitproject)`; }
+
 // tells if linkage of proof elements is done; default is off
 #proof_links = { "0"; }
 

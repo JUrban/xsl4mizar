@@ -155,6 +155,44 @@
   <xsl:param name="thms_tptp_links">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- add editing, history, and possibly other links for wiki -->
+  <!-- the namespace for the scripts is taken from #ltptproot -->
+  <xsl:param name="wiki_links">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- domain name of the "wiki" server -->
+  <xsl:param name="lwikihost">
+    <xsl:text>mws.cs.ru.nl</xsl:text>
+  </xsl:param>
+  <!-- URL of the "wiki" server -->
+  <xsl:param name="lwikiserver">
+    <xsl:value-of select="concat(&quot;http://&quot;,$lwikihost)"/>
+  </xsl:param>
+  <!-- URL of the "wiki" editing cgi, calling the main editing script -->
+  <xsl:param name="leditcgi">
+    <xsl:value-of select="concat($lwikiserver,&quot;/cgi-bin/mwiki/edit.cgi&quot;)"/>
+  </xsl:param>
+  <!-- URL of the "wiki" raw cgi, showing the raw file -->
+  <xsl:param name="lrawcgi">
+    <xsl:value-of select="concat($lwikiserver,&quot;/cgi-bin/mwiki/raw.cgi&quot;)"/>
+  </xsl:param>
+  <!-- URL of the "gitweb" cgi, showing git history -->
+  <xsl:param name="lgitwebcgi">
+    <xsl:value-of select="concat($lwikiserver,&quot;:1234/&quot;)"/>
+  </xsl:param>
+  <!-- name of the git repository (project) in which this page is contained - -->
+  <!-- used for gitweb history -->
+  <xsl:param name="lgitproject">
+    <xsl:text>mw1.git</xsl:text>
+  </xsl:param>
+  <!-- git clone address used for wiki cloning -->
+  <xsl:param name="lgitclone">
+    <xsl:value-of select="concat(&quot;git://&quot;,$lwikihost,&quot;/git/&quot;, $lgitproject)"/>
+  </xsl:param>
+  <!-- http clone address used for wiki cloning -->
+  <xsl:param name="lhttpclone">
+    <xsl:value-of select="concat(&quot;http://&quot;,$lwikihost,&quot;/git/&quot;, $lgitproject)"/>
+  </xsl:param>
   <!-- tells if linkage of proof elements is done; default is off -->
   <xsl:param name="proof_links">
     <xsl:text>0</xsl:text>
