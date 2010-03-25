@@ -168,9 +168,9 @@
   <xsl:param name="lwikiserver">
     <xsl:value-of select="concat(&quot;http://&quot;,$lwikihost)"/>
   </xsl:param>
-  <!-- URL of the "wiki" editing cgi, calling the main editing script -->
-  <xsl:param name="leditcgi">
-    <xsl:value-of select="concat($lwikiserver,&quot;/cgi-bin/mwiki/edit.cgi&quot;)"/>
+  <!-- URL of the "mwiki" cgi, used for mwiki actions -->
+  <xsl:param name="lmwikicgi">
+    <xsl:value-of select="concat($lwikiserver,&quot;/cgi-bin/mwiki/mwiki.cgi&quot;)"/>
   </xsl:param>
   <!-- URL of the "wiki" raw cgi, showing the raw file -->
   <xsl:param name="lrawcgi">

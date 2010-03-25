@@ -133,8 +133,8 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // URL of the "wiki" server
 #lwikiserver = { `concat("http://",$lwikihost)`; }
 
-// URL of the "wiki" editing cgi, calling the main editing script
-#leditcgi= { `concat($lwikiserver,"/cgi-bin/mwiki/edit.cgi")`; }
+// URL of the "mwiki" cgi, used for mwiki actions
+#lmwikicgi= { `concat($lwikiserver,"/cgi-bin/mwiki/mwiki.cgi")`; }
 
 // URL of the "wiki" raw cgi, showing the raw file
 #lrawcgi= { `concat($lwikiserver,"/cgi-bin/mwiki/raw.cgi")`; }
