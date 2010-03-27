@@ -210,6 +210,7 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // tells if proofs are fetched through AJAX; default is off
 // value 2 tells to produce the proofs, but not to insert the ajax calls,
 // and instead insert tags for easy regexp-based post-insertion of files
+// value 3 uses the ltmpftptpcgi to fetch the proof in the ajax request - like for by
 #ajax_proofs = { "0"; }
 
 // the dir with proofs that are fetched through AJAX
@@ -3674,10 +3675,11 @@ tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock
 // (now done as perl postproc)
 // if you want ajax_proofs
 tpl [Proof] {
-    $nm = `concat($ajax_proof_dir,"/",$anamelc,"/",@newlevel)`;
+    $nm0 = `concat($ajax_proof_dir,"/",$anamelc,"/",@newlevel)`;
+    $nm =  { if[$ajax_proofs=3] { `concat($ltmpftptpcgi,"?tmp=",$lbytmpdir,"&raw=1","&file=",$nm)`; } else { $nm0; } }
     <div { 
 	 <a { 
-	    if [$ajax_proofs=1]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
+	    if [($ajax_proofs=1) or ($ajax_proofs=3)]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
 	    if [$proof_links>0] { @title=`@newlevel`; } 
 	    pkeyword(#str="proof "); 
 	    }

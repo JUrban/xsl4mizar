@@ -207,6 +207,7 @@
   <!-- tells if proofs are fetched through AJAX; default is off -->
   <!-- value 2 tells to produce the proofs, but not to insert the ajax calls, -->
   <!-- and instead insert tags for easy regexp-based post-insertion of files -->
+  <!-- value 3 uses the ltmpftptpcgi to fetch the proof in the ajax request - like for by -->
   <xsl:param name="ajax_proofs">
     <xsl:text>0</xsl:text>
   </xsl:param>

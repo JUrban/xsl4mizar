@@ -164,6 +164,7 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // tells if proofs are fetched through AJAX; default is off
 // value 2 tells to produce the proofs, but not to insert the ajax calls,
 // and instead insert tags for easy regexp-based post-insertion of files
+// value 3 uses the ltmpftptpcgi to fetch the proof in the ajax request - like for by
 #ajax_proofs = { "0"; }
 
 // the dir with proofs that are fetched through AJAX

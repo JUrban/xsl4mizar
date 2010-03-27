@@ -239,6 +239,7 @@
   <!-- tells if proofs are fetched through AJAX; default is off -->
   <!-- value 2 tells to produce the proofs, but not to insert the ajax calls, -->
   <!-- and instead insert tags for easy regexp-based post-insertion of files -->
+  <!-- value 3 uses the ltmpftptpcgi to fetch the proof in the ajax request - like for by -->
   <xsl:param name="ajax_proofs">
     <xsl:text>0</xsl:text>
   </xsl:param>
@@ -7554,11 +7555,21 @@
   <!-- (now done as perl postproc) -->
   <!-- if you want ajax_proofs -->
   <xsl:template match="Proof">
-    <xsl:variable name="nm" select="concat($ajax_proof_dir,&quot;/&quot;,$anamelc,&quot;/&quot;,@newlevel)"/>
+    <xsl:variable name="nm0" select="concat($ajax_proof_dir,&quot;/&quot;,$anamelc,&quot;/&quot;,@newlevel)"/>
+    <xsl:variable name="nm">
+      <xsl:choose>
+        <xsl:when test="$ajax_proofs=3">
+          <xsl:value-of select="concat($ltmpftptpcgi,&quot;?tmp=&quot;,$lbytmpdir,&quot;&amp;raw=1&quot;,&quot;&amp;file=&quot;,$nm)"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$nm0"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
     <xsl:element name="div">
       <xsl:element name="a">
         <xsl:choose>
-          <xsl:when test="$ajax_proofs=1">
+          <xsl:when test="($ajax_proofs=1) or ($ajax_proofs=3)">
             <xsl:call-template name="add_ajax_attrs">
               <xsl:with-param name="u" select="$nm"/>
             </xsl:call-template>
