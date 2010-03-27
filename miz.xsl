@@ -7559,7 +7559,7 @@
     <xsl:variable name="nm">
       <xsl:choose>
         <xsl:when test="$ajax_proofs=3">
-          <xsl:value-of select="concat($ltmpftptpcgi,&quot;?tmp=&quot;,$lbytmpdir,&quot;&amp;raw=1&quot;,&quot;&amp;file=&quot;,$nm)"/>
+          <xsl:value-of select="concat($ltmpftptpcgi,&quot;?tmp=&quot;,$lbytmpdir,&quot;&amp;raw=1&quot;,&quot;&amp;file=&quot;,$nm0)"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="$nm0"/>
