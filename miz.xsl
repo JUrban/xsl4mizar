@@ -204,6 +204,10 @@
   <xsl:param name="lmwikicgi">
     <xsl:value-of select="concat($lwikiserver,&quot;/cgi-bin/mwiki/mwiki.cgi&quot;)"/>
   </xsl:param>
+  <!-- name of the index page for wiki -->
+  <xsl:param name="lmwikiindex">
+    <xsl:text>00INDEX.html</xsl:text>
+  </xsl:param>
   <!-- URL of the "wiki" raw cgi, showing the raw file -->
   <xsl:param name="lrawcgi">
     <xsl:value-of select="concat($lwikiserver,&quot;/cgi-bin/mwiki/raw.cgi&quot;)"/>
@@ -8370,18 +8374,11 @@ return tstp_dump;
                           <xsl:text>Raw</xsl:text>
                         </xsl:element>
                       </xsl:element>
+                      <!-- <li {  <a { @href=`concat("../discussion/",$anamelc, ".html")`; "Discussion"; } } -->
                       <xsl:element name="li">
                         <xsl:element name="a">
                           <xsl:attribute name="href">
-                            <xsl:value-of select="concat(&quot;../discussion/&quot;,$anamelc, &quot;.html&quot;)"/>
-                          </xsl:attribute>
-                          <xsl:text>Discussion</xsl:text>
-                        </xsl:element>
-                      </xsl:element>
-                      <xsl:element name="li">
-                        <xsl:element name="a">
-                          <xsl:attribute name="href">
-                            <xsl:text>../index.html</xsl:text>
+                            <xsl:value-of select="$lmwikiindex"/>
                           </xsl:attribute>
                           <xsl:text>Index</xsl:text>
                         </xsl:element>

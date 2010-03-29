@@ -136,6 +136,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // URL of the "mwiki" cgi, used for mwiki actions
 #lmwikicgi= { `concat($lwikiserver,"/cgi-bin/mwiki/mwiki.cgi")`; }
 
+// name of the index page for wiki
+#lmwikiindex= { "00INDEX.html"; }
+
 // URL of the "wiki" raw cgi, showing the raw file
 #lrawcgi= { `concat($lwikiserver,"/cgi-bin/mwiki/raw.cgi")`; }
 

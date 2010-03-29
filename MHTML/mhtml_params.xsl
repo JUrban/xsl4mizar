@@ -172,6 +172,10 @@
   <xsl:param name="lmwikicgi">
     <xsl:value-of select="concat($lwikiserver,&quot;/cgi-bin/mwiki/mwiki.cgi&quot;)"/>
   </xsl:param>
+  <!-- name of the index page for wiki -->
+  <xsl:param name="lmwikiindex">
+    <xsl:text>00INDEX.html</xsl:text>
+  </xsl:param>
   <!-- URL of the "wiki" raw cgi, showing the raw file -->
   <xsl:param name="lrawcgi">
     <xsl:value-of select="concat($lwikiserver,&quot;/cgi-bin/mwiki/raw.cgi&quot;)"/>

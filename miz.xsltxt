@@ -182,6 +182,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // URL of the "mwiki" cgi, used for mwiki actions
 #lmwikicgi= { `concat($lwikiserver,"/cgi-bin/mwiki/mwiki.cgi")`; }
 
+// name of the index page for wiki
+#lmwikiindex= { "00INDEX.html"; }
+
 // URL of the "wiki" raw cgi, showing the raw file
 #lrawcgi= { `concat($lwikiserver,"/cgi-bin/mwiki/raw.cgi")`; }
 
@@ -4145,8 +4148,8 @@ return tstp_dump;
 	        <li {  <a { @href=`concat($lmwikicgi,"?p=",$lgitproject,";a=edit;f=mml/",$anamelc,".miz")`; @rel="nofollow"; "Edit"; } }
 	        <li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject,";a=history;f=mml/",$anamelc,".miz")`; "History"; } }
 		<li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject,";a=blob_plain;f=mml/",$anamelc,".miz")`; @rel="nofollow"; "Raw"; } }
-		<li {  <a { @href=`concat("../discussion/",$anamelc, ".html")`; "Discussion"; } }
-		<li {  <a { @href="../index.html"; "Index"; } }
+//		<li {  <a { @href=`concat("../discussion/",$anamelc, ".html")`; "Discussion"; } }
+		<li {  <a { @href=$lmwikiindex; "Index"; } }
 		<li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject)`; "Gitweb"; } }
 //		<li {  "Clone:"; $lgitclone; <br; }
                }
