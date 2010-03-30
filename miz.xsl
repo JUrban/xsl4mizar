@@ -8208,6 +8208,7 @@ a.txt:link { color:black; }
 a.txt:hover { color: red; } 
 .wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
 .wikiactions li { display: inline; padding: .2em .4em; }
+.wikiactions a {text-decoration:underline;} 
 span.kw {font-weight: bold; }
 span.lab {font-style: italic; }
 span.comment {font-style: italic; }
@@ -8358,7 +8359,7 @@ return tstp_dump;
                       <xsl:element name="li">
                         <xsl:element name="a">
                           <xsl:attribute name="href">
-                            <xsl:value-of select="concat($lgitwebcgi,&quot;?p=&quot;,$lgitproject,&quot;;a=history;f=mml/&quot;,$anamelc,&quot;.miz&quot;)"/>
+                            <xsl:value-of select="concat($lmwikicgi,&quot;?p=&quot;,$lgitproject,&quot;;a=history;f=mml/&quot;,$anamelc,&quot;.miz&quot;)"/>
                           </xsl:attribute>
                           <xsl:text>History</xsl:text>
                         </xsl:element>
@@ -8366,7 +8367,7 @@ return tstp_dump;
                       <xsl:element name="li">
                         <xsl:element name="a">
                           <xsl:attribute name="href">
-                            <xsl:value-of select="concat($lgitwebcgi,&quot;?p=&quot;,$lgitproject,&quot;;a=blob_plain;f=mml/&quot;,$anamelc,&quot;.miz&quot;)"/>
+                            <xsl:value-of select="concat($lmwikicgi,&quot;?p=&quot;,$lgitproject,&quot;;a=blob_plain;f=mml/&quot;,$anamelc,&quot;.miz&quot;)"/>
                           </xsl:attribute>
                           <xsl:attribute name="rel">
                             <xsl:text>nofollow</xsl:text>
@@ -8386,7 +8387,7 @@ return tstp_dump;
                       <xsl:element name="li">
                         <xsl:element name="a">
                           <xsl:attribute name="href">
-                            <xsl:value-of select="concat($lgitwebcgi,&quot;?p=&quot;,$lgitproject)"/>
+                            <xsl:value-of select="concat($lmwikicgi,&quot;?p=&quot;,$lgitproject)"/>
                           </xsl:attribute>
                           <xsl:text>Gitweb</xsl:text>
                         </xsl:element>

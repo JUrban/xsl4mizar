@@ -4020,6 +4020,7 @@ a.txt:link { color:black; }
 a.txt:hover { color: red; } 
 .wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
 .wikiactions li { display: inline; padding: .2em .4em; }
+.wikiactions a {text-decoration:underline;} 
 span.kw {font-weight: bold; }
 span.lab {font-style: italic; }
 span.comment {font-style: italic; }
@@ -4146,11 +4147,11 @@ return tstp_dump;
 	      <ul
 	      {
 	        <li {  <a { @href=`concat($lmwikicgi,"?p=",$lgitproject,";a=edit;f=mml/",$anamelc,".miz")`; @rel="nofollow"; "Edit"; } }
-	        <li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject,";a=history;f=mml/",$anamelc,".miz")`; "History"; } }
-		<li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject,";a=blob_plain;f=mml/",$anamelc,".miz")`; @rel="nofollow"; "Raw"; } }
+	        <li {  <a { @href=`concat($lmwikicgi,"?p=",$lgitproject,";a=history;f=mml/",$anamelc,".miz")`; "History"; } }
+		<li {  <a { @href=`concat($lmwikicgi,"?p=",$lgitproject,";a=blob_plain;f=mml/",$anamelc,".miz")`; @rel="nofollow"; "Raw"; } }
 //		<li {  <a { @href=`concat("../discussion/",$anamelc, ".html")`; "Discussion"; } }
 		<li {  <a { @href=$lmwikiindex; "Index"; } }
-		<li {  <a { @href=`concat($lgitwebcgi,"?p=",$lgitproject)`; "Gitweb"; } }
+		<li {  <a { @href=`concat($lmwikicgi,"?p=",$lgitproject)`; "Gitweb"; } }
 //		<li {  "Clone:"; $lgitclone; <br; }
                }
             }
