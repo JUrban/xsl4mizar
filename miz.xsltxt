@@ -4151,7 +4151,7 @@ return tstp_dump;
 		<li {  <a { @href=`concat($lmwikicgi,"?p=",$lgitproject,";a=blob_plain;f=mml/",$anamelc,".miz")`; @rel="nofollow"; "Raw"; } }
 //		<li {  <a { @href=`concat("../discussion/",$anamelc, ".html")`; "Discussion"; } }
 		<li {  <a { @href=$lmwikiindex; "Index"; } }
-		<li {  <a { @href=`concat($lmwikicgi,"?p=",$lgitproject)`; "Gitweb"; } }
+		<li {  <a { @href=`concat($lmwikicgi,"?p=",$lgitproject,";a=gitweb")`; "Gitweb"; } }
 //		<li {  "Clone:"; $lgitclone; <br; }
                }
             }

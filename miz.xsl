@@ -8387,7 +8387,7 @@ return tstp_dump;
                       <xsl:element name="li">
                         <xsl:element name="a">
                           <xsl:attribute name="href">
-                            <xsl:value-of select="concat($lmwikicgi,&quot;?p=&quot;,$lgitproject)"/>
+                            <xsl:value-of select="concat($lmwikicgi,&quot;?p=&quot;,$lgitproject,&quot;;a=gitweb&quot;)"/>
                           </xsl:attribute>
                           <xsl:text>Gitweb</xsl:text>
                         </xsl:element>
