@@ -1032,7 +1032,7 @@ tpl argtypes(#el)
 // environmental constructors, or constructor retrieved from other file
 // #argt is explicit list of argument types, useful for
 // getting the @vid (identifier numbers) of loci
-// #nrt tells not to showthe result type(s)
+// #nrt tells not to show the result type(s)
 // #old says that the constructor is from a redefinition and not new,
 //      so an anchor should not be created
 tpl [Constructor](#indef,#nl,#argt,#nrt,#old) 
