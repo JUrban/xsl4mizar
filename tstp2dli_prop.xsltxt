@@ -1,0 +1,176 @@
+stylesheet "1.0";
+
+output method=text;
+
+
+// $Revision: 1.6 $
+//
+// File: mizpl.xsltxt - stylesheet translating TSTP XML solutions to MML Query DLI syntax
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// TSTP XML solutions to MML Query DLI syntax
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL tstp2dli.xsltxt >tstp2dli.xsl
+
+
+strip-space "*";
+
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+// directory with articles in html; we assume it is one level up
+// #baseurl= { "http://lipa.ms.mff.cuni.cz/~urban/xmlmml/html.930/"; }
+#baseurl= { "../"; }
+
+// name of article from which this by-explanation comes;
+// needs to be passed as a parameter!!
+#anamelc= { "current_article"; }
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+
+
+// MML Query needs numbers for proper display of indeces, 
+// hence this poor-man's numberization of proof-levels
+tpl usto0(#s) { `translate($s, "_", "0")`; }
+
+tpl [tstp] { ":: <h3><center><a href=\"http://mmlquery.mizar.org\">MML Query</a> rendering of ATP proof steps</center></h3><br/>\n"; apply; }
+tpl [formula] { 
+    ":: "; "<a name=\""; `@name`; "\"/> ";
+    if [source/non-logical-data[@name='file']] { 
+       `@status`; ": ";
+       for-each [source/non-logical-data[@name='file']/*[2]] { get_mizar_url(#nm=`@name`); }
+    }
+    else {
+      for-each [source/non-logical-data[@name='inference']] { 
+	 "inference: "; apply[.];
+      }
+    }
+     `@name`;
+    "<br/>\n";
+    "Z:"; `@name`; " 0="; apply[*[1]]; "\n"; 
+}
+tpl [quantifier/variable] { "$for("; pvar(#nm=`@name`); ",$type(HIDDEN:mode 1),"; }
+tpl [variable] { pvar(#nm=`@name`); }
+tpl [quantifier] { 
+    if [@type='existential'] { "$not("; apply[variable]; "$not(";  apply[*[position() = last()]]; "))"; }
+    else { apply; }
+    for-each [variable] { ")"; }
+}
+tpl [negation|] { "$not("; apply; ")"; } 
+tpl [function|predicate] { 
+    if [name(..)="quantifier"] { "("; }
+    $tc = { if[@name='='] { transl_constr(#nm="r1_hidden");} else { transl_constr(#nm=`@name`); } }
+    if [contains($tc, ":attr") or contains($tc, ":mode")  or contains($tc, ":struct")] {
+       "$is("; apply[*[1]]; ","; $tc; 
+       "("; ilist(#separ=",", #elems=`*[position()>1]`); ")"; ")";
+    }   
+    else { $tc; "("; ilist(#separ=",", #elems=`*`); ")"; }
+    if [name(..)="quantifier"] { ")"; }
+}
+tpl [conjunction] { "$and("; ilist(#separ=",", #elems=`*`); ")"; } 
+tpl [disjunction] { "$not($and("; notlist(#separ=",", #elems=`*`); "))"; } 
+tpl [implication] { "$not($and("; apply[*[1]]; ","; "$not("; apply[*[2]]; ")))"; }
+tpl [equivalence] {  
+    "$and(";
+    "$not($and("; apply[*[1]]; ","; "$not("; apply[*[2]]; ")))"; ",";
+    "$not($and("; apply[*[2]]; ","; "$not("; apply[*[1]]; ")))";
+    ")";
+}
+tpl [defined-predicate[@name='equal']]  { 
+    if [name(..)="quantifier"] { "("; }
+    transl_constr(#nm="r1_hidden"); "("; ilist(#separ=",", #elems=`*`); ")";
+    if [name(..)="quantifier"] { ")"; }
+ }
+tpl [defined-predicate[@name='false']]  { "$not($verum)"; } 
+tpl [defined-predicate[@name='true']]  { "$verum"; } 
+
+tpl [non-logical-data] { 
+    // there can be embedded inferences
+    if [@name='inference'] { 
+       for-each [*[1]] { `@name`; } 
+       "("; ilist(#separ=",", #elems=`*[3]/*[not(@name='theory')]`); ")";
+    }
+    else { "<a href=\"#"; `@name`; "\">"; `@name`; "</a>"; } }
+
+tpl transl_constr(#nm) {
+    $pref = `substring-before($nm,"_")`;
+    if [$pref] {
+       $k = `substring($pref,1,1)`;
+       $nr = `substring($pref,2)`;
+       $art = `substring-after($nm,"_")`;
+       // test if $nr is digit
+       if [$nr >= 0] {
+	  if [$k="c"] 
+	  {
+	  $lev = `substring-before($art,"__")`; 
+	  "$"; $pref; " "; usto0(#s=$lev);
+	  }
+	  else { uc(#s=$art); ":"; mkind(#kind=$k); " "; $nr; }
+	  }
+       else { 
+       // test for skolem - esk3_4, epred1_2
+	  $esk = `substring($pref,1,3)`;
+	  if [$esk="esk" or $esk="epr"] { "$"; $pref; " "; $art;}
+	  else { $nm; }
+       }
+    }
+    else { $nm; }
+}
+
+tpl get_mizar_url(#nm) {
+    $pref = `substring-before($nm,"_")`;
+    if [$pref] {
+    $k = `substring($pref,1,1)`;
+    $k2 = `substring($pref,2,1)`;
+    $nr = { if [$k2>0] { `substring($pref,2)`;} else { `substring($pref,3)`;} }
+    $art = `substring-after($nm,"_")`;
+    choose {
+      when [$k="t"] { "<a href=\""; $baseurl; $art; ".html#T"; $nr; "\">"; $nm; "</a>";}
+      when [$k="l"] { "<a href=\""; $baseurl; $art; ".html#E"; $nr; "\">"; $nm; "</a>";}
+      when [$k="e"] { "<a href=\""; $baseurl; $anamelc; ".html#E"; $nr; ":"; $art; "\">"; $nm; "</a>";}
+      when [($k="d") and ($k2>0)] { "<a href=\""; $baseurl; $art; ".html#D"; $nr; "\">"; $nm; "</a>";}
+      when [($k2="c") and (($k="f") or ($k="c") or ($k="r"))] 
+	   { "<a href=\""; $baseurl; $art; ".html#"; uc(#s=$pref); "\">"; $nm; "</a>";}
+      otherwise { $nm; }
+    } 
+    }
+    else { $nm; }
+}
+
+tpl pvar(#nm) { 
+    $l = `substring($nm,1,1)`;
+    $nr = `substring($nm,2)`;
+    // test if $nr is digit
+    if [$nr >= 0] { "$"; $l; " "; $nr; }
+    else { "$"; $nm; " "; "0";}
+}
+
+tpl ilist(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $separ; } }
+}
+
+tpl notlist(#separ,#elems) { 
+ for-each [$elems] {
+  "$not("; apply[.]; ")"; if [not(position()=last())] { $separ; } }
+}
+
+tpl mkind(#kind) {
+   choose { 
+      when [$kind = 'm'] { "mode";}
+      when [$kind = 'v'] { "attr";}
+      when [$kind = 'r'] { "pred";}
+      when [$kind = 'k'] { "func";}
+      when [$kind = 'g'] { "aggr";}
+      when [$kind = 'l'] { "struct";}
+      when [$kind = 'u'] { "sel";}
+ }}
