@@ -1,0 +1,35 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet producing one line
+// of MPTP for the .evl file with environ declarations this has to be
+// typically postprocesed by a perl script reading recursive
+// constructor info from the.sgl file.
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL evl2pl.xsltxt >evl2pl.xsl
+
+// Than run e.g. this way:
+// xsltproc evl2pl.xsl xboole_0.evl
+
+output method=text;
+
+strip-space "*";
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+tpl [/] { apply[/Environ]; "\n";}
+
+tpl [Environ] { "theory("; lc(#s=`@aid`); ",["; list(#separ=",", #elems=`Directive`); "]).\n";}
+
+tpl [Directive] { lc(#s=`@name`); "(["; list(#separ=",", #elems=`Ident`); "])"; }
+
+tpl [Ident] { lc(#s=`@name`); }
+
+tpl list(#separ,#elems) { 
+ for-each [$elems] {
+  apply[.]; if [not(position()=last())] { $separ; } }
+}
