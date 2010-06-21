@@ -2026,7 +2026,7 @@ tpl [ByExplanations](#i,#pl) { for-each [Typ] { if[position() = 2] { "non"; } "z
  ").\n"; }}
 
 
-tpl [/] { if [$mml="0"] { apply[//Proposition|//Now|//IterEquality|
+tpl [/] { if [$mml="0"] { apply[//Constructor|//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
 	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations]; }

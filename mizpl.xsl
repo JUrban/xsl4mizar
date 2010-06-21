@@ -5082,7 +5082,7 @@
   <xsl:template match="/">
     <xsl:choose>
       <xsl:when test="$mml=&quot;0&quot;">
-        <xsl:apply-templates select="//Proposition|//Now|//IterEquality|
+        <xsl:apply-templates select="//Constructor|//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
 	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations"/>
