@@ -34,6 +34,60 @@ FMFormatMap =
    MathMLPattern?
 }
 
+## info on original fmformats from fm.ps by Grzegorz:
+##
+## Each pattern is described by 3 or 4 lines. The first two (three, in
+## the case of a bracket format) include the identification of the
+## format. Specifically, the first line describes the format as: the
+## format kind (one of the letters: O K G J U R M L V), the symbol
+## number, and the (left, right) argument numbers. For a bracket functor
+## (format kind K), the vocabulary and the number of the closing bracket
+## are also given. The second line includes the symbol kind and the
+## symbol itself. For a bracket functor, the symbol of the closing
+## bracket is given in the third line.
+## 
+## #HIDDEN K1 2 L1 vHIDDEN 
+## K[
+## L]
+## 
+## Mset 
+## M1 0 
+## 
+## R1 1 1 
+## R= 
+## 
+## The third line (fourth, in the case of a bracket format) includes the
+## control header and the proper pattern. For a selector functor (kind U)
+## the fourth line includes the complemented pattern of translation of
+## the associated field. For predicates (kind R) this line will include
+## the complemented pattern of translation of the negative form. For
+## types (M and L) this will be a description of the complemented pattern
+## of translation of the plural form. The control header should not be
+## repeated with the complemented patterns.
+## 
+## ha set #0 
+## 
+## m #1 = #2 
+## 
+## mc#1#2; \langle #1, #2\rangle 
+## 
+## sets #0 #1 
+## 
+## #1 \neq #2
+## 
+## The #1, #2, . . . in patterns indicate the places of arguments. The #0 in a translation pattern for a type indicates the place of qualified variables. For example, the pattern
+## 
+## function #0 from #1 into #2 
+## 
+## for the formula
+## 
+## for f being Function of A,B holds ... 
+## 
+## renders
+## 
+## for every function f from A into B . . . in most contexts.
+
+
 ## FMFormat for natural language translation - not used
 ## This is a work in progress which should reasonably merge the
 ## four format kinds semiautomatically generated below.
