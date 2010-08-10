@@ -32,6 +32,64 @@
   <!-- lookup of the FMFormat based on the symbol, kind,argnr and leftargnr - -->
   <!-- TODO: add the rightsymbol too (otherwise probably not unique) -->
   <xsl:key name="FM" match="FMFormatMap" use="concat( @symbol, &quot;::&quot;, @kind, &apos;:&apos;, @argnr, &apos;:&apos;, @leftargnr)"/>
+  <!-- symbols, overloaded for tex presentation -->
+  <xsl:param name="for_s">
+    <xsl:text> \forall </xsl:text>
+  </xsl:param>
+  <xsl:param name="ex_s">
+    <xsl:text> \exists </xsl:text>
+  </xsl:param>
+  <xsl:param name="not_s">
+    <xsl:text> \lnot </xsl:text>
+  </xsl:param>
+  <xsl:param name="non_s">
+    <xsl:text> \: non \: </xsl:text>
+  </xsl:param>
+  <xsl:param name="and_s">
+    <xsl:text> \&amp; </xsl:text>
+  </xsl:param>
+  <xsl:param name="imp_s">
+    <xsl:text> \Rightarrow </xsl:text>
+  </xsl:param>
+  <xsl:param name="equiv_s">
+    <xsl:text> \Leftrightarrow </xsl:text>
+  </xsl:param>
+  <xsl:param name="or_s">
+    <xsl:text> \lor </xsl:text>
+  </xsl:param>
+  <xsl:param name="holds_s">
+    <xsl:text> \: holds \: </xsl:text>
+  </xsl:param>
+  <xsl:param name="being_s">
+    <xsl:text> : </xsl:text>
+  </xsl:param>
+  <xsl:param name="be_s">
+    <xsl:text> be </xsl:text>
+  </xsl:param>
+  <xsl:param name="st_s">
+    <xsl:text> \: st \: </xsl:text>
+  </xsl:param>
+  <xsl:param name="is_s">
+    <xsl:text> \: is \: </xsl:text>
+  </xsl:param>
+  <xsl:param name="fraenkel_start">
+    <xsl:text> { </xsl:text>
+  </xsl:param>
+  <xsl:param name="fraenkel_end">
+    <xsl:text> } </xsl:text>
+  </xsl:param>
+  <xsl:param name="of_sel_s">
+    <xsl:text> \: of \: </xsl:text>
+  </xsl:param>
+  <xsl:param name="of_typ_s">
+    <xsl:text> \: of \: </xsl:text>
+  </xsl:param>
+  <xsl:param name="the_sel_s">
+    <xsl:text> \: the \: </xsl:text>
+  </xsl:param>
+  <xsl:param name="choice_s">
+    <xsl:text> \: the \: </xsl:text>
+  </xsl:param>
 
   <!-- Get symbol of kind #sk and number #nr . -->
   <!-- If $sk is K and $r=1, get the rightbracketsymbol with #rsnr instead. -->

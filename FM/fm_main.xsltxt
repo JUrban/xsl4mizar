@@ -40,6 +40,31 @@ output method=html;
 // TODO: add the rightsymbol too (otherwise probably not unique)
 key "FM" [FMFormatMap] `concat( @symbol, "::", @kind, ':', @argnr, ':', @leftargnr)`;
 
+
+// symbols, overloaded for tex presentation
+#for_s = { " \\forall "; }
+#ex_s = { " \\exists "; }
+#not_s = { " \\lnot "; }
+#non_s = { " \\: non \\: "; }
+#and_s = { " \\& "; }
+#imp_s = { " \\Rightarrow "; }
+#equiv_s = { " \\Leftrightarrow "; }
+#or_s = { " \\lor "; }
+#holds_s = { " \\: holds \\: "; }
+#being_s = { " : "; }
+#be_s = { " be "; }
+#st_s = { " \\: st \\: "; }
+#is_s = { " \\: is \\: "; }
+#fraenkel_start = { " { "; }
+#fraenkel_end = { " } "; }
+#of_sel_s = { " \\: of \\: "; }
+#of_typ_s = { " \\: of \\: "; }
+#the_sel_s = { " \\: the \\: "; }
+#choice_s = { " \\: the \\: "; }
+
+
+
+
 // Get symbol of kind #sk and number #nr .
 // If $sk is K and $r=1, get the rightbracketsymbol with #rsnr instead.
 tpl get_vocsymbol(#sk, #snr, #r, #rsnr)
