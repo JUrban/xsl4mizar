@@ -31,7 +31,7 @@ output method=html;
 // the FM specific code:
 
 // XML file containing FM formats
-#fmformats=  { "file:///home/urban/xsltxt/xsl4mizar/FM/fm_formats.fmx"; }
+#fmformats=  { "file:///home/urban/gr/xsl4mizar/FM/fm_formats.fmx"; }
 
 // .bxx file with the bibtex info in xml (see article_bib.rnc)
 #bibtex=  { `concat($anamelc, '.bbx')`; }
