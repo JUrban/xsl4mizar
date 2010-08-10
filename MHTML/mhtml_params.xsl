@@ -365,4 +365,64 @@
   <xsl:param name="dbgmsg">
     <xsl:text>zzzzzzzzz</xsl:text>
   </xsl:param>
+  <!-- relative nr of the first expandable mode -->
+  <!-- #first_exp = { `//Pattern[(@constrkind='M') and (@constrnr=0)][1]/@relnr`; } -->
+  <!-- symbols, should be overloaded with different (eg tex, mathml) presentations -->
+  <xsl:param name="for_s">
+    <xsl:text> for </xsl:text>
+  </xsl:param>
+  <xsl:param name="ex_s">
+    <xsl:text> ex </xsl:text>
+  </xsl:param>
+  <xsl:param name="not_s">
+    <xsl:text> not </xsl:text>
+  </xsl:param>
+  <xsl:param name="non_s">
+    <xsl:text> non </xsl:text>
+  </xsl:param>
+  <xsl:param name="and_s">
+    <xsl:text> &amp; </xsl:text>
+  </xsl:param>
+  <xsl:param name="imp_s">
+    <xsl:text> implies </xsl:text>
+  </xsl:param>
+  <xsl:param name="equiv_s">
+    <xsl:text> iff </xsl:text>
+  </xsl:param>
+  <xsl:param name="or_s">
+    <xsl:text> or </xsl:text>
+  </xsl:param>
+  <xsl:param name="holds_s">
+    <xsl:text> holds </xsl:text>
+  </xsl:param>
+  <xsl:param name="being_s">
+    <xsl:text> being </xsl:text>
+  </xsl:param>
+  <xsl:param name="be_s">
+    <xsl:text> be </xsl:text>
+  </xsl:param>
+  <xsl:param name="st_s">
+    <xsl:text> st </xsl:text>
+  </xsl:param>
+  <xsl:param name="is_s">
+    <xsl:text> is </xsl:text>
+  </xsl:param>
+  <xsl:param name="fraenkel_start">
+    <xsl:text> { </xsl:text>
+  </xsl:param>
+  <xsl:param name="fraenkel_end">
+    <xsl:text> } </xsl:text>
+  </xsl:param>
+  <xsl:param name="of_sel_s">
+    <xsl:text> of </xsl:text>
+  </xsl:param>
+  <xsl:param name="of_typ_s">
+    <xsl:text> of </xsl:text>
+  </xsl:param>
+  <xsl:param name="the_sel_s">
+    <xsl:text> the </xsl:text>
+  </xsl:param>
+  <xsl:param name="choice_s">
+    <xsl:text> the </xsl:text>
+  </xsl:param>
 </xsl:stylesheet>

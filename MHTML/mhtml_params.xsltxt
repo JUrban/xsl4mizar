@@ -274,3 +274,23 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // relative nr of the first expandable mode
 // #first_exp = { `//Pattern[(@constrkind='M') and (@constrnr=0)][1]/@relnr`; }
 
+// symbols, should be overloaded with different (eg tex, mathml) presentations
+#for_s = { " for "; }
+#ex_s = { " ex "; }
+#not_s = { " not "; }
+#non_s = { " non "; }
+#and_s = { " & "; }
+#imp_s = { " implies "; }
+#equiv_s = { " iff "; }
+#or_s = { " or "; }
+#holds_s = { " holds "; }
+#being_s = { " being "; }
+#be_s = { " be "; }
+#st_s = { " st "; }
+#is_s = { " is "; }
+#fraenkel_start = { " { "; }
+#fraenkel_end = { " } "; }
+#of_sel_s = { " of "; }
+#of_typ_s = { " of "; }
+#the_sel_s = { " the "; }
+#choice_s = { " the "; }
