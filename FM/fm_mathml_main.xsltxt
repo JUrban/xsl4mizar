@@ -306,8 +306,16 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i)
 {
     $la = { if [($k='M') or ($k='G') or ($k='L')] {  "0"; } 
             else { for-each [document($formats,/)] {
-                     for-each [key('F',$fnr)] { 
-                       if [@leftargnr] { `@leftargnr`;} else { "0";} }}} }
+                     for-each [key('F',$fnr)] 
+		     { 
+		       choose
+		       { 
+		         when [@kind="V"] { `@argnr - 1`;}
+                         when [@leftargnr] { `@leftargnr`;} 
+			 otherwise { "0";} 
+                       }
+                     }}} 
+          }
     // try if right bracket - returns '' if not
     $rsym = { if [($k='K') and ($la='0')] { abs1(#k=$k, #nr=$nr, #r="1"); } }
     $np = { if [not($vis) or ($k='G')] { "0"; } else {
@@ -348,10 +356,13 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i)
     {
        if[($np > 0)]
        {
-          if [$rsym=''] { <m:mo { "("; } } 
+          <m:mo
+	  { 
+          if [$rsym=''] { "("; }  
 	  else 
 	  { 
-//             abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
+             abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
+	  }
 	  }
        }
 
@@ -360,9 +371,7 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i)
 
        if[($np > 0)]
        {
-          if [$rsym=''] { <m:mo { ")"; } } else { 
-// abs(#k=$k, #nr=$nr, #sym=$rsym, #pid=$pid); 
-}
+          <m:mo { if [$rsym=''] { ")"; } else { abs(#k=$k, #nr=$nr, #sym=$rsym, #pid=$pid); } }
        }
     }
 }
