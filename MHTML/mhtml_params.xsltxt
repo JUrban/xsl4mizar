@@ -294,3 +294,5 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 #of_typ_s = { " of "; }
 #the_sel_s = { " the "; }
 #choice_s = { " the "; }
+#lbracket_s = { "("; }
+#rbracket_s = { ")"; }

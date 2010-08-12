@@ -794,7 +794,7 @@
     <xsl:for-each select="$elems">
       <xsl:apply-templates select="."/>
       <xsl:if test="not(position()=last())">
-        <xsl:value-of select="$separ"/>
+        <xsl:copy-of select="$separ"/>
       </xsl:if>
     </xsl:for-each>
   </xsl:template>
@@ -811,7 +811,7 @@
         <xsl:with-param name="pr" select="$pr"/>
       </xsl:apply-templates>
       <xsl:if test="not(position()=last())">
-        <xsl:value-of select="$separ"/>
+        <xsl:copy-of select="$separ"/>
       </xsl:if>
     </xsl:for-each>
   </xsl:template>
@@ -824,7 +824,7 @@
       <xsl:apply-templates select="."/>
       <xsl:if test="not(position()=last())">
         <xsl:element name="br"/>
-        <xsl:value-of select="$separ"/>
+        <xsl:copy-of select="$separ"/>
       </xsl:if>
     </xsl:for-each>
   </xsl:template>
@@ -852,7 +852,7 @@
       <xsl:element name="div">
         <xsl:apply-templates select="."/>
         <xsl:if test="not(position()=last())">
-          <xsl:value-of select="$separ"/>
+          <xsl:copy-of select="$separ"/>
         </xsl:if>
       </xsl:element>
     </xsl:for-each>

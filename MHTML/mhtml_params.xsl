@@ -425,4 +425,10 @@
   <xsl:param name="choice_s">
     <xsl:text> the </xsl:text>
   </xsl:param>
+  <xsl:param name="lbracket_s">
+    <xsl:text>(</xsl:text>
+  </xsl:param>
+  <xsl:param name="rbracket_s">
+    <xsl:text>)</xsl:text>
+  </xsl:param>
 </xsl:stylesheet>

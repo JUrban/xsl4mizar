@@ -275,19 +275,19 @@ tpl arr_pad_obj(#obj)
 
 tpl list(#separ,#elems) { 
  for-each [$elems] {
-  apply[.]; if [not(position()=last())] { $separ; } }
+  apply[.]; if [not(position()=last())] { copy-of $separ; } }
 }
 
 // List utility with additional arg - now only used for formula lists
 tpl ilist(#separ,#elems,#i,#pr) { 
  for-each [$elems] {
-  apply[.](#i=$i,#pr=$pr); if [not(position()=last())] { $separ; } }
+  apply[.](#i=$i,#pr=$pr); if [not(position()=last())] { copy-of $separ; } }
 }
 
 // newlined list
 tpl nlist(#separ,#elems) { 
  for-each [$elems] {
-  apply[.]; if [not(position()=last())] { <br; $separ; } }
+  apply[.]; if [not(position()=last())] { <br; copy-of $separ; } }
 }
 
 // newlined andlist
@@ -299,7 +299,7 @@ tpl andlist(#elems) {
 
 tpl dlist(#separ,#elems) { 
  for-each [$elems] {
-  <div { apply[.]; if [not(position()=last())] { $separ; } } }
+  <div { apply[.]; if [not(position()=last())] { copy-of $separ; } } }
 }
 
 
