@@ -266,7 +266,15 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
         {
           for-each [FMTranslPattern/*]
 	  {
-	     if [name()="Str"] { <m:mo { `@s`; } }
+	     if [name()="Str"] 
+	     { 
+	        <m:mo 
+		{ 
+		   if [not($parenth>0) or ($la>0)] { " "; } 
+		   abs(#k=$k, #nr=$nr, #sym=`@s`); 
+      		   " "; 
+		}
+	     }
 	     else
 	     {
 	        // TODO: do the numbering of arguments in FMTranslPattern refer 
@@ -440,35 +448,35 @@ tpl mkref(#aid, #nr, #k, #c, #nm)
 // add the constructor/pattern href, $c tells if it is from current article
 // #sym is optional Mizar symbol
 // #pid links to  patterns instead of constructors
-tpl absref(#elems, #c, #sym, #pid)
-{ 
-   $n1 = { if [($pid > 0)] { "N"; } else { ""; } }
+// tpl absref(#elems, #c, #sym, #pid)
+// { 
+//    $n1 = { if [($pid > 0)] { "N"; } else { ""; } }
 
-   for-each [$elems] 
-   { 
-      $mk0  = mkind(#kind = `@kind`); 
-      $mk   = { if [($pid > 0)] { `concat($mk0, "not")`; } else { $mk0; } }
-      $alc  = lc(#s=`@aid`);
+//    for-each [$elems] 
+//    { 
+//       $mk0  = mkind(#kind = `@kind`); 
+//       $mk   = { if [($pid > 0)] { `concat($mk0, "not")`; } else { $mk0; } }
+//       $alc  = lc(#s=`@aid`);
 
 
-	 if [$sym] 
-	 { 
-	    $sym; 
-	 }
-	 else 
-	 { 
-	    if [$relnames > 0]
-	    { 
-	       $n1; `@kind`; `@relnr`; 
-	    }
-	    else 
-	    { 
-	       $n1; `@kind`; `@nr`; "_"; `@aid`;  
-	    } 
-	 }
+// 	 if [$sym] 
+// 	 { 
+// 	    $sym; 
+// 	 }
+// 	 else 
+// 	 { 
+// 	    if [$relnames > 0]
+// 	    { 
+// 	       $n1; `@kind`; `@relnr`; 
+// 	    }
+// 	    else 
+// 	    { 
+// 	       $n1; `@kind`; `@nr`; "_"; `@aid`;  
+// 	    } 
+// 	 }
       
-   } 
-}
+//    } 
+// }
 
 tpl [AUTHOR|TITLE|ACKNOWLEDGEMENT|SUMMARY|NOTE|ADDRESS]
 { 
@@ -550,6 +558,7 @@ span.p5:hover { color : inherit; background-color : #CAFFCA; }
 span.p0:hover { color : inherit; background-color : #FFBAFF; }
 .default { background-color: white; color: black; } 
 .default:hover { background-color: white; color: black; }
+:target { background: ##5D9BF7; border: solid 1px #aaa;}
 ";
 	                } 
         <head {  
