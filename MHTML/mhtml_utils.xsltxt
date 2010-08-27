@@ -398,11 +398,11 @@ tpl abs1(#k, #nr, #r, #fnr, #pid)
 	     {
 	        if [key($dkey,$snr)] 
 		{
-		   for-each [key($dkey,$snr)] 
+		   for-each [key($dkey,$snr)[1]] 
 		   { 
 		      if [($sk='K') and ($r='1')] 
 		      { 
-		         for-each [key('D_L',$rsnr)] { `@name`; } 
+		         for-each [key('D_L',$rsnr)[1]] { `@name`; } 
 		      }
 		      else 
 		      {  

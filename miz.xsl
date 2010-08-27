@@ -2022,10 +2022,10 @@
               <xsl:for-each select="document($vocs,/)">
                 <xsl:choose>
                   <xsl:when test="key($dkey,$snr)">
-                    <xsl:for-each select="key($dkey,$snr)">
+                    <xsl:for-each select="key($dkey,$snr)[1]">
                       <xsl:choose>
                         <xsl:when test="($sk=&apos;K&apos;) and ($r=&apos;1&apos;)">
-                          <xsl:for-each select="key(&apos;D_L&apos;,$rsnr)">
+                          <xsl:for-each select="key(&apos;D_L&apos;,$rsnr)[1]">
                             <xsl:value-of select="@name"/>
                           </xsl:for-each>
                         </xsl:when>
@@ -8291,6 +8291,7 @@ span.p5:hover { color : inherit; background-color : #CAFFCA; }
 span.p0:hover { color : inherit; background-color : #FFBAFF; }
 .default { background-color: white; color: black; } 
 .default:hover { background-color: white; color: black; }
+:target { background: #5D9BF7; border: solid 1px #aaa;}
 </xsl:text>
               </xsl:element>
               <xsl:element name="head">

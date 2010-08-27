@@ -1017,11 +1017,11 @@ tpl abs1(#k, #nr, #r, #fnr, #pid)
 	     {
 	        if [key($dkey,$snr)] 
 		{
-		   for-each [key($dkey,$snr)] 
+		   for-each [key($dkey,$snr)[1]] 
 		   { 
 		      if [($sk='K') and ($r='1')] 
 		      { 
-		         for-each [key('D_L',$rsnr)] { `@name`; } 
+		         for-each [key('D_L',$rsnr)[1]] { `@name`; } 
 		      }
 		      else 
 		      {  
@@ -4055,6 +4055,7 @@ span.p5:hover { color : inherit; background-color : #CAFFCA; }
 span.p0:hover { color : inherit; background-color : #FFBAFF; }
 .default { background-color: white; color: black; } 
 .default:hover { background-color: white; color: black; }
+:target { background: #5D9BF7; border: solid 1px #aaa;}
 ";
 	                } 
         <head {  
