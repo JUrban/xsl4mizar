@@ -43,6 +43,12 @@
   <xsl:param name="do_nd">
     <xsl:text>1</xsl:text>
   </xsl:param>
+  <!-- dump the table of Mizar identifiers for propositions; -->
+  <!-- this will probably slow down the processing a bit by -->
+  <!-- loading the .idx file and by the lookups -->
+  <xsl:param name="dump_prop_labels">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- symbols, take care, the spaces are sometimes (e.g. for '~') -->
   <!-- needed for correct Prolog parsing -->
   <xsl:param name="not_s">
@@ -106,12 +112,17 @@
   <xsl:key name="E" match="Proposition|IterEquality|Now" use="concat(@nr,&quot;:&quot;,@plevel)"/>
   <!-- lookup for JustifiedTheorems' propnr (needed in plname) -->
   <xsl:key name="JT" match="/Article/JustifiedTheorem/Proposition" use="@propnr"/>
+  <!-- lookup for DefTheorems' propnr (needed in plname) -->
+  <xsl:key name="DT" match="/Article/DefTheorem/Proposition" use="@propnr"/>
   <!-- lookup for scheme functors and predicates -->
   <xsl:key name="f" match="SchemeFuncDecl" use="concat(@nr,&quot;:&quot;,@plevel)"/>
   <xsl:key name="p" match="SchemePredDecl" use="concat(@nr,&quot;:&quot;,@plevel)"/>
   <!-- lookup for private functors and predicates -->
   <xsl:key name="pf" match="DefFunc" use="concat(@nr,&quot;:&quot;,@plevel)"/>
   <xsl:key name="pp" match="DefPred" use="concat(@nr,&quot;:&quot;,@plevel)"/>
+  <!-- lookup for identifiers (propositions) -->
+  <!-- used only if $dump_prop_labels = 1 -->
+  <xsl:key name="D_I" match="Symbol[@kind=&apos;I&apos;]" use="@nr"/>
   <!-- name of current article (upper case) -->
   <xsl:param name="aname">
     <xsl:value-of select="string(/*/@aid)"/>
@@ -122,6 +133,21 @@
       <xsl:with-param name="s" select="$aname"/>
     </xsl:call-template>
   </xsl:param>
+  <!-- .idx file with identifier names -->
+  <!-- used only if $dump_prop_labels = 1 -->
+  <xsl:param name="ids">
+    <xsl:value-of select="concat($anamelc, &apos;.idx&apos;)"/>
+  </xsl:param>
+
+  <!-- private - look up the name of id -->
+  <xsl:template name="get_vid_name">
+    <xsl:param name="vid"/>
+    <xsl:for-each select="document($ids, /)">
+      <xsl:for-each select="key(&apos;D_I&apos;, $vid)">
+        <xsl:value-of select="@name"/>
+      </xsl:for-each>
+    </xsl:for-each>
+  </xsl:template>
   <!-- Formulas -->
   <!-- old versions without pretty-printing -->
   <!-- // #i is nr of the bound variable, 1 by default -->
@@ -1101,9 +1127,20 @@
             </xsl:for-each>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:call-template name="lemmaname">
-              <xsl:with-param name="n" select="$n"/>
-            </xsl:call-template>
+            <xsl:choose>
+              <xsl:when test="key(&quot;DT&quot;,$n)">
+                <xsl:for-each select="key(&quot;DT&quot;,$n)">
+                  <xsl:call-template name="absr">
+                    <xsl:with-param name="el" select=".."/>
+                  </xsl:call-template>
+                </xsl:for-each>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:call-template name="lemmaname">
+                  <xsl:with-param name="n" select="$n"/>
+                </xsl:call-template>
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:otherwise>
@@ -1865,6 +1902,35 @@
       </xsl:otherwise>
     </xsl:choose>
     <xsl:text>)</xsl:text>
+  </xsl:template>
+
+  <xsl:template name="dumproptable">
+    <xsl:if test="$dump_prop_labels &gt; 0">
+      <xsl:document href="{$anamelc}.propnames" format="text"> 
+      <xsl:for-each select="//Proposition|//IterEquality|//Now">
+        <xsl:if test="@nr&gt;0">
+          <xsl:variable name="pname">
+            <xsl:call-template name="plname">
+              <xsl:with-param name="n" select="@propnr"/>
+              <xsl:with-param name="pl" select="@plevel"/>
+            </xsl:call-template>
+          </xsl:variable>
+          <xsl:variable name="nm">
+            <xsl:call-template name="get_vid_name">
+              <xsl:with-param name="vid" select="@vid"/>
+            </xsl:call-template>
+          </xsl:variable>
+          <xsl:text>propname(</xsl:text>
+          <xsl:value-of select="$pname"/>
+          <xsl:text>,&apos;</xsl:text>
+          <xsl:value-of select="$nm"/>
+          <xsl:text>&apos;).
+</xsl:text>
+        </xsl:if>
+      </xsl:for-each>
+      </xsl:document> 
+      <xsl:variable name="bogus" select="1"/>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="Proposition">
@@ -5086,6 +5152,7 @@
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
 	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations"/>
+        <xsl:call-template name="dumproptable"/>
       </xsl:when>
       <xsl:otherwise>
         <xsl:apply-templates/>

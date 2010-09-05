@@ -40,6 +40,11 @@ strip-space "*";
 // the assumptions of each proposition)
 #do_nd = { "1"; }
 
+// dump the table of Mizar identifiers for propositions;
+// this will probably slow down the processing a bit by 
+// loading the .idx file and by the lookups
+#dump_prop_labels = { "0"; }
+
 // symbols, take care, the spaces are sometimes (e.g. for '~')
 // needed for correct Prolog parsing
 #not_s = { "~ "; }
@@ -76,6 +81,9 @@ key "E" [Proposition|IterEquality|Now] `concat(@nr,":",@plevel)` ;
 // lookup for JustifiedTheorems' propnr (needed in plname)
 key "JT" [/Article/JustifiedTheorem/Proposition] `@propnr`;
 
+// lookup for DefTheorems' propnr (needed in plname)
+key "DT" [/Article/DefTheorem/Proposition] `@propnr`;
+
 // lookup for scheme functors and predicates
 key "f" [SchemeFuncDecl] `concat(@nr,":",@plevel)` ;
 key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
@@ -84,11 +92,30 @@ key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
 key "pf" [DefFunc] `concat(@nr,":",@plevel)` ;
 key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
 
+// lookup for identifiers (propositions)
+// used only if $dump_prop_labels = 1
+key "D_I" [Symbol[@kind='I']] `@nr`;
+
 // name of current article (upper case)
 #aname= { `string(/*/@aid)`; }
 
 // name of current article (lower case)
 #anamelc= { lc(#s=$aname); }
+
+// .idx file with identifier names
+// used only if $dump_prop_labels = 1
+#ids=  { `concat($anamelc, '.idx')`; }
+
+// private - look up the name of id
+tpl get_vid_name(#vid)
+{
+  for-each [document($ids, /)] 
+  { 
+     for-each [key('D_I', $vid)] { `@name`; }
+  }
+}
+
+
 
 // Formulas
 
@@ -344,8 +371,13 @@ tpl plname(#n,#pl)
     {
       for-each [key("JT",$n)] { absr(#el=`..`); }
     } 
+    else { if [key("DT",$n)] 
+    {
+      for-each [key("DT",$n)] { absr(#el=`..`); }
+    } 
+
     else { lemmaname(#n=$n); }
-    }
+    }}
 }
 
 tpl thesisname(#n,#pl) { "i"; $n; addp(#pl=$pl); }
@@ -789,9 +821,30 @@ tpl add_mizar_item
 }
 
 
+tpl dumproptable()
+{
+ if[$dump_prop_labels > 0]
+ {
+
+// <xsl:document href="{$anamelc}.propnames" format="text">
+   for-each [//Proposition|//IterEquality|//Now]
+   {
+    if [@nr>0] 
+    {
+       $pname = plname(#n=`@propnr`, #pl=`@plevel`);
+       $nm = { get_vid_name(#vid = `@vid`); }
+       "propname("; $pname; ",'"; $nm; "').\n";
+    }
+   }
+// </xsl:document>
+       $bogus=`1`;
+ }
+}
+
 tpl [Proposition] 
 { 
     $pname = plname(#n=`@propnr`, #pl=`@plevel`);
+
     $consider_kind =
     { 
       if [((name(..) = "Consider") or (name(..) = "Given"))]
@@ -2029,7 +2082,8 @@ tpl [ByExplanations](#i,#pl) { for-each [Typ] { if[position() = 2] { "non"; } "z
 tpl [/] { if [$mml="0"] { apply[//Constructor|//Proposition|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations]; }
+	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations]; 
+           dumproptable(); }
 	  else { apply; } }
 
 
