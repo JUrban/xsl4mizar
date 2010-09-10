@@ -61,7 +61,7 @@ $print_identifiers = { "1"; }
 
 // new brackets: trying to print brackets as mizar does -
 // when two or more arguments
-$mizar_brackets = { "0"; }
+#mizar_brackets = { "0"; }
 
 // print label identifiers  instead of normalized names
 // this is kept separate from $print_identifiers, because
