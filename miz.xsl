@@ -8503,7 +8503,7 @@ return tstp_dump;
 
   <xsl:template match="dc:creator">
     <xsl:call-template name="pcomment">
-      <xsl:with-param name="str" select="concat(&quot;&#160;by &quot;, text())"/>
+      <xsl:with-param name="str" select="concat(&quot;by &quot;, text())"/>
     </xsl:call-template>
     <xsl:call-template name="pcomment">
       <xsl:with-param name="str">
