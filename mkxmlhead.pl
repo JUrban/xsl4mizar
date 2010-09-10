@@ -59,6 +59,7 @@ my ($title, $authors, $date, $copyright);
 $title = "";
 
 my $ltime = localtime;
+my $addtotitle = 1;
 
 sub PrintIt
 {
@@ -77,8 +78,8 @@ while(<>)
 {
   m/^::+ *(.*)$/ or PrintIt(); ## print and exit when the initial comment ends
   my $content = $1;
-  if($content =~ m/^[bB]y +(.*)/) { $authors = $1; }
-  elsif($content =~ m/^[rR]eceived +(.*)/) { $date = $1; }
-  elsif($content =~ m/^[cC]opyright +(.*)/) { $copyright = $1; }
-  elsif(!($content eq "")) { $title = $title . $content; }
+  if($content =~ m/^[bB]y +(.*)/) { $authors = $1; $addtotitle = 0;}
+  elsif($content =~ m/^[rR]eceived +(.*)/) { $date = $1; $addtotitle = 0;}
+  elsif($content =~ m/^[cC]opyright +(.*)/) { $copyright = $1; $addtotitle = 0; }
+  elsif(($addtotitle == 1) && !($content eq "")) { $title = $title . " " . $content; }
 }
