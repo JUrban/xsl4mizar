@@ -624,6 +624,20 @@
     <xsl:param name="parenth"/>
     <xsl:param name="fnr"/>
     <xsl:param name="pid"/>
+    <xsl:variable name="visnr" select="count($vis)"/>
+    <xsl:variable name="dofuncbrackets">
+      <xsl:choose>
+        <xsl:when test="($rsym=&apos;&apos;) and ($mizar_brackets &gt; 0) and ($k = &quot;K&quot;)">
+          <xsl:text>1</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:text>0</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:if test="($dofuncbrackets&gt;0) and ($la&gt;1)">
+      <xsl:text>( </xsl:text>
+    </xsl:if>
     <!-- print left args -->
     <xsl:for-each select="$vis">
       <xsl:if test="position() &lt;= $la">
@@ -656,6 +670,9 @@
         </xsl:if>
       </xsl:if>
     </xsl:for-each>
+    <xsl:if test="($dofuncbrackets&gt;0) and ($la&gt;1)">
+      <xsl:text> )</xsl:text>
+    </xsl:if>
     <!-- print symbol -->
     <xsl:if test="$rsym=&apos;&apos;">
       <xsl:if test="not($parenth&gt;0) or ($la&gt;0)">
@@ -677,6 +694,9 @@
         <xsl:text>(#</xsl:text>
       </xsl:if>
       <xsl:text> </xsl:text>
+    </xsl:if>
+    <xsl:if test="($dofuncbrackets&gt;0) and (($visnr - $la)&gt;1)">
+      <xsl:text>( </xsl:text>
     </xsl:if>
     <!-- print right args preceded by "of" for types -->
     <xsl:for-each select="$vis">
@@ -715,6 +735,9 @@
     </xsl:for-each>
     <xsl:if test="$k=&apos;G&apos;">
       <xsl:text> #)</xsl:text>
+    </xsl:if>
+    <xsl:if test="($dofuncbrackets&gt;0) and (($visnr - $la)&gt;1)">
+      <xsl:text> )</xsl:text>
     </xsl:if>
   </xsl:template>
 

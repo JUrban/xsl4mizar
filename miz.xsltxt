@@ -105,6 +105,10 @@ output method=html;
 // print identifiers (like in JFM) instead of normalized names
 $print_identifiers = { "1"; }
 
+// new brackets: trying to print brackets as mizar does -
+// when two or more arguments
+$mizar_brackets = { "0"; }
+
 // print label identifiers  instead of normalized names
 // this is kept separate from $print_identifiers, because
 // it should be turned off for item generating
@@ -1553,8 +1557,15 @@ tpl [Func](#p,#i) {
         abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`));
         copy-of $of_sel_s; apply[*[position() = last()]](#p = $p, #i = $i); }
       otherwise { 
-        $par = { if [$p>0] { `$p+1`;} else { 
-                 if [name(..)='Func'] { "1"; } else { "0";} }  }
+        $par = 
+	{ 
+	       if [$mizar_brackets > 0] 
+       	       {
+	           // cannot determine by constructor - need pattern info, for left & right args
+                    "0";
+       	       }
+	       else { if [$p>0] { `$p+1`;} else { 
+                 if [name(..)='Func'] { "1"; } else { "0";} }  } }
         pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#parenth=$par,#pid=`@pid`,#i=$i); }}} 
 
 tpl [PrivFunc](#p,#i) { ppfunc(#nr=`@nr`); copy-of $lbracket_s; 
@@ -2066,6 +2077,12 @@ tpl pp1(#k,#nr,#args,#vis,#fnr,#parenth,#loci,#pid,#i)
 
 tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
 {
+   $visnr = `count($vis)`;
+
+   $dofuncbrackets = { if [($rsym='') and ($mizar_brackets > 0) and ($k = "K")] { "1"; } else { "0"; } }
+
+   if [($dofuncbrackets>0) and ($la>1)] { "( "; } 
+
    // print left args
    for-each [$vis] 
    { 
@@ -2085,6 +2102,8 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
       } 
    }
 
+   if [($dofuncbrackets>0) and ($la>1)] { " )"; }
+ 
    // print symbol
    if [$rsym=''] 
    {
@@ -2092,6 +2111,8 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
       if [$k='G'] { "(#"; } " "; 
    }
+
+   if [($dofuncbrackets>0) and (($visnr - $la)>1)] { "( "; } 
 
    // print right args preceded by "of" for types
    for-each [$vis] 
@@ -2112,6 +2133,7 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
      if [position() < last()] { ",";} } 
    }
    if [$k='G'] { " #)"; } 
+   if [($dofuncbrackets>0) and (($visnr - $la)>1)] { " )"; } 
 }
 
 

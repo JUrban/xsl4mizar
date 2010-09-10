@@ -59,6 +59,10 @@ output method=html;
 // print identifiers (like in JFM) instead of normalized names
 $print_identifiers = { "1"; }
 
+// new brackets: trying to print brackets as mizar does -
+// when two or more arguments
+$mizar_brackets = { "0"; }
+
 // print label identifiers  instead of normalized names
 // this is kept separate from $print_identifiers, because
 // it should be turned off for item generating

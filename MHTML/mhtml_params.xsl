@@ -76,6 +76,11 @@
   <xsl:variable name="print_identifiers">
     <xsl:text>1</xsl:text>
   </xsl:variable>
+  <!-- new brackets: trying to print brackets as mizar does - -->
+  <!-- when two or more arguments -->
+  <xsl:variable name="mizar_brackets">
+    <xsl:text>0</xsl:text>
+  </xsl:variable>
   <!-- print label identifiers  instead of normalized names -->
   <!-- this is kept separate from $print_identifiers, because -->
   <!-- it should be turned off for item generating -->

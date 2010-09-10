@@ -390,8 +390,15 @@ tpl [Func](#p,#i) {
         abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`));
         copy-of $of_sel_s; apply[*[position() = last()]](#p = $p, #i = $i); }
       otherwise { 
-        $par = { if [$p>0] { `$p+1`;} else { 
-                 if [name(..)='Func'] { "1"; } else { "0";} }  }
+        $par = 
+	{ 
+	       if [$mizar_brackets > 0] 
+       	       {
+	           // cannot determine by constructor - need pattern info, for left & right args
+                    "0";
+       	       }
+	       else { if [$p>0] { `$p+1`;} else { 
+                 if [name(..)='Func'] { "1"; } else { "0";} }  } }
         pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#parenth=$par,#pid=`@pid`,#i=$i); }}} 
 
 tpl [PrivFunc](#p,#i) { ppfunc(#nr=`@nr`); copy-of $lbracket_s; 
