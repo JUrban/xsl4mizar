@@ -4204,6 +4204,6 @@ return tstp_dump;
 
 // Header rules
 tpl [dc:title] { pcomment(#str=`text()`); }
-tpl [dc:creator] { pcomment(#str=`concat(" by ", text())`); pcomment(#str=""); }
+tpl [dc:creator] { pcomment(#str=`concat("&#160;by ", text())`); pcomment(#str=""); }
 tpl [dc:date] { pcomment(#str=`concat("Received ", text())`); }
 tpl [dc:rights] { pcomment(#str=`concat("Copyright ", text())`); }
