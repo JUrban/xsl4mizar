@@ -63,6 +63,9 @@ $print_identifiers = { "1"; }
 // when two or more arguments of a functor - now default
 #mizar_brackets = { "1"; }
 
+// no spaces around functor symbols
+#funcs_no_spaces = { "0"; }
+
 // print label identifiers  instead of normalized names
 // this is kept separate from $print_identifiers, because
 // it should be turned off for item generating

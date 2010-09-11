@@ -113,6 +113,10 @@
   <xsl:param name="mizar_brackets">
     <xsl:text>1</xsl:text>
   </xsl:param>
+  <!-- no spaces around functor symbols -->
+  <xsl:param name="funcs_no_spaces">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- print label identifiers  instead of normalized names -->
   <!-- this is kept separate from $print_identifiers, because -->
   <!-- it should be turned off for item generating -->
@@ -4764,7 +4768,9 @@
     <!-- print symbol -->
     <xsl:if test="$rsym=&apos;&apos;">
       <xsl:if test="not($parenth&gt;0) or ($la&gt;0)">
-        <xsl:text> </xsl:text>
+        <xsl:if test="not($k=&apos;K&apos;) or ($funcs_no_spaces = 0)">
+          <xsl:text> </xsl:text>
+        </xsl:if>
       </xsl:if>
       <xsl:call-template name="abs">
         <xsl:with-param name="k" select="$k"/>
@@ -4781,7 +4787,9 @@
       <xsl:if test="$k=&apos;G&apos;">
         <xsl:text>(#</xsl:text>
       </xsl:if>
-      <xsl:text> </xsl:text>
+      <xsl:if test="not($k=&apos;K&apos;) or ($funcs_no_spaces = 0)">
+        <xsl:text> </xsl:text>
+      </xsl:if>
     </xsl:if>
     <xsl:if test="($dofuncbrackets&gt;0) and (($visnr - $la)&gt;1)">
       <xsl:text>(</xsl:text>

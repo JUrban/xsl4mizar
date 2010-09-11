@@ -81,6 +81,10 @@
   <xsl:param name="mizar_brackets">
     <xsl:text>1</xsl:text>
   </xsl:param>
+  <!-- no spaces around functor symbols -->
+  <xsl:param name="funcs_no_spaces">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- print label identifiers  instead of normalized names -->
   <!-- this is kept separate from $print_identifiers, because -->
   <!-- it should be turned off for item generating -->

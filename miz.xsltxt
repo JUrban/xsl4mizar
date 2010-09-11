@@ -109,6 +109,9 @@ $print_identifiers = { "1"; }
 // when two or more arguments of a functor - now default
 #mizar_brackets = { "1"; }
 
+// no spaces around functor symbols
+#funcs_no_spaces = { "0"; }
+
 // print label identifiers  instead of normalized names
 // this is kept separate from $print_identifiers, because
 // it should be turned off for item generating
@@ -2100,9 +2103,10 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
    // print symbol
    if [$rsym=''] 
    {
-      if [not($parenth>0) or ($la>0)] { " "; } 
+      if [not($parenth>0) or ($la>0)] { if [not($k='K') or ($funcs_no_spaces = 0)] {" "; } } 
       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
-      if [$k='G'] { "(#"; } " "; 
+      if [$k='G'] { "(#"; } 
+      if [not($k='K') or ($funcs_no_spaces = 0)] {" "; } 
    }
 
    if [($dofuncbrackets>0) and (($visnr - $la)>1)] { "("; } 
