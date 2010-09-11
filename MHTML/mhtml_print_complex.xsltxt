@@ -368,7 +368,7 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
       // closing parenth will be printed and no right args exist
       // or
       // $ra>1 and we do func brackets (that means an opening bracket of args will be printed)
-      if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0) and (($visnr - $la)=0))) 
+      if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0) and (($visnr - $la)=0)) 
           and not(($dofuncbrackets>0) and (($visnr - $la)>1))] {" "; } 
    }
 
