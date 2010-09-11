@@ -2104,11 +2104,19 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
    if [$rsym=''] 
    {
       if [not($parenth>0) or ($la>0)] { 
-      if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0)) 
+      // do not print space if either:
+      // opening parenth was printed and no left args exist
+      // or
+      // $la>1 and we do func brackets (that means a closing bracket of args was printed)
+      if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0) and ($la=0)) 
       	  and not(($dofuncbrackets>0) and ($la>1))] {" "; } } 
       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
       if [$k='G'] { "(#"; } 
-      if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0)) 
+      // do not print space if either:
+      // closing parenth will be printed and no right args exist
+      // or
+      // $ra>1 and we do func brackets (that means an opening bracket of args will be printed)
+      if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0) and (($visnr - $la)=0))) 
           and not(($dofuncbrackets>0) and (($visnr - $la)>1))] {" "; } 
    }
 
