@@ -2103,10 +2103,13 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
    // print symbol
    if [$rsym=''] 
    {
-      if [not($parenth>0) or ($la>0)] { if [not($k='K') or ($funcs_no_spaces = 0)] {" "; } } 
+      if [not($parenth>0) or ($la>0)] { 
+      if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0)) 
+      	  and not(($dofuncbrackets>0) and ($la>1))] {" "; } } 
       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
       if [$k='G'] { "(#"; } 
-      if [not($k='K') or ($funcs_no_spaces = 0)] {" "; } 
+      if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0)) 
+          and not(($dofuncbrackets>0) and (($visnr - $la)>1))] {" "; } 
    }
 
    if [($dofuncbrackets>0) and (($visnr - $la)>1)] { "("; } 
