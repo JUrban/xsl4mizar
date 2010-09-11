@@ -109,9 +109,9 @@
     <xsl:text>1</xsl:text>
   </xsl:variable>
   <!-- new brackets: trying to print brackets as mizar does - -->
-  <!-- when two or more arguments -->
+  <!-- when two or more arguments of a functor - now default -->
   <xsl:param name="mizar_brackets">
-    <xsl:text>0</xsl:text>
+    <xsl:text>1</xsl:text>
   </xsl:param>
   <!-- print label identifiers  instead of normalized names -->
   <!-- this is kept separate from $print_identifiers, because -->

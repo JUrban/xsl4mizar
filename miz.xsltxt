@@ -106,8 +106,8 @@ output method=html;
 $print_identifiers = { "1"; }
 
 // new brackets: trying to print brackets as mizar does -
-// when two or more arguments
-#mizar_brackets = { "0"; }
+// when two or more arguments of a functor - now default
+#mizar_brackets = { "1"; }
 
 // print label identifiers  instead of normalized names
 // this is kept separate from $print_identifiers, because
