@@ -4724,7 +4724,7 @@
       </xsl:choose>
     </xsl:variable>
     <xsl:if test="($dofuncbrackets&gt;0) and ($la&gt;1)">
-      <xsl:text>( </xsl:text>
+      <xsl:text>(</xsl:text>
     </xsl:if>
     <!-- print left args -->
     <xsl:for-each select="$vis">
@@ -4759,7 +4759,7 @@
       </xsl:if>
     </xsl:for-each>
     <xsl:if test="($dofuncbrackets&gt;0) and ($la&gt;1)">
-      <xsl:text> )</xsl:text>
+      <xsl:text>)</xsl:text>
     </xsl:if>
     <!-- print symbol -->
     <xsl:if test="$rsym=&apos;&apos;">
@@ -4784,7 +4784,7 @@
       <xsl:text> </xsl:text>
     </xsl:if>
     <xsl:if test="($dofuncbrackets&gt;0) and (($visnr - $la)&gt;1)">
-      <xsl:text>( </xsl:text>
+      <xsl:text>(</xsl:text>
     </xsl:if>
     <!-- print right args preceded by "of" for types -->
     <xsl:for-each select="$vis">
@@ -4825,7 +4825,7 @@
       <xsl:text> #)</xsl:text>
     </xsl:if>
     <xsl:if test="($dofuncbrackets&gt;0) and (($visnr - $la)&gt;1)">
-      <xsl:text> )</xsl:text>
+      <xsl:text>)</xsl:text>
     </xsl:if>
   </xsl:template>
 

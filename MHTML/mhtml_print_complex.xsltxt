@@ -329,7 +329,7 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
 
    $dofuncbrackets = { if [($rsym='') and ($mizar_brackets > 0) and ($k = "K")] { "1"; } else { "0"; } }
 
-   if [($dofuncbrackets>0) and ($la>1)] { "( "; } 
+   if [($dofuncbrackets>0) and ($la>1)] { "("; } 
 
    // print left args
    for-each [$vis] 
@@ -350,7 +350,7 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
       } 
    }
 
-   if [($dofuncbrackets>0) and ($la>1)] { " )"; }
+   if [($dofuncbrackets>0) and ($la>1)] { ")"; }
  
    // print symbol
    if [$rsym=''] 
@@ -360,7 +360,7 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
       if [$k='G'] { "(#"; } " "; 
    }
 
-   if [($dofuncbrackets>0) and (($visnr - $la)>1)] { "( "; } 
+   if [($dofuncbrackets>0) and (($visnr - $la)>1)] { "("; } 
 
    // print right args preceded by "of" for types
    for-each [$vis] 
@@ -381,7 +381,7 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
      if [position() < last()] { ",";} } 
    }
    if [$k='G'] { " #)"; } 
-   if [($dofuncbrackets>0) and (($visnr - $la)>1)] { " )"; } 
+   if [($dofuncbrackets>0) and (($visnr - $la)>1)] { ")"; } 
 }
 
 
