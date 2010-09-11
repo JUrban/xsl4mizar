@@ -3608,24 +3608,16 @@
       <xsl:otherwise>
         <xsl:variable name="par">
           <xsl:choose>
-            <xsl:when test="$mizar_brackets &gt; 0">
-              <!-- cannot determine by constructor - need pattern info, for left & right args -->
-              <xsl:text>0</xsl:text>
+            <xsl:when test="$p&gt;0">
+              <xsl:value-of select="$p+1"/>
             </xsl:when>
             <xsl:otherwise>
               <xsl:choose>
-                <xsl:when test="$p&gt;0">
-                  <xsl:value-of select="$p+1"/>
+                <xsl:when test="name(..)=&apos;Func&apos;">
+                  <xsl:text>1</xsl:text>
                 </xsl:when>
                 <xsl:otherwise>
-                  <xsl:choose>
-                    <xsl:when test="name(..)=&apos;Func&apos;">
-                      <xsl:text>1</xsl:text>
-                    </xsl:when>
-                    <xsl:otherwise>
-                      <xsl:text>0</xsl:text>
-                    </xsl:otherwise>
-                  </xsl:choose>
+                  <xsl:text>0</xsl:text>
                 </xsl:otherwise>
               </xsl:choose>
             </xsl:otherwise>
