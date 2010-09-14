@@ -684,7 +684,7 @@
         <!-- or -->
         <!-- $la>1 and we do func brackets (that means a closing bracket of args was printed) -->
         <!-- or $la=1 and the left arg got its own parenth (this si implied by $parenth>0) -->
-        <xsl:if test="not(($k=&apos;K&apos;) and ($funcs_no_spaces&gt;0) and ($parenth&gt;0) and ($la=0)) 
+        <xsl:if test="not(($k=&apos;K&apos;) and ($parenth&gt;0) and ($la=0)) 
       	  and not(($funcs_no_spaces&gt;0) and ($dofuncbrackets&gt;0) and ($la&gt;0))">
           <xsl:text> </xsl:text>
         </xsl:if>
@@ -708,7 +708,7 @@
       <!-- closing parenth will be printed and no right args exist -->
       <!-- or -->
       <!-- $ra>1 and we do func brackets (that means an opening bracket of args will be printed) -->
-      <xsl:if test="not(($k=&apos;K&apos;) and ($funcs_no_spaces&gt;0) and ($parenth&gt;0) and (($visnr - $la)=0)) 
+      <xsl:if test="not(($k=&apos;K&apos;) and ($parenth&gt;0) and (($visnr - $la)=0)) 
           and not(($funcs_no_spaces&gt;0) and ($dofuncbrackets&gt;0) and (($visnr - $la)&gt;0))">
         <xsl:text> </xsl:text>
       </xsl:if>
