@@ -355,13 +355,17 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
    // print symbol
    if [$rsym=''] 
    {
+      // only consider printing space if $parenth was not printed or there were left args
+      // there were left arg(s), and $dofuncbrackets>0 (we are inside a functor), the left arg(s) will have brackets
+      // then if $funcs_no_spaces>0 don't do the space 
       if [not($parenth>0) or ($la>0)] { 
       // do not print space if either:
       // opening parenth was printed and no left args exist
       // or
       // $la>1 and we do func brackets (that means a closing bracket of args was printed)
+      // or $la=1 and the left arg got its own parenth (this si implied by $parenth>0)
       if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0) and ($la=0)) 
-      	  and not(($dofuncbrackets>0) and ($la>1))] {" "; } } 
+      	  and not(($funcs_no_spaces>0) and ($dofuncbrackets>0) and ($la>0))] {" "; } } 
       abs(#k=$k, #nr=$nr, #sym=abs1(#k=$k, #nr=$nr, #fnr=$fnr), #pid=$pid); 
       if [$k='G'] { "(#"; } 
       // do not print space if either:
@@ -369,7 +373,7 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
       // or
       // $ra>1 and we do func brackets (that means an opening bracket of args will be printed)
       if [not(($k='K') and ($funcs_no_spaces>0) and ($parenth>0) and (($visnr - $la)=0)) 
-          and not(($dofuncbrackets>0) and (($visnr - $la)>1))] {" "; } 
+          and not(($funcs_no_spaces>0) and ($dofuncbrackets>0) and (($visnr - $la)>0))] {" "; } 
    }
 
    if [($dofuncbrackets>0) and (($visnr - $la)>1)] { "("; } 
