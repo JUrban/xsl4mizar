@@ -49,6 +49,12 @@ sub transl_pattern
 	}
 	else
 	{
+	    my $outstr;
+	    if ($piece =~ m/^.*\\.*$/)
+	    {
+		$outstr = `latexmlc --mode=math '$piece'|tail -n+2`;
+	    }
+	    else { $outstr = }
 	    print ("<Str s=\"", xml_quote($piece), "\"/>");
 	}
     }
