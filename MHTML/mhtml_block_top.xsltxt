@@ -14,14 +14,18 @@ include mhtml_reasoning.xsl;
 
 // Registrations
 tpl [RCluster] { 
-    $nr1 = `1 + count(preceding::RCluster)`;
-    if [$generate_items>0]	{ 
+    if [Presentation/RCluster] { apply [Presentation/RCluster]; }
+    {
+       $nr1 = `1 + count(preceding::RCluster)`;
+       if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/exreg/{$anamelc}.{$nr1}" format="html">
-       rc();
+          rc();
 // </xsl:document>
-   $bogus=`1`;
- } 
-    else { rc(); } }
+          $bogus=`1`;
+       } 
+       else { rc(); } 
+    }
+}
 
 tpl rc 
 {
@@ -37,14 +41,18 @@ tpl rc
 }
 
 tpl [CCluster] { 
-    $nr1 = `1 + count(preceding::CCluster)`;
-    if [$generate_items>0]	{ 
+    if [Presentation/CCluster] { apply [Presentation/CCluster]; }
+    {
+      $nr1 = `1 + count(preceding::CCluster)`;
+      if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/condreg/{$anamelc}.{$nr1}" format="html">
-       cc();
+         cc();
 // </xsl:document>
-   $bogus=`1`;
- } 
-    else { cc(); } }
+         $bogus=`1`;
+      } 
+      else { cc(); } 
+    }
+}
 
 
 tpl cc
@@ -71,14 +79,19 @@ tpl cc
 }
 
 tpl [FCluster] { 
-    $nr1 = `1 + count(preceding::FCluster)`;
-    if [$generate_items>0]	{ 
+    if [Presentation/FCluster] { apply [Presentation/FCluster]; }
+    else
+    { 
+      $nr1 = `1 + count(preceding::FCluster)`;
+      if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/funcreg/{$anamelc}.{$nr1}" format="html">
        fc();
 // </xsl:document>
-   $bogus=`1`;
- } 
-    else { fc(); } }
+       $bogus=`1`;
+      } 
+      else { fc(); } 
+    }
+}
 
 tpl fc
 { 
