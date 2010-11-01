@@ -1906,7 +1906,7 @@
 
   <xsl:template name="dumproptable">
     <xsl:if test="$dump_prop_labels &gt; 0">
-      <xsl:document href="{$anamelc}.propnames" format="text"> 
+      <!-- <xsl:document href="{$anamelc}.propnames" format="text"> -->
       <xsl:for-each select="//Proposition|//IterEquality|//Now">
         <xsl:if test="@nr&gt;0">
           <xsl:variable name="pname">
@@ -1928,7 +1928,7 @@
 </xsl:text>
         </xsl:if>
       </xsl:for-each>
-      </xsl:document> 
+      <!-- </xsl:document> -->
       <xsl:variable name="bogus" select="1"/>
     </xsl:if>
   </xsl:template>
@@ -3907,102 +3907,117 @@
     <xsl:choose>
       <xsl:when test="ErrorCluster"/>
       <xsl:otherwise>
-        <xsl:text>fof(</xsl:text>
-        <xsl:call-template name="absk">
-          <xsl:with-param name="el" select="."/>
-          <xsl:with-param name="kind">
-            <xsl:text>cc</xsl:text>
-          </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>,theorem,</xsl:text>
-        <xsl:variable name="l" select="1 + count(ArgTypes/Typ)"/>
-        <xsl:apply-templates select="ArgTypes"/>
-        <xsl:text>![</xsl:text>
-        <xsl:call-template name="ploci">
-          <xsl:with-param name="nr" select="$l"/>
-        </xsl:call-template>
-        <xsl:text> : </xsl:text>
-        <xsl:apply-templates select="Typ"/>
-        <xsl:text>]: (</xsl:text>
-        <xsl:variable name="ante">
-          <xsl:value-of select="count(*[2]/*)"/>
-        </xsl:variable>
-        <xsl:variable name="succ">
-          <xsl:value-of select="count(*[4]/*)"/>
-        </xsl:variable>
-        <xsl:value-of select="$srt_s"/>
-        <xsl:text>(</xsl:text>
-        <xsl:call-template name="ploci">
-          <xsl:with-param name="nr" select="$l"/>
-        </xsl:call-template>
-        <xsl:text>,</xsl:text>
         <xsl:choose>
-          <xsl:when test="$ante = 0">
-            <xsl:text>$true</xsl:text>
-          </xsl:when>
+          <xsl:when test="(name(..) = &quot;Presentation&quot;)"/>
           <xsl:otherwise>
+            <xsl:variable name="pres">
+              <xsl:choose>
+                <xsl:when test="Presentation">
+                  <xsl:text>1</xsl:text>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text>0</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:variable>
+            <xsl:text>fof(</xsl:text>
+            <xsl:call-template name="absk">
+              <xsl:with-param name="el" select="."/>
+              <xsl:with-param name="kind">
+                <xsl:text>cc</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text>,theorem,</xsl:text>
+            <xsl:variable name="l" select="1 + count(ArgTypes/Typ)"/>
+            <xsl:apply-templates select="ArgTypes"/>
+            <xsl:text>![</xsl:text>
+            <xsl:call-template name="ploci">
+              <xsl:with-param name="nr" select="$l"/>
+            </xsl:call-template>
+            <xsl:text> : </xsl:text>
+            <xsl:apply-templates select="Typ"/>
+            <xsl:text>]: (</xsl:text>
+            <xsl:variable name="ante">
+              <xsl:value-of select="count(*[$pres + 2]/*)"/>
+            </xsl:variable>
+            <xsl:variable name="succ">
+              <xsl:value-of select="count(*[$pres + 4]/*)"/>
+            </xsl:variable>
+            <xsl:value-of select="$srt_s"/>
+            <xsl:text>(</xsl:text>
+            <xsl:call-template name="ploci">
+              <xsl:with-param name="nr" select="$l"/>
+            </xsl:call-template>
+            <xsl:text>,</xsl:text>
             <xsl:choose>
-              <xsl:when test="$ante = 1">
-                <xsl:apply-templates select="*[2]"/>
+              <xsl:when test="$ante = 0">
+                <xsl:text>$true</xsl:text>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:text>( </xsl:text>
-                <xsl:apply-templates select="*[2]"/>
-                <xsl:text> )</xsl:text>
+                <xsl:choose>
+                  <xsl:when test="$ante = 1">
+                    <xsl:apply-templates select="*[$pres + 2]"/>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:text>( </xsl:text>
+                    <xsl:apply-templates select="*[$pres + 2]"/>
+                    <xsl:text> )</xsl:text>
+                  </xsl:otherwise>
+                </xsl:choose>
               </xsl:otherwise>
             </xsl:choose>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>)</xsl:text>
-        <xsl:value-of select="$imp_s"/>
-        <xsl:value-of select="$srt_s"/>
-        <xsl:text>(</xsl:text>
-        <xsl:call-template name="ploci">
-          <xsl:with-param name="nr" select="$l"/>
-        </xsl:call-template>
-        <xsl:text>,</xsl:text>
-        <xsl:choose>
-          <xsl:when test="$succ = 0">
-            <xsl:text>$true</xsl:text>
-          </xsl:when>
-          <xsl:otherwise>
+            <xsl:text>)</xsl:text>
+            <xsl:value-of select="$imp_s"/>
+            <xsl:value-of select="$srt_s"/>
+            <xsl:text>(</xsl:text>
+            <xsl:call-template name="ploci">
+              <xsl:with-param name="nr" select="$l"/>
+            </xsl:call-template>
+            <xsl:text>,</xsl:text>
             <xsl:choose>
-              <xsl:when test="$succ = 1">
-                <xsl:apply-templates select="*[4]"/>
+              <xsl:when test="$succ = 0">
+                <xsl:text>$true</xsl:text>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:text>( </xsl:text>
-                <xsl:apply-templates select="*[4]"/>
-                <xsl:text> )</xsl:text>
+                <xsl:choose>
+                  <xsl:when test="$succ = 1">
+                    <xsl:apply-templates select="*[$pres + 4]"/>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:text>( </xsl:text>
+                    <xsl:apply-templates select="*[$pres + 4]"/>
+                    <xsl:text> )</xsl:text>
+                  </xsl:otherwise>
+                </xsl:choose>
               </xsl:otherwise>
             </xsl:choose>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>))</xsl:text>
-        <xsl:text>,file(</xsl:text>
-        <xsl:call-template name="lc">
-          <xsl:with-param name="s" select="@aid"/>
-        </xsl:call-template>
-        <xsl:text>,</xsl:text>
-        <xsl:call-template name="absk">
-          <xsl:with-param name="el" select="."/>
-          <xsl:with-param name="kind">
-            <xsl:text>cc</xsl:text>
-          </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>),[mptp_info(</xsl:text>
-        <xsl:value-of select="@nr"/>
-        <xsl:text>,[],ccluster,position(0,0),[</xsl:text>
-        <xsl:if test="$mml=&quot;0&quot;">
-          <xsl:text>proof_level([</xsl:text>
-          <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
-          <xsl:text>]),</xsl:text>
-          <xsl:call-template name="cluster_correctness_conditions">
-            <xsl:with-param name="el" select="../*[position() = last()]"/>
-          </xsl:call-template>
-        </xsl:if>
-        <xsl:text>])]).
+            <xsl:text>))</xsl:text>
+            <xsl:text>,file(</xsl:text>
+            <xsl:call-template name="lc">
+              <xsl:with-param name="s" select="@aid"/>
+            </xsl:call-template>
+            <xsl:text>,</xsl:text>
+            <xsl:call-template name="absk">
+              <xsl:with-param name="el" select="."/>
+              <xsl:with-param name="kind">
+                <xsl:text>cc</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text>),[mptp_info(</xsl:text>
+            <xsl:value-of select="@nr"/>
+            <xsl:text>,[],ccluster,position(0,0),[</xsl:text>
+            <xsl:if test="$mml=&quot;0&quot;">
+              <xsl:text>proof_level([</xsl:text>
+              <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
+              <xsl:text>]),</xsl:text>
+              <xsl:call-template name="cluster_correctness_conditions">
+                <xsl:with-param name="el" select="../*[position() = last()]"/>
+              </xsl:call-template>
+            </xsl:if>
+            <xsl:text>])]).
 </xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -4022,64 +4037,79 @@
     <xsl:choose>
       <xsl:when test="ErrorCluster"/>
       <xsl:otherwise>
-        <xsl:text>fof(</xsl:text>
-        <xsl:call-template name="absk">
-          <xsl:with-param name="el" select="."/>
-          <xsl:with-param name="kind">
-            <xsl:text>fc</xsl:text>
-          </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>,theorem,</xsl:text>
-        <xsl:apply-templates select="ArgTypes"/>
-        <xsl:variable name="succ">
-          <xsl:value-of select="count(Cluster[1]/*)"/>
-        </xsl:variable>
-        <xsl:value-of select="$srt_s"/>
-        <xsl:text>(</xsl:text>
-        <xsl:apply-templates select="*[2]"/>
-        <xsl:text>,</xsl:text>
         <xsl:choose>
-          <xsl:when test="$succ = 0">
-            <xsl:text>$true</xsl:text>
-          </xsl:when>
+          <xsl:when test="(name(..) = &quot;Presentation&quot;)"/>
           <xsl:otherwise>
+            <xsl:variable name="pres">
+              <xsl:choose>
+                <xsl:when test="Presentation">
+                  <xsl:text>1</xsl:text>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text>0</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:variable>
+            <xsl:text>fof(</xsl:text>
+            <xsl:call-template name="absk">
+              <xsl:with-param name="el" select="."/>
+              <xsl:with-param name="kind">
+                <xsl:text>fc</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text>,theorem,</xsl:text>
+            <xsl:apply-templates select="ArgTypes"/>
+            <xsl:variable name="succ">
+              <xsl:value-of select="count(Cluster[1]/*)"/>
+            </xsl:variable>
+            <xsl:value-of select="$srt_s"/>
+            <xsl:text>(</xsl:text>
+            <xsl:apply-templates select="*[$pres + 2]"/>
+            <xsl:text>,</xsl:text>
             <xsl:choose>
-              <xsl:when test="$succ = 1">
-                <xsl:apply-templates select="Cluster[1]"/>
+              <xsl:when test="$succ = 0">
+                <xsl:text>$true</xsl:text>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:text>( </xsl:text>
-                <xsl:apply-templates select="Cluster[1]"/>
-                <xsl:text> )</xsl:text>
+                <xsl:choose>
+                  <xsl:when test="$succ = 1">
+                    <xsl:apply-templates select="Cluster[1]"/>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:text>( </xsl:text>
+                    <xsl:apply-templates select="Cluster[1]"/>
+                    <xsl:text> )</xsl:text>
+                  </xsl:otherwise>
+                </xsl:choose>
               </xsl:otherwise>
             </xsl:choose>
+            <xsl:text>)</xsl:text>
+            <xsl:text>,file(</xsl:text>
+            <xsl:call-template name="lc">
+              <xsl:with-param name="s" select="@aid"/>
+            </xsl:call-template>
+            <xsl:text>,</xsl:text>
+            <xsl:call-template name="absk">
+              <xsl:with-param name="el" select="."/>
+              <xsl:with-param name="kind">
+                <xsl:text>fc</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text>),[mptp_info(</xsl:text>
+            <xsl:value-of select="@nr"/>
+            <xsl:text>,[],fcluster,position(0,0),[</xsl:text>
+            <xsl:if test="$mml=&quot;0&quot;">
+              <xsl:text>proof_level([</xsl:text>
+              <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
+              <xsl:text>]),</xsl:text>
+              <xsl:call-template name="cluster_correctness_conditions">
+                <xsl:with-param name="el" select="../*[position() &gt; 1]"/>
+              </xsl:call-template>
+            </xsl:if>
+            <xsl:text>])]).
+</xsl:text>
           </xsl:otherwise>
         </xsl:choose>
-        <xsl:text>)</xsl:text>
-        <xsl:text>,file(</xsl:text>
-        <xsl:call-template name="lc">
-          <xsl:with-param name="s" select="@aid"/>
-        </xsl:call-template>
-        <xsl:text>,</xsl:text>
-        <xsl:call-template name="absk">
-          <xsl:with-param name="el" select="."/>
-          <xsl:with-param name="kind">
-            <xsl:text>fc</xsl:text>
-          </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>),[mptp_info(</xsl:text>
-        <xsl:value-of select="@nr"/>
-        <xsl:text>,[],fcluster,position(0,0),[</xsl:text>
-        <xsl:if test="$mml=&quot;0&quot;">
-          <xsl:text>proof_level([</xsl:text>
-          <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
-          <xsl:text>]),</xsl:text>
-          <xsl:call-template name="cluster_correctness_conditions">
-            <xsl:with-param name="el" select="../*[position() &gt; 1]"/>
-          </xsl:call-template>
-        </xsl:if>
-        <xsl:text>])]).
-</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -4122,93 +4152,98 @@
     <xsl:choose>
       <xsl:when test="ErrorCluster"/>
       <xsl:otherwise>
-        <xsl:text>fof(</xsl:text>
-        <xsl:call-template name="absk">
-          <xsl:with-param name="el" select="."/>
-          <xsl:with-param name="kind">
-            <xsl:text>rc</xsl:text>
-          </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>,theorem,</xsl:text>
-        <xsl:variable name="l" select="1 + count(ArgTypes/Typ)"/>
-        <xsl:apply-templates select="ArgTypes"/>
-        <xsl:text>?[</xsl:text>
-        <xsl:call-template name="ploci">
-          <xsl:with-param name="nr" select="$l"/>
-        </xsl:call-template>
-        <xsl:text> : </xsl:text>
-        <xsl:apply-templates select="Typ"/>
-        <xsl:text>]: </xsl:text>
-        <xsl:variable name="succ">
-          <xsl:value-of select="count(Cluster[1]/*)"/>
-        </xsl:variable>
-        <xsl:value-of select="$srt_s"/>
-        <xsl:text>(</xsl:text>
-        <xsl:call-template name="ploci">
-          <xsl:with-param name="nr" select="$l"/>
-        </xsl:call-template>
-        <xsl:text>,</xsl:text>
         <xsl:choose>
-          <xsl:when test="$succ = 0">
-            <xsl:text>$true</xsl:text>
-          </xsl:when>
+          <xsl:when test="(name(..) = &quot;Presentation&quot;)"/>
           <xsl:otherwise>
+            <xsl:text>fof(</xsl:text>
+            <xsl:call-template name="absk">
+              <xsl:with-param name="el" select="."/>
+              <xsl:with-param name="kind">
+                <xsl:text>rc</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text>,theorem,</xsl:text>
+            <xsl:variable name="l" select="1 + count(ArgTypes/Typ)"/>
+            <xsl:apply-templates select="ArgTypes"/>
+            <xsl:text>?[</xsl:text>
+            <xsl:call-template name="ploci">
+              <xsl:with-param name="nr" select="$l"/>
+            </xsl:call-template>
+            <xsl:text> : </xsl:text>
+            <xsl:apply-templates select="Typ"/>
+            <xsl:text>]: </xsl:text>
+            <xsl:variable name="succ">
+              <xsl:value-of select="count(Cluster[1]/*)"/>
+            </xsl:variable>
+            <xsl:value-of select="$srt_s"/>
+            <xsl:text>(</xsl:text>
+            <xsl:call-template name="ploci">
+              <xsl:with-param name="nr" select="$l"/>
+            </xsl:call-template>
+            <xsl:text>,</xsl:text>
             <xsl:choose>
-              <xsl:when test="$succ = 1">
-                <xsl:apply-templates select="Cluster[1]"/>
+              <xsl:when test="$succ = 0">
+                <xsl:text>$true</xsl:text>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:text>( </xsl:text>
-                <xsl:apply-templates select="Cluster[1]"/>
-                <xsl:text> )</xsl:text>
+                <xsl:choose>
+                  <xsl:when test="$succ = 1">
+                    <xsl:apply-templates select="Cluster[1]"/>
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:text>( </xsl:text>
+                    <xsl:apply-templates select="Cluster[1]"/>
+                    <xsl:text> )</xsl:text>
+                  </xsl:otherwise>
+                </xsl:choose>
               </xsl:otherwise>
             </xsl:choose>
-          </xsl:otherwise>
-        </xsl:choose>
-        <xsl:text>)</xsl:text>
-        <xsl:text>,file(</xsl:text>
-        <xsl:call-template name="lc">
-          <xsl:with-param name="s" select="@aid"/>
-        </xsl:call-template>
-        <xsl:text>,</xsl:text>
-        <xsl:call-template name="absk">
-          <xsl:with-param name="el" select="."/>
-          <xsl:with-param name="kind">
-            <xsl:text>rc</xsl:text>
-          </xsl:with-param>
-        </xsl:call-template>
-        <xsl:text>),[mptp_info(</xsl:text>
-        <xsl:value-of select="@nr"/>
-        <xsl:text>,[],rcluster,position(0,0),[</xsl:text>
-        <xsl:if test="$mml=&quot;0&quot;">
-          <xsl:text>proof_level([</xsl:text>
-          <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
-          <xsl:text>]),</xsl:text>
-          <!-- forge the correctness of structural "strict" registrations -->
-          <xsl:choose>
-            <xsl:when test="name(../..) = &quot;Definition&quot;">
+            <xsl:text>)</xsl:text>
+            <xsl:text>,file(</xsl:text>
+            <xsl:call-template name="lc">
+              <xsl:with-param name="s" select="@aid"/>
+            </xsl:call-template>
+            <xsl:text>,</xsl:text>
+            <xsl:call-template name="absk">
+              <xsl:with-param name="el" select="."/>
+              <xsl:with-param name="kind">
+                <xsl:text>rc</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text>),[mptp_info(</xsl:text>
+            <xsl:value-of select="@nr"/>
+            <xsl:text>,[],rcluster,position(0,0),[</xsl:text>
+            <xsl:if test="$mml=&quot;0&quot;">
+              <xsl:text>proof_level([</xsl:text>
+              <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
+              <xsl:text>]),</xsl:text>
+              <!-- forge the correctness of structural "strict" registrations -->
               <xsl:choose>
-                <xsl:when test="not(../../Constructor[@kind = &quot;G&quot;])">
-                  <xsl:value-of select="$fail"/>
+                <xsl:when test="name(../..) = &quot;Definition&quot;">
+                  <xsl:choose>
+                    <xsl:when test="not(../../Constructor[@kind = &quot;G&quot;])">
+                      <xsl:value-of select="$fail"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:text>inference(mizar_by,[strict],[dt_</xsl:text>
+                      <xsl:call-template name="absc1">
+                        <xsl:with-param name="el" select="../../Constructor[@kind = &quot;G&quot;]"/>
+                      </xsl:call-template>
+                      <xsl:text>])</xsl:text>
+                    </xsl:otherwise>
+                  </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
-                  <xsl:text>inference(mizar_by,[strict],[dt_</xsl:text>
-                  <xsl:call-template name="absc1">
-                    <xsl:with-param name="el" select="../../Constructor[@kind = &quot;G&quot;]"/>
+                  <xsl:call-template name="cluster_correctness_conditions">
+                    <xsl:with-param name="el" select="../*[position() = last()]"/>
                   </xsl:call-template>
-                  <xsl:text>])</xsl:text>
                 </xsl:otherwise>
               </xsl:choose>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:call-template name="cluster_correctness_conditions">
-                <xsl:with-param name="el" select="../*[position() = last()]"/>
-              </xsl:call-template>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:if>
-        <xsl:text>])]).
+            </xsl:if>
+            <xsl:text>])]).
 </xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
