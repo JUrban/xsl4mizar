@@ -477,7 +477,19 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp|Identify">
+  <!-- the aid and nr are already in the standard xml now -->
+  <xsl:template match="RCluster|CCluster|FCluster|IdentifyWithExp|Identify">
+    <xsl:param name="s"/>
+    <xsl:variable name="n" select="name()"/>
+    <xsl:element name="{$n}">
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates>
+        <xsl:with-param name="s" select="$s"/>
+      </xsl:apply-templates>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="Scheme|Definiens">
     <xsl:param name="s"/>
     <xsl:variable name="n" select="name()"/>
     <xsl:element name="{$n}">

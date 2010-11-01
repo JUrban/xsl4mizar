@@ -222,7 +222,17 @@ tpl [Theorem|Constructor|Pattern](#s) {
 	     }
              apply(#s=$s); }}
 
-tpl [Scheme|Definiens|RCluster|CCluster|FCluster|IdentifyWithExp|Identify](#s)
+// the aid and nr are already in the standard xml now
+tpl [RCluster|CCluster|FCluster|IdentifyWithExp|Identify](#s)
+{ 
+  $n=`name()`; <$n 
+  { 
+    copy-of `@*`; 
+    apply(#s=$s); 
+  }
+}
+
+tpl [Scheme|Definiens](#s)
 { 
   $n=`name()`; <$n 
   { 

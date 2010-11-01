@@ -16,7 +16,7 @@ include mhtml_reasoning.xsl;
 tpl [RCluster] { 
     if [Presentation/RCluster] { apply [Presentation/RCluster]; }
     {
-       $nr1 = `1 + count(preceding::RCluster)`;
+       $nr1 = `@nr`;
        if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/exreg/{$anamelc}.{$nr1}" format="html">
           rc();
@@ -30,7 +30,7 @@ tpl [RCluster] {
 tpl rc 
 {
   if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
-  $nr1 = `1 + count(preceding::RCluster)`;
+  $nr1 = `@nr`;
   <a 
   { 
     @NAME=`concat("RC",$nr1)`;
@@ -43,7 +43,7 @@ tpl rc
 tpl [CCluster] { 
     if [Presentation/CCluster] { apply [Presentation/CCluster]; }
     {
-      $nr1 = `1 + count(preceding::CCluster)`;
+      $nr1 = `@nr`;
       if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/condreg/{$anamelc}.{$nr1}" format="html">
          cc();
@@ -62,7 +62,7 @@ tpl cc
      apply[ArgTypes]; 
   }
   
-  $nr1 = `1 + count(preceding::CCluster)`;
+  $nr1 = `@nr`;
   <a { 
        @NAME=`concat("CC",$nr1)`;
        pkeyword(#str="cluster "); }
@@ -82,7 +82,7 @@ tpl [FCluster] {
     if [Presentation/FCluster] { apply [Presentation/FCluster]; }
     else
     { 
-      $nr1 = `1 + count(preceding::FCluster)`;
+      $nr1 = `@nr`;
       if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/funcreg/{$anamelc}.{$nr1}" format="html">
        fc();
@@ -96,7 +96,7 @@ tpl [FCluster] {
 tpl fc
 { 
    if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
-   $nr1 = `1 + count(preceding::FCluster)`;
+   $nr1 = `@nr`;
    <a { @NAME=`concat("FC",$nr1)`;
    pkeyword(#str="cluster "); }
    if [ErrorCluster] { "errorcluster"; }
@@ -108,7 +108,7 @@ tpl fc
 tpl [IdentifyWithExp|Identify] 
 { 
     $iname = `name()`; // to deal with both versions
-    $nr1 = `1 + count(preceding::*[name() = $iname])`;
+    $nr1 = `@nr`;
     if [$generate_items>0]	
     { 
 // <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html">
@@ -127,7 +127,7 @@ tpl iy
       argtypes(#el=`Typ`);
    }
 
-   $nr1 = `1 + count(preceding::*[name() = $iname])`;
+   $nr1 = `@nr`;
 
    <a 
    { 
