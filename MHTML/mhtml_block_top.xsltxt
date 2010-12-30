@@ -15,7 +15,7 @@ include mhtml_reasoning.xsl;
 // Registrations
 tpl [RCluster] { 
     if [Presentation/RCluster] { apply [Presentation/RCluster]; }
-    {
+    else {
        $nr1 = `@nr`;
        if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/exreg/{$anamelc}.{$nr1}" format="html">
@@ -42,7 +42,7 @@ tpl rc
 
 tpl [CCluster] { 
     if [Presentation/CCluster] { apply [Presentation/CCluster]; }
-    {
+    else {
       $nr1 = `@nr`;
       if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/condreg/{$anamelc}.{$nr1}" format="html">
