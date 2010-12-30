@@ -309,7 +309,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 #labcolor = { "Green"; }
 
-#commentcolor = { "B22222"; }
+#commentcolor = { "firebrick"; }
 
 // use spans for brackets
 #parenspans = { "1"; }
