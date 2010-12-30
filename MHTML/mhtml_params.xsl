@@ -357,7 +357,7 @@
     <xsl:text>Green</xsl:text>
   </xsl:param>
   <xsl:param name="commentcolor">
-    <xsl:text>Red</xsl:text>
+    <xsl:text>B22222</xsl:text>
   </xsl:param>
   <!-- use spans for brackets -->
   <xsl:param name="parenspans">
