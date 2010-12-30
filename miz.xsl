@@ -389,7 +389,7 @@
     <xsl:text>Green</xsl:text>
   </xsl:param>
   <xsl:param name="commentcolor">
-    <xsl:text>Red</xsl:text>
+    <xsl:text>B22222</xsl:text>
   </xsl:param>
   <!-- use spans for brackets -->
   <xsl:param name="parenspans">
@@ -6222,16 +6222,23 @@
   <!-- License: GPL (GNU GENERAL PUBLIC LICENSE) -->
   <!-- Registrations -->
   <xsl:template match="RCluster">
-    <xsl:variable name="nr1" select="1 + count(preceding::RCluster)"/>
     <xsl:choose>
-      <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="proofhtml/exreg/{$anamelc}.{$nr1}" format="html"> 
-        <xsl:call-template name="rc"/>
-        </xsl:document> 
-        <xsl:variable name="bogus" select="1"/>
+      <xsl:when test="Presentation/RCluster">
+        <xsl:apply-templates select="Presentation/RCluster"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:call-template name="rc"/>
+        <xsl:variable name="nr1" select="@nr"/>
+        <xsl:choose>
+          <xsl:when test="$generate_items&gt;0">
+            <xsl:document href="proofhtml/exreg/{$anamelc}.{$nr1}" format="html"> 
+            <xsl:call-template name="rc"/>
+            </xsl:document> 
+            <xsl:variable name="bogus" select="1"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="rc"/>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -6240,7 +6247,7 @@
     <xsl:if test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
       <xsl:apply-templates select="ArgTypes"/>
     </xsl:if>
-    <xsl:variable name="nr1" select="1 + count(preceding::RCluster)"/>
+    <xsl:variable name="nr1" select="@nr"/>
     <xsl:element name="a">
       <xsl:attribute name="NAME">
         <xsl:value-of select="concat(&quot;RC&quot;,$nr1)"/>
@@ -6273,16 +6280,23 @@
   </xsl:template>
 
   <xsl:template match="CCluster">
-    <xsl:variable name="nr1" select="1 + count(preceding::CCluster)"/>
     <xsl:choose>
-      <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="proofhtml/condreg/{$anamelc}.{$nr1}" format="html"> 
-        <xsl:call-template name="cc"/>
-        </xsl:document> 
-        <xsl:variable name="bogus" select="1"/>
+      <xsl:when test="Presentation/CCluster">
+        <xsl:apply-templates select="Presentation/CCluster"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:call-template name="cc"/>
+        <xsl:variable name="nr1" select="@nr"/>
+        <xsl:choose>
+          <xsl:when test="$generate_items&gt;0">
+            <xsl:document href="proofhtml/condreg/{$anamelc}.{$nr1}" format="html"> 
+            <xsl:call-template name="cc"/>
+            </xsl:document> 
+            <xsl:variable name="bogus" select="1"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="cc"/>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -6291,7 +6305,7 @@
     <xsl:if test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
       <xsl:apply-templates select="ArgTypes"/>
     </xsl:if>
-    <xsl:variable name="nr1" select="1 + count(preceding::CCluster)"/>
+    <xsl:variable name="nr1" select="@nr"/>
     <xsl:element name="a">
       <xsl:attribute name="NAME">
         <xsl:value-of select="concat(&quot;CC&quot;,$nr1)"/>
@@ -6330,16 +6344,23 @@
   </xsl:template>
 
   <xsl:template match="FCluster">
-    <xsl:variable name="nr1" select="1 + count(preceding::FCluster)"/>
     <xsl:choose>
-      <xsl:when test="$generate_items&gt;0">
-        <xsl:document href="proofhtml/funcreg/{$anamelc}.{$nr1}" format="html"> 
-        <xsl:call-template name="fc"/>
-        </xsl:document> 
-        <xsl:variable name="bogus" select="1"/>
+      <xsl:when test="Presentation/FCluster">
+        <xsl:apply-templates select="Presentation/FCluster"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:call-template name="fc"/>
+        <xsl:variable name="nr1" select="@nr"/>
+        <xsl:choose>
+          <xsl:when test="$generate_items&gt;0">
+            <xsl:document href="proofhtml/funcreg/{$anamelc}.{$nr1}" format="html"> 
+            <xsl:call-template name="fc"/>
+            </xsl:document> 
+            <xsl:variable name="bogus" select="1"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="fc"/>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -6348,7 +6369,7 @@
     <xsl:if test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
       <xsl:apply-templates select="ArgTypes"/>
     </xsl:if>
-    <xsl:variable name="nr1" select="1 + count(preceding::FCluster)"/>
+    <xsl:variable name="nr1" select="@nr"/>
     <xsl:element name="a">
       <xsl:attribute name="NAME">
         <xsl:value-of select="concat(&quot;FC&quot;,$nr1)"/>
@@ -6384,7 +6405,7 @@
   <xsl:template match="IdentifyWithExp|Identify">
     <xsl:variable name="iname" select="name()"/>
     <!-- to deal with both versions -->
-    <xsl:variable name="nr1" select="1 + count(preceding::*[name() = $iname])"/>
+    <xsl:variable name="nr1" select="@nr"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
         <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html"> 
@@ -6406,7 +6427,7 @@
         <xsl:with-param name="el" select="Typ"/>
       </xsl:call-template>
     </xsl:if>
-    <xsl:variable name="nr1" select="1 + count(preceding::*[name() = $iname])"/>
+    <xsl:variable name="nr1" select="@nr"/>
     <xsl:element name="a">
       <xsl:attribute name="NAME">
         <xsl:value-of select="concat(&quot;IY&quot;,$nr1)"/>

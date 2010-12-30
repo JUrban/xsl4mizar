@@ -309,7 +309,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 #labcolor = { "Green"; }
 
-#commentcolor = { "Red"; }
+#commentcolor = { "B22222"; }
 
 // use spans for brackets
 #parenspans = { "1"; }
@@ -2875,19 +2875,23 @@ tpl [PerCases]
 
 // Registrations
 tpl [RCluster] { 
-    $nr1 = `1 + count(preceding::RCluster)`;
-    if [$generate_items>0]	{ 
+    if [Presentation/RCluster] { apply [Presentation/RCluster]; }
+    else {
+       $nr1 = `@nr`;
+       if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/exreg/{$anamelc}.{$nr1}" format="html">
-       rc();
+          rc();
 // </xsl:document>
-   $bogus=`1`;
- } 
-    else { rc(); } }
+          $bogus=`1`;
+       } 
+       else { rc(); } 
+    }
+}
 
 tpl rc 
 {
   if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
-  $nr1 = `1 + count(preceding::RCluster)`;
+  $nr1 = `@nr`;
   <a 
   { 
     @NAME=`concat("RC",$nr1)`;
@@ -2898,14 +2902,18 @@ tpl rc
 }
 
 tpl [CCluster] { 
-    $nr1 = `1 + count(preceding::CCluster)`;
-    if [$generate_items>0]	{ 
+    if [Presentation/CCluster] { apply [Presentation/CCluster]; }
+    else {
+      $nr1 = `@nr`;
+      if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/condreg/{$anamelc}.{$nr1}" format="html">
-       cc();
+         cc();
 // </xsl:document>
-   $bogus=`1`;
- } 
-    else { cc(); } }
+         $bogus=`1`;
+      } 
+      else { cc(); } 
+    }
+}
 
 
 tpl cc
@@ -2915,7 +2923,7 @@ tpl cc
      apply[ArgTypes]; 
   }
   
-  $nr1 = `1 + count(preceding::CCluster)`;
+  $nr1 = `@nr`;
   <a { 
        @NAME=`concat("CC",$nr1)`;
        pkeyword(#str="cluster "); }
@@ -2932,19 +2940,24 @@ tpl cc
 }
 
 tpl [FCluster] { 
-    $nr1 = `1 + count(preceding::FCluster)`;
-    if [$generate_items>0]	{ 
+    if [Presentation/FCluster] { apply [Presentation/FCluster]; }
+    else
+    { 
+      $nr1 = `@nr`;
+      if [$generate_items>0]	{ 
 // <xsl:document href="proofhtml/funcreg/{$anamelc}.{$nr1}" format="html">
        fc();
 // </xsl:document>
-   $bogus=`1`;
- } 
-    else { fc(); } }
+       $bogus=`1`;
+      } 
+      else { fc(); } 
+    }
+}
 
 tpl fc
 { 
    if [($mml="1") or ($generate_items>0)] { apply[ArgTypes]; }
-   $nr1 = `1 + count(preceding::FCluster)`;
+   $nr1 = `@nr`;
    <a { @NAME=`concat("FC",$nr1)`;
    pkeyword(#str="cluster "); }
    if [ErrorCluster] { "errorcluster"; }
@@ -2956,7 +2969,7 @@ tpl fc
 tpl [IdentifyWithExp|Identify] 
 { 
     $iname = `name()`; // to deal with both versions
-    $nr1 = `1 + count(preceding::*[name() = $iname])`;
+    $nr1 = `@nr`;
     if [$generate_items>0]	
     { 
 // <xsl:document href="proofhtml/idreg/{$anamelc}.{$nr1}" format="html">
@@ -2975,7 +2988,7 @@ tpl iy
       argtypes(#el=`Typ`);
    }
 
-   $nr1 = `1 + count(preceding::*[name() = $iname])`;
+   $nr1 = `@nr`;
 
    <a 
    { 
