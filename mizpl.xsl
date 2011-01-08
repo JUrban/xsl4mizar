@@ -1906,7 +1906,7 @@
 
   <xsl:template name="dumproptable">
     <xsl:if test="$dump_prop_labels &gt; 0">
-      <!-- <xsl:document href="{$anamelc}.propnames" format="text"> -->
+      <xsl:document href="{$anamelc}.propnames" format="text"> 
       <xsl:for-each select="//Proposition|//IterEquality|//Now">
         <xsl:if test="@nr&gt;0">
           <xsl:variable name="pname">
@@ -1928,7 +1928,7 @@
 </xsl:text>
         </xsl:if>
       </xsl:for-each>
-      <!-- </xsl:document> -->
+      </xsl:document> 
       <xsl:variable name="bogus" select="1"/>
     </xsl:if>
   </xsl:template>
