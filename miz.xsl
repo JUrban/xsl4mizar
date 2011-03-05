@@ -201,6 +201,10 @@
   <xsl:param name="wiki_links">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- add buttons for editing wiki sections -->
+  <xsl:param name="wiki_sections">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- domain name of the "wiki" server -->
   <xsl:param name="lwikihost">
     <xsl:text>mws.cs.ru.nl</xsl:text>
@@ -6669,6 +6673,36 @@
           <xsl:with-param name="nr" select="$nr1"/>
         </xsl:call-template>
       </xsl:if>
+      <xsl:if test="$wiki_sections = 1">
+        <xsl:variable name="endpos">
+          <xsl:choose>
+            <xsl:when test="Proof">
+              <xsl:value-of select="Proof[1]/EndPosition[1]/@line"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:choose>
+                <xsl:when test="By|From">
+                  <xsl:value-of select="*[2]/@line"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text>0</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:variable>
+        <xsl:if test="$endpos &gt; 0">
+          <xsl:text> </xsl:text>
+          <xsl:call-template name="wiki_edit_section_for">
+            <xsl:with-param name="k">
+              <xsl:text>t</xsl:text>
+            </xsl:with-param>
+            <xsl:with-param name="nr" select="$nr1"/>
+            <xsl:with-param name="line1" select="Proposition[1]/@line"/>
+            <xsl:with-param name="line2" select="$endpos"/>
+          </xsl:call-template>
+        </xsl:if>
+      </xsl:if>
       <xsl:if test="$thms_tptp_links = 1">
         <xsl:call-template name="tptp_for_thm">
           <xsl:with-param name="line" select="Proposition[1]/@line"/>
@@ -6908,6 +6942,26 @@
         <xsl:value-of select="concat($ltmpftptpcgi,&quot;?file=&quot;,$thm_file,&quot;&amp;tmp=&quot;,$lbytmpdir)"/>
       </xsl:attribute>
       <xsl:text>[edit]</xsl:text>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template name="wiki_edit_section_for">
+    <xsl:param name="k"/>
+    <xsl:param name="nr"/>
+    <xsl:param name="line1"/>
+    <xsl:param name="line2"/>
+    <xsl:variable name="section" select="concat($k,$nr,&quot;_&quot;,$line1,&quot;_&quot;,$line2)"/>
+    <xsl:element name="a">
+      <xsl:attribute name="href">
+        <xsl:value-of select="concat($lmwikicgi,&quot;?p=&quot;,$lgitproject,&quot;;a=edit;f=mml/&quot;,$anamelc,&quot;.miz;s=&quot;,$section)"/>
+      </xsl:attribute>
+      <xsl:attribute name="rel">
+        <xsl:text>nofollow</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="class">
+        <xsl:text>edit</xsl:text>
+      </xsl:attribute>
+      <xsl:text> [edit]</xsl:text>
     </xsl:element>
   </xsl:template>
 

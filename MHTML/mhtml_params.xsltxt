@@ -134,6 +134,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // the namespace for the scripts is taken from #ltptproot
 #wiki_links = { "0"; }
 
+// add buttons for editing wiki sections
+#wiki_sections = { "0"; }
+
 // domain name of the "wiki" server
 #lwikihost = { "mws.cs.ru.nl"; }
 

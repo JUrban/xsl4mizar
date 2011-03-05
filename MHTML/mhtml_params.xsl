@@ -169,6 +169,10 @@
   <xsl:param name="wiki_links">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- add buttons for editing wiki sections -->
+  <xsl:param name="wiki_sections">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- domain name of the "wiki" server -->
   <xsl:param name="lwikihost">
     <xsl:text>mws.cs.ru.nl</xsl:text>
