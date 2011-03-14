@@ -6951,6 +6951,10 @@
     <xsl:param name="line1"/>
     <xsl:param name="line2"/>
     <xsl:variable name="section" select="concat($k,$nr,&quot;_&quot;,$line1,&quot;_&quot;,$line2)"/>
+    <!-- // <xsl:document href="{$anamelc}__{$k}{$nr}.itm"> -->
+    <!-- $bogus=`1`; -->
+    <!-- $section; -->
+    <!-- // </xsl:document> -->
     <xsl:element name="a">
       <xsl:attribute name="href">
         <xsl:value-of select="concat($lmwikicgi,&quot;?p=&quot;,$lgitproject,&quot;;a=edit;f=mml/&quot;,$anamelc,&quot;.miz;s=&quot;,$section)"/>

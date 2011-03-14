@@ -3306,6 +3306,10 @@ tpl edit_for_thm(#line, #col)
 tpl wiki_edit_section_for(#k, #nr, #line1, #line2)
 {
   $section = `concat($k,$nr,"_",$line1,"_",$line2)`;
+// // <xsl:document href="{$anamelc}__{$k}{$nr}.itm">
+//  $bogus=`1`;
+//  $section;
+// // </xsl:document>
   <a
   {
     @href= `concat($lmwikicgi,"?p=",$lgitproject,";a=edit;f=mml/",$anamelc,".miz;s=",$section)`; 
