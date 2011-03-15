@@ -1,0 +1,27 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
+// producing one line of text for the .evl file with environ declarations
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL evl2dep1.xsltxt >evl2dep1.xsl
+
+// Than run e.g. this way:
+// xsltproc evl2dep1.xsl xboole_0.evl
+
+output method=text;
+
+strip-space "*";
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+tpl [/] { apply[/Environ]; "\n";}
+
+tpl [Environ] { lc(#s=`@aid`); ".xmlvrf"; ": "; lc(#s=`@aid`); ".miz"; apply; }
+
+tpl [Directive] {  if[@name="Notations" or @name="Definitions" or @name="Theorems" or @name="Schemes" or @name="Registrations" or @name="Constructors"] { apply[Ident]; } }
+tpl [Ident] { " "; lc(#s=`@name`); "-prel";}
