@@ -1906,7 +1906,7 @@
 
   <xsl:template name="dumproptable">
     <xsl:if test="$dump_prop_labels &gt; 0">
-      <xsl:document href="{$anamelc}.propnames" format="text"> 
+      <!-- <xsl:document href="{$anamelc}.propnames" format="text"> -->
       <xsl:for-each select="//Proposition|//IterEquality|//Now">
         <xsl:if test="@nr&gt;0">
           <xsl:variable name="pname">
@@ -1928,7 +1928,7 @@
 </xsl:text>
         </xsl:if>
       </xsl:for-each>
-      </xsl:document> 
+      <!-- </xsl:document> -->
       <xsl:variable name="bogus" select="1"/>
     </xsl:if>
   </xsl:template>
@@ -2812,9 +2812,14 @@
   <!-- That should be OK for problem creation using mizar_by - the type -->
   <!-- statement will be deleted from the axioms, and the rest of BG are just -->
   <!-- general theorems, nothing specific about the constant. -->
+  <!-- The proposition is generated before the types and equalities, otherwise in MizAR -->
+  <!-- the article_position is wrong, resulting in bad .allowed_local info -->
   <xsl:template match="Reconsider">
     <xsl:variable name="cnr" select="@constnr"/>
     <xsl:variable name="pl" select="@plevel"/>
+    <xsl:apply-templates select="Proposition">
+      <xsl:with-param name="pl" select="$pl"/>
+    </xsl:apply-templates>
     <xsl:variable name="prop_nm">
       <xsl:call-template name="plname">
         <xsl:with-param name="n" select="Proposition/@propnr"/>
@@ -5183,7 +5188,7 @@
   <xsl:template match="/">
     <xsl:choose>
       <xsl:when test="$mml=&quot;0&quot;">
-        <xsl:apply-templates select="//Constructor|//Proposition|//Now|//IterEquality|
+        <xsl:apply-templates select="//Constructor|//Proposition[not(name(..)=&quot;Reconsider&quot;)]|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
 	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations"/>

@@ -1185,10 +1185,14 @@ tpl [Let|Given|TakeAsVar|Consider|Set]
 // That should be OK for problem creation using mizar_by - the type
 // statement will be deleted from the axioms, and the rest of BG are just 
 // general theorems, nothing specific about the constant.
+// The proposition is generated before the types and equalities, otherwise in MizAR
+// the article_position is wrong, resulting in bad .allowed_local info
 tpl [Reconsider] 
 { 
+
   $cnr     = `@constnr`; 
   $pl      = `@plevel`; 
+  apply[Proposition](#pl=$pl);
   $prop_nm = plname(#n=`Proposition/@propnr`, #pl=`Proposition/@plevel`);
   for-each [Var|LocusVar|Const|InfConst|Num|Func|PrivFunc|Fraenkel|
 	      QuaTrm|It|ErrorTrm] 
@@ -2086,7 +2090,7 @@ tpl [ByExplanations](#i,#pl) { for-each [Typ] { if[position() = 2] { "non"; } "z
  ").\n"; }}
 
 
-tpl [/] { if [$mml="0"] { apply[//Constructor|//Proposition|//Now|//IterEquality|
+tpl [/] { if [$mml="0"] { apply[//Constructor|//Proposition[not(name(..)="Reconsider")]|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
 	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations]; 
