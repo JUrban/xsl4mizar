@@ -91,6 +91,10 @@
   <xsl:variable name="print_lab_identifiers">
     <xsl:text>1</xsl:text>
   </xsl:variable>
+  <!-- print "for" in registrations - newly in version 1132 -->
+  <xsl:param name="regs_use_for">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
   <!-- tells whether relative or absolute names are shown -->
   <xsl:param name="relnames">
     <xsl:text>1</xsl:text>
