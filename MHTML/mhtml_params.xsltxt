@@ -71,6 +71,8 @@ $print_identifiers = { "1"; }
 // it should be turned off for item generating
 $print_lab_identifiers = { "1"; }
 
+// print "for" in registrations - newly in version 1132
+#regs_use_for = { "1"; }
 
 // tells whether relative or absolute names are shown
 #relnames= { "1"; }

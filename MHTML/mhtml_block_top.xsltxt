@@ -36,7 +36,7 @@ tpl rc
     @NAME=`concat("RC",$nr1)`;
     pkeyword(#str="cluster "); 
   }
-  if [ErrorCluster] { "errorcluster"; } else { apply[*[3]](#all="1"); " "; apply[*[2]]; }
+  if [ErrorCluster] { "errorcluster"; } else { apply[*[3]](#all="1"); if[$regs_use_for=1] { " for"; } " "; apply[*[2]]; }
   ";"; <br; if [$mml="1"] { <br; }
 }
 
@@ -71,7 +71,8 @@ tpl cc
        { 
           apply[*[2]](#all="1"); 
 	  pkeyword(#str=" -> "); 
-	  apply[*[4]]; " "; 
+	  apply[*[4]]; 
+	  if[$regs_use_for=1] { " for"; } " "; 
 	  apply[*[3]]; 
        }
        ";"; <br; 
@@ -100,7 +101,7 @@ tpl fc
    <a { @NAME=`concat("FC",$nr1)`;
    pkeyword(#str="cluster "); }
    if [ErrorCluster] { "errorcluster"; }
-   else { apply[*[2]]; pkeyword(#str=" -> "); apply[*[3]]; apply[Typ];}
+   else { apply[*[2]]; pkeyword(#str=" -> "); apply[*[3]]; if[Typ] { if[$regs_use_for=1] { " for"; } apply[Typ]; }}
    ";"; <br; if [$mml="1"] { <br; }
 }
 

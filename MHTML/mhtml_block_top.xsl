@@ -59,6 +59,9 @@
             <xsl:text>1</xsl:text>
           </xsl:with-param>
         </xsl:apply-templates>
+        <xsl:if test="$regs_use_for=1">
+          <xsl:text> for</xsl:text>
+        </xsl:if>
         <xsl:text> </xsl:text>
         <xsl:apply-templates select="*[2]"/>
       </xsl:otherwise>
@@ -123,6 +126,9 @@
           </xsl:with-param>
         </xsl:call-template>
         <xsl:apply-templates select="*[4]"/>
+        <xsl:if test="$regs_use_for=1">
+          <xsl:text> for</xsl:text>
+        </xsl:if>
         <xsl:text> </xsl:text>
         <xsl:apply-templates select="*[3]"/>
       </xsl:otherwise>
@@ -183,7 +189,12 @@
           </xsl:with-param>
         </xsl:call-template>
         <xsl:apply-templates select="*[3]"/>
-        <xsl:apply-templates select="Typ"/>
+        <xsl:if test="Typ">
+          <xsl:if test="$regs_use_for=1">
+            <xsl:text> for</xsl:text>
+          </xsl:if>
+          <xsl:apply-templates select="Typ"/>
+        </xsl:if>
       </xsl:otherwise>
     </xsl:choose>
     <xsl:text>;</xsl:text>
