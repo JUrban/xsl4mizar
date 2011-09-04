@@ -12,8 +12,8 @@
   <!-- License: GPL (GNU GENERAL PUBLIC LICENSE) -->
   <!-- XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking -->
   <!-- Mizar XML terms, formulas and types to Prolog TSTP-like format. -->
-  <!-- To produce standard XSLT from this do e.g.: -->
-  <!-- java -jar xsltxt.jar toXSL mizpl.xsltxt >mizpl.xsl -->
+  <!-- To produce standard XSLT from this call make, or do e.g.: -->
+  <!-- java -jar xsltxt.jar toXSL mizpl.xsltxt | sed -e 's/<!\-\- *\(<\/*xsl:document.*\) *\-\->/\1/g' >mizpl.xsl -->
   <!-- ##NOTE: TPTP types 'theorem' and 'definition' are wider -->
   <!-- than in Mizar. Mizar 'property' is also exported as -->
   <!-- TPTP 'theorem', and there are various Mizar items -->
@@ -1906,7 +1906,7 @@
 
   <xsl:template name="dumproptable">
     <xsl:if test="$dump_prop_labels &gt; 0">
-      <!-- <xsl:document href="{$anamelc}.propnames" format="text"> -->
+      <xsl:document href="{$anamelc}.propnames" format="text"> 
       <xsl:for-each select="//Proposition|//IterEquality|//Now">
         <xsl:if test="@nr&gt;0">
           <xsl:variable name="pname">
@@ -1928,7 +1928,7 @@
 </xsl:text>
         </xsl:if>
       </xsl:for-each>
-      <!-- </xsl:document> -->
+      </xsl:document> 
       <xsl:variable name="bogus" select="1"/>
     </xsl:if>
   </xsl:template>

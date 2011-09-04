@@ -17,8 +17,8 @@ output method=text;
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
 // Mizar XML terms, formulas and types to Prolog TSTP-like format.
 
-// To produce standard XSLT from this do e.g.: 
-// java -jar xsltxt.jar toXSL mizpl.xsltxt >mizpl.xsl
+// To produce standard XSLT from this call make, or do e.g.: 
+// java -jar xsltxt.jar toXSL mizpl.xsltxt | sed -e 's/<!\-\- *\(<\/*xsl:document.*\) *\-\->/\1/g' >mizpl.xsl
 
 // ##NOTE: TPTP types 'theorem' and 'definition' are wider
 //   than in Mizar. Mizar 'property' is also exported as
