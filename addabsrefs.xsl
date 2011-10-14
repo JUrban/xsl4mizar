@@ -1036,7 +1036,7 @@
     (name() = &quot;LocusVar&quot;) or (name() = &quot;Const&quot;) or (name() = &quot;InfConst&quot;) 
     or (name() = &quot;Num&quot;) or (name() = &quot;Func&quot;) or (name() = &quot;PrivFunc&quot;) 
     or (name() = &quot;Fraenkel&quot;) or (name() = &quot;QuaTrm&quot;) or (name() = &quot;It&quot;) 
-    or (name() = &quot;ErrorTrm&quot;)]) +
+    or (name() = &quot;Choice&quot;) or (name() = &quot;ErrorTrm&quot;)]) +
      count(preceding-sibling::*[(name() = &quot;Let&quot;) or (name() = &quot;TakeAsVar&quot;) 
      or (name() = &quot;Given&quot;) or (name() = &quot;Consider&quot;) or (name() = &quot;Set&quot;)]/Typ)"/>
     </xsl:for-each>

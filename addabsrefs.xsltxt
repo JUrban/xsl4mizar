@@ -424,7 +424,7 @@ tpl prevconsts(#el) { for-each [$el] {
     (name() = "LocusVar") or (name() = "Const") or (name() = "InfConst") 
     or (name() = "Num") or (name() = "Func") or (name() = "PrivFunc") 
     or (name() = "Fraenkel") or (name() = "QuaTrm") or (name() = "It") 
-    or (name() = "ErrorTrm")]) +
+    or (name() = "Choice") or (name() = "ErrorTrm")]) +
      count(preceding-sibling::*[(name() = "Let") or (name() = "TakeAsVar") 
      or (name() = "Given") or (name() = "Consider") or (name() = "Set")]/Typ)`; }}
 

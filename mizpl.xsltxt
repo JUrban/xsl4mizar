@@ -1195,7 +1195,7 @@ tpl [Reconsider]
   apply[Proposition](#pl=$pl);
   $prop_nm = plname(#n=`Proposition/@propnr`, #pl=`Proposition/@plevel`);
   for-each [Var|LocusVar|Const|InfConst|Num|Func|PrivFunc|Fraenkel|
-	      QuaTrm|It|ErrorTrm] 
+	      QuaTrm|It|Choice|ErrorTrm] 
   {
       $nr   = `$cnr + position() - 1`; 
       $nm   =  { "c"; $nr; addp(#pl=$pl); }
@@ -1949,7 +1949,7 @@ tpl mjoin(#el,#s) {
 // this asssumes Let | Given | TakeAsVar | Consider | Set | Reconsider
 tpl getcnr(#el) { for-each [$el] {
     if [(name() = "Reconsider")] { `count(Var|LocusVar|Const|InfConst|
-		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|ErrorTrm)`; }
+		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|Choice|ErrorTrm)`; }
     else { `count(Typ)`; } }}
 
 

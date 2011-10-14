@@ -2827,7 +2827,7 @@
       </xsl:call-template>
     </xsl:variable>
     <xsl:for-each select="Var|LocusVar|Const|InfConst|Num|Func|PrivFunc|Fraenkel|
-	      QuaTrm|It|ErrorTrm">
+	      QuaTrm|It|Choice|ErrorTrm">
       <xsl:variable name="nr" select="$cnr + position() - 1"/>
       <xsl:variable name="nm">
         <xsl:text>c</xsl:text>
@@ -4835,7 +4835,7 @@
       <xsl:choose>
         <xsl:when test="(name() = &quot;Reconsider&quot;)">
           <xsl:value-of select="count(Var|LocusVar|Const|InfConst|
-		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|ErrorTrm)"/>
+		  Num|Func|PrivFunc|Fraenkel|QuaTrm|It|Choice|ErrorTrm)"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:value-of select="count(Typ)"/>
