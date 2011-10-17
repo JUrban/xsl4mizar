@@ -64,12 +64,12 @@ tpl [formula] {
 //     "<br/>\n";
 //     "A:step "; `@name`; "="; apply[*[1]]; "\n"; 
 // }
-tpl [quantifier/variable] { "for "; pvar(#nm=`@name`); " being set holds "; }
+
+// tpl [quantifier/variable] { "for "; pvar(#nm=`@name`); " being set holds "; }
 tpl [variable] { pvar(#nm=`@name`); }
 tpl [quantifier] { 
-    if [@type='existential'] { "ex "; apply[variable]; " st ";  apply[*[position() = last()]]; ""; }
-    else { apply; }
-    for-each [variable] { " "; }
+    if [@type='existential'] { "ex "; ilist(#separ=",", #elems=`variable`); " being set st ";  apply[*[position() = last()]]; ""; }
+    else { "for "; ilist(#separ=",", #elems=`variable`); " being set holds ";  apply[*[position() = last()]]; ""; }
 }
 tpl [negation|] { " not "; apply; " "; } 
 tpl [function|predicate] { 
@@ -79,11 +79,11 @@ tpl [function|predicate] {
        " is "; apply[*[1]]; " "; $tc; 
        "("; ilist(#separ=",", #elems=`*[position()>1]`); ")"; ")";
     }   
-    else { $tc; "("; ilist(#separ=",", #elems=`*`); ")"; }
+    else { $tc; if[count(*)>0] {"("; ilist(#separ=",", #elems=`*`); ")"; }}
     if [name(..)="quantifier"] { ")"; }
 }
 tpl [conjunction] { " "; ilist(#separ=" & ", #elems=`*`); " "; } 
-tpl [disjunction] { " "; notlist(#separ=" or ", #elems=`*`); " "; } 
+tpl [disjunction] { " "; ilist(#separ=" or ", #elems=`*`); " "; } 
 tpl [implication] { " "; apply[*[1]]; " implies "; ""; apply[*[2]]; " "; }
 tpl [equivalence] {  " "; apply[*[1]]; " iff "; ""; apply[*[2]]; " "; }
 //     "$and(";
