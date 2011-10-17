@@ -43,21 +43,28 @@ tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
 tpl usto0(#s) { `translate($s, "_", "0")`; }
 
 tpl [tstp] { ":: <h3><center><a href=\"http://mmlquery.mizar.org\">MML Query</a> rendering of ATP proof steps</center></h3><br/>\n"; apply; }
+
 tpl [formula] { 
-    ":: "; "<a name=\""; `@name`; "\"/> ";
-    if [source/non-logical-data[@name='file']] { 
-       `@status`; ": ";
-       for-each [source/non-logical-data[@name='file']/*[2]] { get_mizar_url(#nm=`@name`); }
-    }
-    else {
-      for-each [source/non-logical-data[@name='inference']] { 
-	 "inference: "; apply[.];
-      }
-    }
-    "<br/>\n";
-    "A:step "; `@name`; "="; apply[*[1]]; "\n"; 
+    `@name`; ": ";
+    apply[*[1]]; ";\n"; 
 }
-tpl [quantifier/variable] { "for "; pvar(#nm=`@name`); "being set "; }
+
+
+// tpl [formula] { 
+//     ":: "; "<a name=\""; `@name`; "\"/> ";
+//     if [source/non-logical-data[@name='file']] { 
+//        `@status`; ": ";
+//        for-each [source/non-logical-data[@name='file']/*[2]] { get_mizar_url(#nm=`@name`); }
+//     }
+//     else {
+//       for-each [source/non-logical-data[@name='inference']] { 
+// 	 "inference: "; apply[.];
+//       }
+//     }
+//     "<br/>\n";
+//     "A:step "; `@name`; "="; apply[*[1]]; "\n"; 
+// }
+tpl [quantifier/variable] { "for "; pvar(#nm=`@name`); " being set holds "; }
 tpl [variable] { pvar(#nm=`@name`); }
 tpl [quantifier] { 
     if [@type='existential'] { "ex "; apply[variable]; " st ";  apply[*[position() = last()]]; ""; }
@@ -101,7 +108,9 @@ tpl [non-logical-data] {
     }
     else { "<a href=\"#"; `@name`; "\">"; `@name`; "</a>"; } }
 
-tpl transl_constr(#nm) {
+tpl transl_constr(#nm) { $nm; }
+
+tpl transl_constr_old(#nm) {
     $pref = `substring-before($nm,"_")`;
     if [$pref] {
        $k = `substring($pref,1,1)`;
