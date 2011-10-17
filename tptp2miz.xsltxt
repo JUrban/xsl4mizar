@@ -16,7 +16,7 @@ output method=text;
 // TSTP XML solutions to MML Query DLI syntax
 
 // To produce standard XSLT from this do e.g.: 
-// java -jar xsltxt.jar toXSL tstp2dli.xsltxt >tstp2dli.xsl
+// java -jar xsltxt.jar toXSL tptp2miz.xsltxt >tptp2miz.xsl
 
 
 strip-space "*";
@@ -57,40 +57,41 @@ tpl [formula] {
     "<br/>\n";
     "A:step "; `@name`; "="; apply[*[1]]; "\n"; 
 }
-tpl [quantifier/variable] { "$for("; pvar(#nm=`@name`); ",$type(HIDDEN:mode 1),"; }
+tpl [quantifier/variable] { "for "; pvar(#nm=`@name`); "being set "; }
 tpl [variable] { pvar(#nm=`@name`); }
 tpl [quantifier] { 
-    if [@type='existential'] { "$not("; apply[variable]; "$not(";  apply[*[position() = last()]]; "))"; }
+    if [@type='existential'] { "ex "; apply[variable]; " st ";  apply[*[position() = last()]]; ""; }
     else { apply; }
-    for-each [variable] { ")"; }
+    for-each [variable] { " "; }
 }
-tpl [negation|] { "$not("; apply; ")"; } 
+tpl [negation|] { " not "; apply; " "; } 
 tpl [function|predicate] { 
     if [name(..)="quantifier"] { "("; }
     $tc = { transl_constr(#nm=`@name`); }
     if [contains($tc, ":attr") or contains($tc, ":mode")  or contains($tc, ":struct")] {
-       "$is("; apply[*[1]]; ","; $tc; 
+       " is "; apply[*[1]]; " "; $tc; 
        "("; ilist(#separ=",", #elems=`*[position()>1]`); ")"; ")";
     }   
     else { $tc; "("; ilist(#separ=",", #elems=`*`); ")"; }
     if [name(..)="quantifier"] { ")"; }
 }
-tpl [conjunction] { "$and("; ilist(#separ=",", #elems=`*`); ")"; } 
-tpl [disjunction] { "$not($and("; notlist(#separ=",", #elems=`*`); "))"; } 
-tpl [implication] { "$not($and("; apply[*[1]]; ","; "$not("; apply[*[2]]; ")))"; }
-tpl [equivalence] {  
-    "$and(";
-    "$not($and("; apply[*[1]]; ","; "$not("; apply[*[2]]; ")))"; ",";
-    "$not($and("; apply[*[2]]; ","; "$not("; apply[*[1]]; ")))";
-    ")";
-}
+tpl [conjunction] { " "; ilist(#separ=" & ", #elems=`*`); " "; } 
+tpl [disjunction] { " "; notlist(#separ=" or ", #elems=`*`); " "; } 
+tpl [implication] { " "; apply[*[1]]; " implies "; ""; apply[*[2]]; " "; }
+tpl [equivalence] {  " "; apply[*[1]]; " iff "; ""; apply[*[2]]; " "; }
+//     "$and(";
+//     "$not($and("; apply[*[1]]; ","; "$not("; apply[*[2]]; ")))"; ",";
+//     "$not($and("; apply[*[2]]; ","; "$not("; apply[*[1]]; ")))";
+//     ")";
+// }
 tpl [defined-predicate[@name='equal']]  { 
     if [name(..)="quantifier"] { "("; }
-    transl_constr(#nm="r1_hidden"); "("; ilist(#separ=",", #elems=`*`); ")";
+     " "; apply[*[1]]; " = "; ""; apply[*[2]]; " "; 
+//    transl_constr(#nm="r1_hidden"); "("; ilist(#separ=",", #elems=`*`); ")";
     if [name(..)="quantifier"] { ")"; }
  }
-tpl [defined-predicate[@name='false']]  { "$not($verum)"; } 
-tpl [defined-predicate[@name='true']]  { "$verum"; } 
+tpl [defined-predicate[@name='false']]  { " contradiction "; } 
+tpl [defined-predicate[@name='true']]  { " not contradiction "; } 
 
 tpl [non-logical-data] { 
     // there can be embedded inferences
