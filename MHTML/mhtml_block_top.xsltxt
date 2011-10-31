@@ -23,7 +23,7 @@ tpl [RCluster] {
 // </xsl:document>
           $bogus=`1`;
        } 
-       else { rc(); } 
+       else {  <div { @ID=`concat($aname,"#RC",$nr1)`; rc(); } }
     }
 }
 
@@ -50,7 +50,7 @@ tpl [CCluster] {
 // </xsl:document>
          $bogus=`1`;
       } 
-      else { cc(); } 
+      else {  <div { @ID=`concat($aname,"#CC",$nr1)`; cc(); } }
     }
 }
 
@@ -90,7 +90,7 @@ tpl [FCluster] {
 // </xsl:document>
        $bogus=`1`;
       } 
-      else { fc(); } 
+      else {  <div { @ID=`concat($aname,"#FC",$nr1)`; fc(); } }
     }
 }
 
@@ -117,7 +117,7 @@ tpl [IdentifyWithExp|Identify]
 // </xsl:document>
    $bogus=`1`;
     } 
-    else { iy(); } 
+    else {  <div { @ID=`concat($aname,"#IE",$nr1)`; iy(); } }
 }
 
 tpl iy
@@ -246,11 +246,12 @@ tpl [JustifiedTheorem]
          $intensity = `(1 - @interesting) * 100`;
          <div 
 	 { 
+            @ID=`concat($aname,"#T",$nr1)`;
 	    @style=`concat("background-color:rgb(",$intensity,"%,100%,", $intensity, "%);")`;
 	    jt();
          }
       }
-      else { jt(); } 
+      else { <div { @ID=`concat($aname,"#T",$nr1)`; jt();} } 
     }
 }
 
@@ -468,7 +469,7 @@ tpl [DefTheorem]
 // </xsl:document>
        $bogus=`1`;
     } 
-    else { dt(); } 
+    else {  <div { @ID=`concat($aname,"#DT",$nr1)`; dt(); } }
 }
 
 // private - assumes that is inside DefTheorem
@@ -587,7 +588,7 @@ tpl [SchemeBlock] {
 // </xsl:document>
    $bogus=`1`;
    } 
-   else { sd(); } }
+   else {  <div { @ID=`concat($aname,"#S",@schemenr)`; sd(); } } }
 
 tpl sd 
 {
@@ -691,8 +692,15 @@ tpl [Definition]
           $bogus = `1`;
        }
        else 
-       { 
-          dfs(); 
+       {
+          if [@nr]
+	  {
+	     <div { @ID=`concat($aname,"#D",@nr)`; dfs(); }
+	  }
+	  else
+       	  {  
+             dfs(); 
+       	  }
        }
     }
 

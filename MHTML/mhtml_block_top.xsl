@@ -27,7 +27,12 @@
             <xsl:variable name="bogus" select="1"/>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:call-template name="rc"/>
+            <xsl:element name="div">
+              <xsl:attribute name="ID">
+                <xsl:value-of select="concat($aname,&quot;#RC&quot;,$nr1)"/>
+              </xsl:attribute>
+              <xsl:call-template name="rc"/>
+            </xsl:element>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:otherwise>
@@ -88,7 +93,12 @@
             <xsl:variable name="bogus" select="1"/>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:call-template name="cc"/>
+            <xsl:element name="div">
+              <xsl:attribute name="ID">
+                <xsl:value-of select="concat($aname,&quot;#CC&quot;,$nr1)"/>
+              </xsl:attribute>
+              <xsl:call-template name="cc"/>
+            </xsl:element>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:otherwise>
@@ -155,7 +165,12 @@
             <xsl:variable name="bogus" select="1"/>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:call-template name="fc"/>
+            <xsl:element name="div">
+              <xsl:attribute name="ID">
+                <xsl:value-of select="concat($aname,&quot;#FC&quot;,$nr1)"/>
+              </xsl:attribute>
+              <xsl:call-template name="fc"/>
+            </xsl:element>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:otherwise>
@@ -216,7 +231,12 @@
         <xsl:variable name="bogus" select="1"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:call-template name="iy"/>
+        <xsl:element name="div">
+          <xsl:attribute name="ID">
+            <xsl:value-of select="concat($aname,&quot;#IE&quot;,$nr1)"/>
+          </xsl:attribute>
+          <xsl:call-template name="iy"/>
+        </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -410,6 +430,9 @@
             <!-- scale red and blue from 0% (green) to 100% (white) -->
             <xsl:variable name="intensity" select="(1 - @interesting) * 100"/>
             <xsl:element name="div">
+              <xsl:attribute name="ID">
+                <xsl:value-of select="concat($aname,&quot;#T&quot;,$nr1)"/>
+              </xsl:attribute>
               <xsl:attribute name="style">
                 <xsl:value-of select="concat(&quot;background-color:rgb(&quot;,$intensity,&quot;%,100%,&quot;, $intensity, &quot;%);&quot;)"/>
               </xsl:attribute>
@@ -417,7 +440,12 @@
             </xsl:element>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:call-template name="jt"/>
+            <xsl:element name="div">
+              <xsl:attribute name="ID">
+                <xsl:value-of select="concat($aname,&quot;#T&quot;,$nr1)"/>
+              </xsl:attribute>
+              <xsl:call-template name="jt"/>
+            </xsl:element>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:otherwise>
@@ -777,7 +805,12 @@
         <xsl:variable name="bogus" select="1"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:call-template name="dt"/>
+        <xsl:element name="div">
+          <xsl:attribute name="ID">
+            <xsl:value-of select="concat($aname,&quot;#DT&quot;,$nr1)"/>
+          </xsl:attribute>
+          <xsl:call-template name="dt"/>
+        </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -1005,7 +1038,12 @@
         <xsl:variable name="bogus" select="1"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:call-template name="sd"/>
+        <xsl:element name="div">
+          <xsl:attribute name="ID">
+            <xsl:value-of select="concat($aname,&quot;#S&quot;,@schemenr)"/>
+          </xsl:attribute>
+          <xsl:call-template name="sd"/>
+        </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -1164,7 +1202,19 @@
             <xsl:variable name="bogus" select="1"/>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:call-template name="dfs"/>
+            <xsl:choose>
+              <xsl:when test="@nr">
+                <xsl:element name="div">
+                  <xsl:attribute name="ID">
+                    <xsl:value-of select="concat($aname,&quot;#D&quot;,@nr)"/>
+                  </xsl:attribute>
+                  <xsl:call-template name="dfs"/>
+                </xsl:element>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:call-template name="dfs"/>
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:otherwise>
