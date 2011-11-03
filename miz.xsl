@@ -6245,8 +6245,8 @@
           </xsl:when>
           <xsl:otherwise>
             <xsl:element name="div">
-              <xsl:attribute name="ID">
-                <xsl:value-of select="concat($aname,&quot;#RC&quot;,$nr1)"/>
+              <xsl:attribute name="about">
+                <xsl:value-of select="concat(&quot;#RC&quot;,$nr1)"/>
               </xsl:attribute>
               <xsl:call-template name="rc"/>
             </xsl:element>
@@ -6311,8 +6311,8 @@
           </xsl:when>
           <xsl:otherwise>
             <xsl:element name="div">
-              <xsl:attribute name="ID">
-                <xsl:value-of select="concat($aname,&quot;#CC&quot;,$nr1)"/>
+              <xsl:attribute name="about">
+                <xsl:value-of select="concat(&quot;#CC&quot;,$nr1)"/>
               </xsl:attribute>
               <xsl:call-template name="cc"/>
             </xsl:element>
@@ -6383,8 +6383,8 @@
           </xsl:when>
           <xsl:otherwise>
             <xsl:element name="div">
-              <xsl:attribute name="ID">
-                <xsl:value-of select="concat($aname,&quot;#FC&quot;,$nr1)"/>
+              <xsl:attribute name="about">
+                <xsl:value-of select="concat(&quot;#FC&quot;,$nr1)"/>
               </xsl:attribute>
               <xsl:call-template name="fc"/>
             </xsl:element>
@@ -6449,8 +6449,8 @@
       </xsl:when>
       <xsl:otherwise>
         <xsl:element name="div">
-          <xsl:attribute name="ID">
-            <xsl:value-of select="concat($aname,&quot;#IE&quot;,$nr1)"/>
+          <xsl:attribute name="about">
+            <xsl:value-of select="concat(&quot;#IE&quot;,$nr1)"/>
           </xsl:attribute>
           <xsl:call-template name="iy"/>
         </xsl:element>
@@ -6647,8 +6647,11 @@
             <!-- scale red and blue from 0% (green) to 100% (white) -->
             <xsl:variable name="intensity" select="(1 - @interesting) * 100"/>
             <xsl:element name="div">
-              <xsl:attribute name="ID">
-                <xsl:value-of select="concat($aname,&quot;#T&quot;,$nr1)"/>
+              <xsl:attribute name="about">
+                <xsl:value-of select="concat(&quot;#T&quot;,$nr1)"/>
+              </xsl:attribute>
+              <xsl:attribute name="typeof">
+                <xsl:text>oo:Theorem</xsl:text>
               </xsl:attribute>
               <xsl:attribute name="style">
                 <xsl:value-of select="concat(&quot;background-color:rgb(&quot;,$intensity,&quot;%,100%,&quot;, $intensity, &quot;%);&quot;)"/>
@@ -6658,8 +6661,11 @@
           </xsl:when>
           <xsl:otherwise>
             <xsl:element name="div">
-              <xsl:attribute name="ID">
-                <xsl:value-of select="concat($aname,&quot;#T&quot;,$nr1)"/>
+              <xsl:attribute name="about">
+                <xsl:value-of select="concat(&quot;#T&quot;,$nr1)"/>
+              </xsl:attribute>
+              <xsl:attribute name="typeof">
+                <xsl:text>oo:Theorem</xsl:text>
               </xsl:attribute>
               <xsl:call-template name="jt"/>
             </xsl:element>
@@ -7023,8 +7029,8 @@
       </xsl:when>
       <xsl:otherwise>
         <xsl:element name="div">
-          <xsl:attribute name="ID">
-            <xsl:value-of select="concat($aname,&quot;#DT&quot;,$nr1)"/>
+          <xsl:attribute name="about">
+            <xsl:value-of select="concat(&quot;#DT&quot;,$nr1)"/>
           </xsl:attribute>
           <xsl:call-template name="dt"/>
         </xsl:element>
@@ -7256,8 +7262,8 @@
       </xsl:when>
       <xsl:otherwise>
         <xsl:element name="div">
-          <xsl:attribute name="ID">
-            <xsl:value-of select="concat($aname,&quot;#S&quot;,@schemenr)"/>
+          <xsl:attribute name="about">
+            <xsl:value-of select="concat(&quot;#S&quot;,@schemenr)"/>
           </xsl:attribute>
           <xsl:call-template name="sd"/>
         </xsl:element>
@@ -7422,8 +7428,8 @@
             <xsl:choose>
               <xsl:when test="@nr">
                 <xsl:element name="div">
-                  <xsl:attribute name="ID">
-                    <xsl:value-of select="concat($aname,&quot;#D&quot;,@nr)"/>
+                  <xsl:attribute name="about">
+                    <xsl:value-of select="concat(&quot;#D&quot;,@nr)"/>
                   </xsl:attribute>
                   <xsl:call-template name="dfs"/>
                 </xsl:element>
@@ -8453,6 +8459,9 @@
         <xsl:choose>
           <xsl:when test="$body_only = &quot;0&quot;">
             <xsl:element name="html">
+              <xsl:attribute name="prefix">
+                <xsl:text>oo: http://omdoc.org/ontology#</xsl:text>
+              </xsl:attribute>
               <!-- output the css defaults for div and p (for indenting) -->
               <xsl:element name="style">
                 <xsl:attribute name="type">

@@ -2889,7 +2889,7 @@ tpl [RCluster] {
 // </xsl:document>
           $bogus=`1`;
        } 
-       else {  <div { @ID=`concat($aname,"#RC",$nr1)`; rc(); } }
+       else {  <div { @about=`concat("#RC",$nr1)`; rc(); } }
     }
 }
 
@@ -2916,7 +2916,7 @@ tpl [CCluster] {
 // </xsl:document>
          $bogus=`1`;
       } 
-      else {  <div { @ID=`concat($aname,"#CC",$nr1)`; cc(); } }
+      else {  <div { @about=`concat("#CC",$nr1)`; cc(); } }
     }
 }
 
@@ -2956,7 +2956,7 @@ tpl [FCluster] {
 // </xsl:document>
        $bogus=`1`;
       } 
-      else {  <div { @ID=`concat($aname,"#FC",$nr1)`; fc(); } }
+      else {  <div { @about=`concat("#FC",$nr1)`; fc(); } }
     }
 }
 
@@ -2983,7 +2983,7 @@ tpl [IdentifyWithExp|Identify]
 // </xsl:document>
    $bogus=`1`;
     } 
-    else {  <div { @ID=`concat($aname,"#IE",$nr1)`; iy(); } }
+    else {  <div { @about=`concat("#IE",$nr1)`; iy(); } }
 }
 
 tpl iy
@@ -3112,12 +3112,12 @@ tpl [JustifiedTheorem]
          $intensity = `(1 - @interesting) * 100`;
          <div 
 	 { 
-            @ID=`concat($aname,"#T",$nr1)`;
+            @about=`concat("#T",$nr1)`; @typeof="oo:Theorem";
 	    @style=`concat("background-color:rgb(",$intensity,"%,100%,", $intensity, "%);")`;
 	    jt();
          }
       }
-      else { <div { @ID=`concat($aname,"#T",$nr1)`; jt();} } 
+      else { <div { @about=`concat("#T",$nr1)`; @typeof="oo:Theorem"; jt();} } 
     }
 }
 
@@ -3335,7 +3335,7 @@ tpl [DefTheorem]
 // </xsl:document>
        $bogus=`1`;
     } 
-    else {  <div { @ID=`concat($aname,"#DT",$nr1)`; dt(); } }
+    else {  <div { @about=`concat("#DT",$nr1)`; dt(); } }
 }
 
 // private - assumes that is inside DefTheorem
@@ -3454,7 +3454,7 @@ tpl [SchemeBlock] {
 // </xsl:document>
    $bogus=`1`;
    } 
-   else {  <div { @ID=`concat($aname,"#S",@schemenr)`; sd(); } } }
+   else {  <div { @about=`concat("#S",@schemenr)`; sd(); } } }
 
 tpl sd 
 {
@@ -3561,7 +3561,7 @@ tpl [Definition]
        {
           if [@nr]
 	  {
-	     <div { @ID=`concat($aname,"#D",@nr)`; dfs(); }
+	     <div { @about=`concat("#D",@nr)`; dfs(); }
 	  }
 	  else
        	  {  
@@ -4115,7 +4115,7 @@ tpl [/] { if [$generate_items = "1"] {
 
 else { 
   if [$body_only = "0"] { 
-    <html { 
+    <html { @prefix="oo: http://omdoc.org/ontology#";
 
 // output the css defaults for div and p (for indenting)
         <style { @type="text/css";  "

@@ -251,7 +251,7 @@ tpl [JustifiedTheorem]
 	    jt();
          }
       }
-      else { <div { @about=`concat("#T",$nr1)`; typeof="oo:Theorem"; jt();} } 
+      else { <div { @about=`concat("#T",$nr1)`; @typeof="oo:Theorem"; jt();} } 
     }
 }
 
