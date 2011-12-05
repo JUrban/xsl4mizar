@@ -1432,10 +1432,13 @@ tpl [Properties](#el)
     for-each [*] 
     {
       $nm = { lc(#s=`name()`); }
-      "fof(";  $nm; "_"; $absn; ",theorem,";
-      apply[.](#el=$el,#arg1=$a1,#arg2=$a2);
-      ",file("; $f; ","; $absn; "),[mptp_info("; $n; ",[],"; 
-      $lkind; ",position(0,0),[property("; $nm; ")])]).\n"; 
+      if [not($nm = "sethood")]  // no formula for sethood, we trust Mizar with Fraenkels
+      {
+        "fof(";  $nm; "_"; $absn; ",theorem,";
+        apply[.](#el=$el,#arg1=$a1,#arg2=$a2);
+        ",file("; $f; ","; $absn; "),[mptp_info("; $n; ",[],"; 
+        $lkind; ",position(0,0),[property("; $nm; ")])]).\n"; 
+      }
     }
 }
 
