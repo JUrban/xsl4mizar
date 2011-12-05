@@ -3462,28 +3462,30 @@
           <xsl:with-param name="s" select="name()"/>
         </xsl:call-template>
       </xsl:variable>
-      <xsl:text>fof(</xsl:text>
-      <xsl:value-of select="$nm"/>
-      <xsl:text>_</xsl:text>
-      <xsl:value-of select="$absn"/>
-      <xsl:text>,theorem,</xsl:text>
-      <xsl:apply-templates select=".">
-        <xsl:with-param name="el" select="$el"/>
-        <xsl:with-param name="arg1" select="$a1"/>
-        <xsl:with-param name="arg2" select="$a2"/>
-      </xsl:apply-templates>
-      <xsl:text>,file(</xsl:text>
-      <xsl:value-of select="$f"/>
-      <xsl:text>,</xsl:text>
-      <xsl:value-of select="$absn"/>
-      <xsl:text>),[mptp_info(</xsl:text>
-      <xsl:value-of select="$n"/>
-      <xsl:text>,[],</xsl:text>
-      <xsl:value-of select="$lkind"/>
-      <xsl:text>,position(0,0),[property(</xsl:text>
-      <xsl:value-of select="$nm"/>
-      <xsl:text>)])]).
+      <xsl:if test="not($nm = &quot;sethood&quot;)">
+        <xsl:text>fof(</xsl:text>
+        <xsl:value-of select="$nm"/>
+        <xsl:text>_</xsl:text>
+        <xsl:value-of select="$absn"/>
+        <xsl:text>,theorem,</xsl:text>
+        <xsl:apply-templates select=".">
+          <xsl:with-param name="el" select="$el"/>
+          <xsl:with-param name="arg1" select="$a1"/>
+          <xsl:with-param name="arg2" select="$a2"/>
+        </xsl:apply-templates>
+        <xsl:text>,file(</xsl:text>
+        <xsl:value-of select="$f"/>
+        <xsl:text>,</xsl:text>
+        <xsl:value-of select="$absn"/>
+        <xsl:text>),[mptp_info(</xsl:text>
+        <xsl:value-of select="$n"/>
+        <xsl:text>,[],</xsl:text>
+        <xsl:value-of select="$lkind"/>
+        <xsl:text>,position(0,0),[property(</xsl:text>
+        <xsl:value-of select="$nm"/>
+        <xsl:text>)])]).
 </xsl:text>
+      </xsl:if>
     </xsl:for-each>
   </xsl:template>
 
