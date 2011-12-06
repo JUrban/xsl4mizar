@@ -2367,8 +2367,18 @@
                     <xsl:with-param name="pl" select="$pl"/>
                   </xsl:call-template>
                 </xsl:when>
+                <!-- Since MML 1136, "then per cases" is possible -->
                 <xsl:otherwise>
-                  <xsl:value-of select="$fail"/>
+                  <xsl:choose>
+                    <xsl:when test="(name(..)=&quot;PerCases&quot;) and (name(../..)=&quot;PerCasesReasoning&quot;)">
+                      <xsl:call-template name="prevpropname">
+                        <xsl:with-param name="el" select="../.."/>
+                      </xsl:call-template>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:value-of select="$fail"/>
+                    </xsl:otherwise>
+                  </xsl:choose>
                 </xsl:otherwise>
               </xsl:choose>
             </xsl:otherwise>
@@ -2413,6 +2423,33 @@
           </xsl:if>
         </xsl:for-each>
       </xsl:if>
+    </xsl:for-each>
+  </xsl:template>
+
+  <!-- TODO: this is needed just for finding the linked reference for PerCases - -->
+  <!-- - a bit annoying; we could promote PerCases one level up to get rid of this. -->
+  <xsl:template name="prevpropname">
+    <xsl:param name="el"/>
+    <xsl:for-each select="$el/preceding-sibling::*[(name() = &quot;Assume&quot;) or (name() = &quot;Given&quot;) 
+	 or (name() = &quot;Conclusion&quot;) or (name() = &quot;Case&quot;) 
+	 or (name() = &quot;Suppose&quot;) or (name() = &quot;Now&quot;) 
+	 or (name() = &quot;Proposition&quot;) or (name() = &quot;IterEquality&quot;)][1]">
+      <xsl:choose>
+        <xsl:when test="(name() = &quot;Proposition&quot;) or (name() = &quot;Now&quot;) or (name() = &quot;IterEquality&quot;)">
+          <xsl:call-template name="plname">
+            <xsl:with-param name="n" select="@propnr"/>
+            <xsl:with-param name="pl" select="@plevel"/>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:for-each select="*[(name() = &quot;Proposition&quot;) or (name() = &quot;Now&quot;) or (name() = &quot;IterEquality&quot;)]">
+            <xsl:call-template name="plname">
+              <xsl:with-param name="n" select="@propnr"/>
+              <xsl:with-param name="pl" select="@plevel"/>
+            </xsl:call-template>
+          </xsl:for-each>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:for-each>
   </xsl:template>
 
