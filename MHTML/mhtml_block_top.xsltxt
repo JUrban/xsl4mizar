@@ -229,6 +229,17 @@ tpl [Definiens/*] { ""; }
 // is printed by xslxtxt.jar too
 tpl [JustifiedTheorem] 
 { 
+  $prevline = `@line - 1`;
+  if[$mk_comments > 0] 
+  { 
+    for-each [document($cmt,/)]
+    {
+       for-each [key('CMT',$prevline)]
+       {
+          pcommentedblock(#str=`text()`); 
+       } 
+    }
+  }
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
     if [$generate_items>0]	
     { 

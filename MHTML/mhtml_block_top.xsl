@@ -415,6 +415,16 @@
   <!-- the bogus is there to ensure that the ending xsl:doc element -->
   <!-- is printed by xslxtxt.jar too -->
   <xsl:template match="JustifiedTheorem">
+    <xsl:variable name="prevline" select="@line - 1"/>
+    <xsl:if test="$mk_comments &gt; 0">
+      <xsl:for-each select="document($cmt,/)">
+        <xsl:for-each select="key(&apos;CMT&apos;,$prevline)">
+          <xsl:call-template name="pcommentedblock">
+            <xsl:with-param name="str" select="text()"/>
+          </xsl:call-template>
+        </xsl:for-each>
+      </xsl:for-each>
+    </xsl:if>
     <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">

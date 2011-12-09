@@ -201,6 +201,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // create header info from .hdr file
 #mk_header =  { "0"; }
 
+// include comment info from .cmt file
+#mk_comments =  { "0"; }
+
 // Suppress the header and trailer of the final document. 
 // Thus, you can insert the resulting document into a larger one.
 #body_only = { "0"; }
@@ -251,6 +254,10 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // .hdr file with header info (done by mkxmlhdr.pl)
 #hdr=  { `concat($anamelc, '.hdr')`; }
+
+// .cmt file with comments info (done by MizComments.pl)
+#cmt=  { `concat($anamelc, '.cmt')`; }
+
 
 #varcolor = { "Olive"; }
 

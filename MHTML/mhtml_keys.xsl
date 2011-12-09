@@ -61,4 +61,6 @@
   <!-- lookup for private functors and predicates -->
   <xsl:key name="pf" match="DefFunc" use="concat(@nr,&quot;:&quot;,@plevel)"/>
   <xsl:key name="pp" match="DefPred" use="concat(@nr,&quot;:&quot;,@plevel)"/>
+  <!-- lookup for comments -->
+  <xsl:key name="CMT" match="Comment" use="@endline"/>
 </xsl:stylesheet>

@@ -257,6 +257,10 @@
   <xsl:param name="mk_header">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- include comment info from .cmt file -->
+  <xsl:param name="mk_comments">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- Suppress the header and trailer of the final document. -->
   <!-- Thus, you can insert the resulting document into a larger one. -->
   <xsl:param name="body_only">
@@ -339,6 +343,10 @@
   <!-- .hdr file with header info (done by mkxmlhdr.pl) -->
   <xsl:param name="hdr">
     <xsl:value-of select="concat($anamelc, &apos;.hdr&apos;)"/>
+  </xsl:param>
+  <!-- .cmt file with comments info (done by MizComments.pl) -->
+  <xsl:param name="cmt">
+    <xsl:value-of select="concat($anamelc, &apos;.cmt&apos;)"/>
   </xsl:param>
   <xsl:param name="varcolor">
     <xsl:text>Olive</xsl:text>

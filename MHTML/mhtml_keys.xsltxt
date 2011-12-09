@@ -75,3 +75,5 @@ key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
 key "pf" [DefFunc] `concat(@nr,":",@plevel)` ;
 key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
 
+// lookup for comments
+key "CMT" [Comment] `@endline`;

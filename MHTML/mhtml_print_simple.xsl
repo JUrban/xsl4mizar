@@ -466,6 +466,33 @@
     <xsl:element name="br"/>
   </xsl:template>
 
+  <!-- this assumes comments with :: already -->
+  <xsl:template name="pcommentedblock">
+    <xsl:param name="str"/>
+    <xsl:element name="div">
+      <xsl:attribute name="class">
+        <xsl:text>comment</xsl:text>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="$colored=&quot;1&quot;">
+          <xsl:element name="font">
+            <xsl:attribute name="color">
+              <xsl:value-of select="$commentcolor"/>
+            </xsl:attribute>
+            <xsl:call-template name="br">
+              <xsl:with-param name="text" select="$str"/>
+            </xsl:call-template>
+          </xsl:element>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="br">
+            <xsl:with-param name="text" select="$str"/>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:element>
+  </xsl:template>
+
   <!-- argument list -->
   <xsl:template name="arglist">
     <xsl:param name="separ"/>
@@ -478,6 +505,23 @@
         <xsl:value-of select="$separ"/>
       </xsl:if>
     </xsl:for-each>
+  </xsl:template>
+
+  <!-- translate newlines to <br; -->
+  <xsl:template name="br">
+    <xsl:param name="text"/>
+    <xsl:choose>
+      <xsl:when test="contains($text,&apos;&#xa;&apos;)">
+        <xsl:value-of select="substring-before($text,&apos;&#xa;&apos;)"/>
+        <xsl:element name="br"/>
+        <xsl:call-template name="br">
+          <xsl:with-param name="text" select="substring-after($text,&apos;&#xa;&apos;)"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$text"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- like jlist, but with loci -->

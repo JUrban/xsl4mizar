@@ -247,6 +247,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // create header info from .hdr file
 #mk_header =  { "0"; }
 
+// include comment info from .cmt file
+#mk_comments =  { "0"; }
+
 // Suppress the header and trailer of the final document. 
 // Thus, you can insert the resulting document into a larger one.
 #body_only = { "0"; }
@@ -297,6 +300,10 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 
 // .hdr file with header info (done by mkxmlhdr.pl)
 #hdr=  { `concat($anamelc, '.hdr')`; }
+
+// .cmt file with comments info (done by MizComments.pl)
+#cmt=  { `concat($anamelc, '.cmt')`; }
+
 
 #varcolor = { "Olive"; }
 
@@ -426,6 +433,8 @@ key "p" [SchemePredDecl] `concat(@nr,":",@plevel)` ;
 key "pf" [DefFunc] `concat(@nr,":",@plevel)` ;
 key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
 
+// lookup for comments
+key "CMT" [Comment] `@endline`;
 //
 // File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs
 //
@@ -611,6 +620,17 @@ tpl pcomment0(#str) { <span { @class="comment"; if [$colored="1"] {
 
 tpl pcomment(#str) { pcomment0(#str=$str); <br;}
 
+// this assumes comments with :: already
+tpl pcommentedblock(#str) 
+{ 
+   <div { @class="comment"; 
+     if [$colored="1"] {
+        <font {@color=$commentcolor; br(#text=$str);}
+     }
+     else {  br(#text=$str); }
+   }
+}
+
 // argument list
 tpl arglist(#separ,#elems) 
 { 
@@ -620,6 +640,19 @@ tpl arglist(#separ,#elems)
       if [not(position() = last())] { $separ; } 
    }
 }
+
+// translate newlines to <br;
+tpl br(#text) {
+  choose {
+    when [contains($text,'&#xa;')] {
+      `substring-before($text,'&#xa;')`;
+      <br;
+       br(#text = `substring-after($text,'&#xa;')`);
+    }
+    otherwise { $text; }
+  }
+}
+
 
 
 // like jlist, but with loci
@@ -3095,6 +3128,17 @@ tpl [Definiens/*] { ""; }
 // is printed by xslxtxt.jar too
 tpl [JustifiedTheorem] 
 { 
+  $prevline = `@line - 1`;
+  if[$mk_comments > 0] 
+  { 
+    for-each [document($cmt,/)]
+    {
+       for-each [key('CMT',$prevline)]
+       {
+          pcommentedblock(#str=`text()`); 
+       } 
+    }
+  }
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
     if [$generate_items>0]	
     { 

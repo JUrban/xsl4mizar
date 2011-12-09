@@ -289,6 +289,10 @@
   <xsl:param name="mk_header">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- include comment info from .cmt file -->
+  <xsl:param name="mk_comments">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- Suppress the header and trailer of the final document. -->
   <!-- Thus, you can insert the resulting document into a larger one. -->
   <xsl:param name="body_only">
@@ -371,6 +375,10 @@
   <!-- .hdr file with header info (done by mkxmlhdr.pl) -->
   <xsl:param name="hdr">
     <xsl:value-of select="concat($anamelc, &apos;.hdr&apos;)"/>
+  </xsl:param>
+  <!-- .cmt file with comments info (done by MizComments.pl) -->
+  <xsl:param name="cmt">
+    <xsl:value-of select="concat($anamelc, &apos;.cmt&apos;)"/>
   </xsl:param>
   <xsl:param name="varcolor">
     <xsl:text>Olive</xsl:text>
@@ -538,6 +546,8 @@
   <!-- lookup for private functors and predicates -->
   <xsl:key name="pf" match="DefFunc" use="concat(@nr,&quot;:&quot;,@plevel)"/>
   <xsl:key name="pp" match="DefPred" use="concat(@nr,&quot;:&quot;,@plevel)"/>
+  <!-- lookup for comments -->
+  <xsl:key name="CMT" match="Comment" use="@endline"/>
 
   <!--  -->
   <!-- File: print_simple.xsltxt - html-ization of Mizar XML, simple printing funcs -->
@@ -999,6 +1009,33 @@
     <xsl:element name="br"/>
   </xsl:template>
 
+  <!-- this assumes comments with :: already -->
+  <xsl:template name="pcommentedblock">
+    <xsl:param name="str"/>
+    <xsl:element name="div">
+      <xsl:attribute name="class">
+        <xsl:text>comment</xsl:text>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="$colored=&quot;1&quot;">
+          <xsl:element name="font">
+            <xsl:attribute name="color">
+              <xsl:value-of select="$commentcolor"/>
+            </xsl:attribute>
+            <xsl:call-template name="br">
+              <xsl:with-param name="text" select="$str"/>
+            </xsl:call-template>
+          </xsl:element>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="br">
+            <xsl:with-param name="text" select="$str"/>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:element>
+  </xsl:template>
+
   <!-- argument list -->
   <xsl:template name="arglist">
     <xsl:param name="separ"/>
@@ -1011,6 +1048,23 @@
         <xsl:value-of select="$separ"/>
       </xsl:if>
     </xsl:for-each>
+  </xsl:template>
+
+  <!-- translate newlines to <br; -->
+  <xsl:template name="br">
+    <xsl:param name="text"/>
+    <xsl:choose>
+      <xsl:when test="contains($text,&apos;&#xa;&apos;)">
+        <xsl:value-of select="substring-before($text,&apos;&#xa;&apos;)"/>
+        <xsl:element name="br"/>
+        <xsl:call-template name="br">
+          <xsl:with-param name="text" select="substring-after($text,&apos;&#xa;&apos;)"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$text"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- like jlist, but with loci -->
@@ -6632,6 +6686,16 @@
   <!-- the bogus is there to ensure that the ending xsl:doc element -->
   <!-- is printed by xslxtxt.jar too -->
   <xsl:template match="JustifiedTheorem">
+    <xsl:variable name="prevline" select="@line - 1"/>
+    <xsl:if test="$mk_comments &gt; 0">
+      <xsl:for-each select="document($cmt,/)">
+        <xsl:for-each select="key(&apos;CMT&apos;,$prevline)">
+          <xsl:call-template name="pcommentedblock">
+            <xsl:with-param name="str" select="text()"/>
+          </xsl:call-template>
+        </xsl:for-each>
+      </xsl:for-each>
+    </xsl:if>
     <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
