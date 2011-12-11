@@ -3135,7 +3135,8 @@ tpl [JustifiedTheorem]
     {
        for-each [key('CMT',$prevline)]
        {
-          pcommentedblock(#str=`text()`); 
+         apply;
+//          pcommentedblock(#str=`text()`); 
        } 
     }
   }
@@ -4341,3 +4342,9 @@ tpl [dc:title] { pcomment(#str=`text()`); }
 tpl [dc:creator] { pcomment(#str=`concat("by ", text())`); pcomment(#str=""); }
 tpl [dc:date] { pcomment(#str=`concat("Received ", text())`); }
 tpl [dc:rights] { pcomment(#str=`concat("Copyright ", text())`); }
+
+// comment rules
+
+tpl [Comment] { <div { @class="comment"; apply; } }
+tpl [CmtLine]  { `text()`; <br; }
+tpl [CmtLink]  { ":: "; for-each [*] { copy { copy-of `@*`;}} <br; }

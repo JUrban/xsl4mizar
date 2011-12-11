@@ -419,9 +419,7 @@
     <xsl:if test="$mk_comments &gt; 0">
       <xsl:for-each select="document($cmt,/)">
         <xsl:for-each select="key(&apos;CMT&apos;,$prevline)">
-          <xsl:call-template name="pcommentedblock">
-            <xsl:with-param name="str" select="text()"/>
-          </xsl:call-template>
+          <xsl:apply-templates/>
         </xsl:for-each>
       </xsl:for-each>
     </xsl:if>

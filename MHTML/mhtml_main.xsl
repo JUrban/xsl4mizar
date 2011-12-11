@@ -318,4 +318,29 @@ return tstp_dump;
       <xsl:with-param name="str" select="concat(&quot;Copyright &quot;, text())"/>
     </xsl:call-template>
   </xsl:template>
+
+  <!-- comment rules -->
+  <xsl:template match="Comment">
+    <xsl:element name="div">
+      <xsl:attribute name="class">
+        <xsl:text>comment</xsl:text>
+      </xsl:attribute>
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="CmtLine">
+    <xsl:value-of select="text()"/>
+    <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template match="CmtLink">
+    <xsl:text>:: </xsl:text>
+    <xsl:for-each select="*">
+      <xsl:copy>
+        <xsl:copy-of select="@*"/>
+      </xsl:copy>
+    </xsl:for-each>
+    <xsl:element name="br"/>
+  </xsl:template>
 </xsl:stylesheet>

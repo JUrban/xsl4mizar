@@ -236,7 +236,8 @@ tpl [JustifiedTheorem]
     {
        for-each [key('CMT',$prevline)]
        {
-          pcommentedblock(#str=`text()`); 
+         apply;
+//          pcommentedblock(#str=`text()`); 
        } 
     }
   }

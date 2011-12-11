@@ -6690,9 +6690,7 @@
     <xsl:if test="$mk_comments &gt; 0">
       <xsl:for-each select="document($cmt,/)">
         <xsl:for-each select="key(&apos;CMT&apos;,$prevline)">
-          <xsl:call-template name="pcommentedblock">
-            <xsl:with-param name="str" select="text()"/>
-          </xsl:call-template>
+          <xsl:apply-templates/>
         </xsl:for-each>
       </xsl:for-each>
     </xsl:if>
@@ -8789,5 +8787,30 @@ return tstp_dump;
     <xsl:call-template name="pcomment">
       <xsl:with-param name="str" select="concat(&quot;Copyright &quot;, text())"/>
     </xsl:call-template>
+  </xsl:template>
+
+  <!-- comment rules -->
+  <xsl:template match="Comment">
+    <xsl:element name="div">
+      <xsl:attribute name="class">
+        <xsl:text>comment</xsl:text>
+      </xsl:attribute>
+      <xsl:apply-templates/>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="CmtLine">
+    <xsl:value-of select="text()"/>
+    <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template match="CmtLink">
+    <xsl:text>:: </xsl:text>
+    <xsl:for-each select="*">
+      <xsl:copy>
+        <xsl:copy-of select="@*"/>
+      </xsl:copy>
+    </xsl:for-each>
+    <xsl:element name="br"/>
   </xsl:template>
 </xsl:stylesheet>
