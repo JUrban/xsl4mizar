@@ -264,6 +264,6 @@ tpl add_wp_icon
      <img
      {
        	       @src= "WP.ico";
-       	       @alt= "WP:";
+       	       @alt= "WP: ";
      }
 }

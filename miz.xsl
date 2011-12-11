@@ -8834,7 +8834,7 @@ return tstp_dump;
         <xsl:text>WP.ico</xsl:text>
       </xsl:attribute>
       <xsl:attribute name="alt">
-        <xsl:text>WP:</xsl:text>
+        <xsl:text>WP: </xsl:text>
       </xsl:attribute>
     </xsl:element>
   </xsl:template>
