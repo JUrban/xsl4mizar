@@ -257,7 +257,7 @@ tpl [Comment]
    }
 }
 tpl [CmtLine]  { `text()`; <br; }
-tpl [CmtLink]  { ":: "; add_wp_icon(); for-each [*] { copy { copy-of `@*`; copy-of `text()`;}} <br; }
+tpl [CmtLink]  { ":: "; add_wp_icon(); " "; for-each [*] { copy { copy-of `@*`; copy-of `text()`;}} <br; }
 
 tpl add_wp_icon
 {

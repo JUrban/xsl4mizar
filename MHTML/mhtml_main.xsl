@@ -349,6 +349,7 @@ return tstp_dump;
   <xsl:template match="CmtLink">
     <xsl:text>:: </xsl:text>
     <xsl:call-template name="add_wp_icon"/>
+    <xsl:text> </xsl:text>
     <xsl:for-each select="*">
       <xsl:copy>
         <xsl:copy-of select="@*"/>
