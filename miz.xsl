@@ -8818,6 +8818,7 @@ return tstp_dump;
 
   <xsl:template match="CmtLink">
     <xsl:text>:: </xsl:text>
+    <xsl:call-template name="add_wp_icon"/>
     <xsl:for-each select="*">
       <xsl:copy>
         <xsl:copy-of select="@*"/>
@@ -8825,5 +8826,16 @@ return tstp_dump;
       </xsl:copy>
     </xsl:for-each>
     <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template name="add_wp_icon">
+    <xsl:element name="img">
+      <xsl:attribute name="src">
+        <xsl:text>WP.ico</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="alt">
+        <xsl:text>WP:</xsl:text>
+      </xsl:attribute>
+    </xsl:element>
   </xsl:template>
 </xsl:stylesheet>
