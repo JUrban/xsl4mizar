@@ -10,6 +10,7 @@ XSLTPROC = $(TOPDIR)/mizwrk/xsltproc
 XML2HTML = $(TOPDIR)/gitrepo/xsl4mizar/miz.xsl
 ADDABS = $(TOPDIR)/gitrepo/xsl4mizar/addabsrefs.xsl
 MKXMLHEAD = $(TOPDIR)/gitrepo/xsl4mizar/mkxmlhead.pl
+MKCOMMENTS = $(TOPDIR)/gitrepo/xsl4mizar/MizComments.pl
 ACCOM = $(MFILES)/bin/accom 
 VERIFIER = $(MFILES)/bin/verifier
 MIZ2DLI = $(TOPDIR)/gitrepo/xsl4mizar/miz2dli.xsl
@@ -20,6 +21,9 @@ MIZ2OUTREF = $(TOPDIR)/gitrepo/xsl4mizar/miz2outref.xsl
 
 %.hdr: %.miz
 	$(MKXMLHEAD) $*.miz > $*.hdr
+
+%.cmt: %.miz
+	$(MKCOMMENTS) $*.miz > $*.cmt
 
 %.xml: %.acc
 	$(VERIFIER) -q   $*  
@@ -36,8 +40,8 @@ MIZ2OUTREF = $(TOPDIR)/gitrepo/xsl4mizar/miz2outref.xsl
 %.html: %.xml1
 	$(XSLTPROC) --param linking \'s\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.html 
 
-%.htmla1: %.xml1 %.hdr
-	$(XSLTPROC) --param mk_header 1 --param linking \'s\' --param mizhtml \'\' --param ajax_proofs \'1\' --param titles \'1\' --param colored \'1\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.htmla1 
+%.htmla1: %.xml1 %.hdr %.cmt
+	$(XSLTPROC) --param mk_comments 1 --param mk_header 1 --param linking \'s\' --param mizhtml \'\' --param ajax_proofs \'1\' --param titles \'1\' --param colored \'1\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.htmla1 
 
 %.htmla2: %.xml1
 	$(XSLTPROC) --param ajax_proofs \'2\' --param proof_links \'1\' $(XML2HTML)  $*.xml1 > $*.htmla2 
@@ -54,6 +58,7 @@ allhtmla3: $(addsuffix .htmla3, $(SHMIZ))
 html100: $(addsuffix .html, $(MIZ100))
 allacc: $(addsuffix .acc, $(STANDARDMIZ))
 allhdr: $(addsuffix .hdr, $(STANDARDMIZ))
+allcmt: $(addsuffix .cmt, $(STANDARDMIZ))
 allxml: $(addsuffix .xml, $(STANDARDMIZ))
 allxml1: $(addsuffix .xml1, $(SHMIZ))
 alldli: $(addsuffix .dli, $(SHMIZ))
