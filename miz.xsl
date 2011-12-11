@@ -8795,7 +8795,19 @@ return tstp_dump;
       <xsl:attribute name="class">
         <xsl:text>comment</xsl:text>
       </xsl:attribute>
-      <xsl:apply-templates/>
+      <xsl:choose>
+        <xsl:when test="$colored=&quot;1&quot;">
+          <xsl:element name="font">
+            <xsl:attribute name="color">
+              <xsl:value-of select="$commentcolor"/>
+            </xsl:attribute>
+            <xsl:apply-templates/>
+          </xsl:element>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates/>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:element>
   </xsl:template>
 
