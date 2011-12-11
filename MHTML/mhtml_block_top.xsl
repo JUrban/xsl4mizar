@@ -410,19 +410,26 @@
     <xsl:text/>
   </xsl:template>
 
-  <!-- xsltxt cannot use xsl:document yet, so manually insert it -->
-  <!-- (now done by the perl postproc) -->
-  <!-- the bogus is there to ensure that the ending xsl:doc element -->
-  <!-- is printed by xslxtxt.jar too -->
-  <xsl:template match="JustifiedTheorem">
-    <xsl:variable name="prevline" select="@line - 1"/>
+  <xsl:template name="add_comments">
+    <xsl:param name="line"/>
     <xsl:if test="$mk_comments &gt; 0">
+      <xsl:variable name="prevline" select="$line - 1"/>
       <xsl:for-each select="document($cmt,/)">
         <xsl:for-each select="key(&apos;CMT&apos;,$prevline)">
           <xsl:apply-templates select="."/>
         </xsl:for-each>
       </xsl:for-each>
     </xsl:if>
+  </xsl:template>
+
+  <!-- xsltxt cannot use xsl:document yet, so manually insert it -->
+  <!-- (now done by the perl postproc) -->
+  <!-- the bogus is there to ensure that the ending xsl:doc element -->
+  <!-- is printed by xslxtxt.jar too -->
+  <xsl:template match="JustifiedTheorem">
+    <xsl:call-template name="add_comments">
+      <xsl:with-param name="line" select="@line"/>
+    </xsl:call-template>
     <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
@@ -1044,6 +1051,9 @@
   <!-- element elSchemePremises { elProposition* }, -->
   <!-- elProposition, Justification, elEndPosition -->
   <xsl:template match="SchemeBlock">
+    <xsl:call-template name="add_comments">
+      <xsl:with-param name="line" select="@line"/>
+    </xsl:call-template>
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
         <xsl:document href="proofhtml/sch/{$anamelc}.{@schemenr}" format="html"> 
@@ -1140,6 +1150,9 @@
   <!-- elCorrectness?, elPattern+ )) -->
   <!-- ##TODO: commented registration and strict attr for defstruct -->
   <xsl:template match="Definition">
+    <xsl:call-template name="add_comments">
+      <xsl:with-param name="line" select="@line"/>
+    </xsl:call-template>
     <xsl:choose>
       <xsl:when test="@expandable = &quot;true&quot;">
         <xsl:variable name="argtypes" select="../Let/Typ"/>
@@ -1405,6 +1418,9 @@
   <!-- ( elLet | elAssume | elGiven | AuxiliaryItem | -->
   <!-- elCanceled | elDefinition )*, elEndPosition -->
   <xsl:template match="DefinitionBlock">
+    <xsl:call-template name="add_comments">
+      <xsl:with-param name="line" select="@line"/>
+    </xsl:call-template>
     <xsl:element name="div">
       <xsl:call-template name="pkeyword">
         <xsl:with-param name="str">
@@ -1438,6 +1454,9 @@
 
   <!-- ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition -->
   <xsl:template match="RegistrationBlock">
+    <xsl:call-template name="add_comments">
+      <xsl:with-param name="line" select="@line"/>
+    </xsl:call-template>
     <xsl:element name="div">
       <xsl:call-template name="pkeyword">
         <xsl:with-param name="str">

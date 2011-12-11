@@ -3122,24 +3122,28 @@ tpl [Reservation/Typ] { ""; }
 tpl [Definiens/*] { ""; }
 
 
-// xsltxt cannot use xsl:document yet, so manually insert it 
-// (now done by the perl postproc)
-// the bogus is there to ensure that the ending xsl:doc element
-// is printed by xslxtxt.jar too
-tpl [JustifiedTheorem] 
-{ 
-  $prevline = `@line - 1`;
+tpl add_comments(#line)
+{
   if[$mk_comments > 0] 
   { 
+    $prevline = `$line - 1`;
     for-each [document($cmt,/)]
     {
        for-each [key('CMT',$prevline)]
        {
          apply[.];
-//          pcommentedblock(#str=`text()`); 
        } 
     }
   }
+}
+
+// xsltxt cannot use xsl:document yet, so manually insert it 
+// (now done by the perl postproc)
+// the bogus is there to ensure that the ending xsl:doc element
+// is printed by xslxtxt.jar too
+tpl [JustifiedTheorem] 
+{
+    add_comments(#line=`@line`);
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
     if [$generate_items>0]	
     { 
@@ -3492,6 +3496,7 @@ tpl [SchemePredDecl] {
 //   element elSchemePremises { elProposition* },
 //   elProposition, Justification, elEndPosition
 tpl [SchemeBlock] {
+    add_comments(#line=`@line`);
     if [$generate_items>0]	
     { 
 // <xsl:document href="proofhtml/sch/{$anamelc}.{@schemenr}" format="html">
@@ -3549,7 +3554,8 @@ tpl sd
 //       elCorrectness?, elPattern+ ))
 // ##TODO: commented registration and strict attr for defstruct
 tpl [Definition] 
-{     
+{    
+    add_comments(#line=`@line`); 
     if [@expandable = "true"] 
     { 
        $argtypes = `../Let/Typ`;
@@ -3730,6 +3736,7 @@ tpl dfs()
 //     elCanceled | elDefinition )*, elEndPosition
 tpl [DefinitionBlock] 
 {
+   add_comments(#line=`@line`);
    <div 
    { 
       pkeyword(#str="definition");
@@ -3748,6 +3755,7 @@ tpl [IdentifyRegistration] { apply; }
 //   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
 tpl [RegistrationBlock] 
 {
+    add_comments(#line=`@line`);
     <div { pkeyword(#str="registration");
     <div { @class="add"; apply[*[not(name()='EndPosition')]]; }
     pkeyword(#str="end;"); }  
