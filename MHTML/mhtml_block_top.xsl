@@ -419,7 +419,7 @@
     <xsl:if test="$mk_comments &gt; 0">
       <xsl:for-each select="document($cmt,/)">
         <xsl:for-each select="key(&apos;CMT&apos;,$prevline)">
-          <xsl:apply-templates/>
+          <xsl:apply-templates select="."/>
         </xsl:for-each>
       </xsl:for-each>
     </xsl:if>
