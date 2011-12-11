@@ -263,7 +263,7 @@ tpl add_wp_icon
 {
      <img
      {
-       	       @src= "WP.ico";
+       	       @src= `concat($ltptproot,"WP.ico")`;
        	       @alt= "WP: ";
      }
 }

@@ -8831,7 +8831,7 @@ return tstp_dump;
   <xsl:template name="add_wp_icon">
     <xsl:element name="img">
       <xsl:attribute name="src">
-        <xsl:text>WP.ico</xsl:text>
+        <xsl:value-of select="concat($ltptproot,&quot;WP.ico&quot;)"/>
       </xsl:attribute>
       <xsl:attribute name="alt">
         <xsl:text>WP: </xsl:text>
