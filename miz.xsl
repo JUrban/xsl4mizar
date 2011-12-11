@@ -8821,6 +8821,7 @@ return tstp_dump;
     <xsl:for-each select="*">
       <xsl:copy>
         <xsl:copy-of select="@*"/>
+        <xsl:copy-of select="text()"/>
       </xsl:copy>
     </xsl:for-each>
     <xsl:element name="br"/>

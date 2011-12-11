@@ -4355,4 +4355,4 @@ tpl [Comment]
    }
 }
 tpl [CmtLine]  { `text()`; <br; }
-tpl [CmtLink]  { ":: "; for-each [*] { copy { copy-of `@*`;}} <br; }
+tpl [CmtLink]  { ":: "; for-each [*] { copy { copy-of `@*`; copy-of `text()`;}} <br; }
