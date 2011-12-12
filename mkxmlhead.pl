@@ -48,6 +48,7 @@ the Free Software Foundation; either version 2 of the License, or
 
 use strict;
 use Getopt::Long;
+use HTML::Entities ();
 
 my $gsoft;
 
@@ -66,10 +67,10 @@ sub PrintIt
     die "Something missing: $title, $authors, $date, $copyright" 
 	if(!($gsoft) && (!(defined $authors) or !(defined $date) or !(defined $copyright) or (length($title)==0)));
     print '<?xml version="1.0"?>', "\n", '<Header xmlns:dc="http://purl.org/dc/elements/1.1/">', "\n";
-    print ('<dc:title>', ((length($title)>0)? $title : "Unknown title"), '</dc:title>', "\n");
-    print ('<dc:creator>', ($authors ? $authors : "Unknown authors" ), '</dc:creator>', "\n");
-    print ('<dc:date>', ($date ? $date : $ltime ), '</dc:date>', "\n");
-    print ('<dc:rights>', ($copyright ? $copyright : "Unknown" ), '</dc:rights>', "\n");
+    print ('<dc:title>', ((length($title)>0)? HTML::Entities::encode($title) : "Unknown title"), '</dc:title>', "\n");
+    print ('<dc:creator>', ($authors ? HTML::Entities::encode($authors) : "Unknown authors" ), '</dc:creator>', "\n");
+    print ('<dc:date>', ($date ? HTML::Entities::encode($date) : $ltime ), '</dc:date>', "\n");
+    print ('<dc:rights>', ($copyright ? HTML::Entities::encode($copyright) : "Unknown" ), '</dc:rights>', "\n");
     print '</Header>', "\n";
     exit;
 }
