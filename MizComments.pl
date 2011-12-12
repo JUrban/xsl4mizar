@@ -45,9 +45,12 @@ foreach my $i (0 .. $#lines)
 	if($txt =~ m/^ *::+\$N[\t ]+(.+?) *$/) # get the name
 	{
 	    my ($thname,$thname1) = ($1,$1);
+	    my $thname0 = HTML::Entities::encode($thname);
 	    $thname1 =~ s/ +/_/g;
-	    $txt = '<CmtLink><a href="' . $wp . HTML::Entities::encode($thname1) . '">' .
-		HTML::Entities::encode($thname) . '</a></CmtLink>';
+	    my $thname2 = HTML::Entities::encode($thname1);
+	    $txt = '<CmtLink><a href="' . $wp . $thname2
+		. ' title="See Wikipedia entry for ' . $thname0 . '">' .
+		$thname0 . '</a></CmtLink>';
 	}
 	else { $txt = '<CmtLine>' . HTML::Entities::encode($txt) . '</CmtLine>';}
 
