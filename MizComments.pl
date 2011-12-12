@@ -49,7 +49,7 @@ foreach my $i (0 .. $#lines)
 	    $thname1 =~ s/ +/_/g;
 	    my $thname2 = HTML::Entities::encode($thname1);
 	    $txt = '<CmtLink><a href="' . $wp . $thname2
-		. ' title="See Wikipedia entry for ' . $thname0 . '">' .
+		. '" title="See Wikipedia entry for ' . $thname0 . '">' .
 		$thname0 . '</a></CmtLink>';
 	}
 	else { $txt = '<CmtLine>' . HTML::Entities::encode($txt) . '</CmtLine>';}
