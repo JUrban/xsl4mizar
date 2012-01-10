@@ -3882,7 +3882,7 @@ tpl [Now](#nkw)
 	     pkeyword(#str="now "); 
 	     for-each [ BlockThesis/Thesis]
     	     {
-      	     do_thesis(#nd=$nd);
+      	     do_thesis();
     	     }
           }
 

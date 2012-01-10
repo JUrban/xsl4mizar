@@ -8009,9 +8009,7 @@
               </xsl:with-param>
             </xsl:call-template>
             <xsl:for-each select=" BlockThesis/Thesis">
-              <xsl:call-template name="do_thesis">
-                <xsl:with-param name="nd" select="$nd"/>
-              </xsl:call-template>
+              <xsl:call-template name="do_thesis"/>
             </xsl:for-each>
           </xsl:element>
           <xsl:call-template name="now_body"/>
