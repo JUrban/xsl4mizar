@@ -8024,7 +8024,7 @@
                     <xsl:text>hide</xsl:text>
                   </xsl:attribute>
                   <xsl:text> </xsl:text>
-                  <xsl:apply-templates select="*[2]"/>
+                  <xsl:apply-templates select="*[position()=last()]"/>
                 </xsl:element>
               </xsl:if>
             </xsl:for-each>
