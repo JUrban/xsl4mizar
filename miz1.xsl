@@ -8008,8 +8008,25 @@
                 <xsl:text>now </xsl:text>
               </xsl:with-param>
             </xsl:call-template>
-            <xsl:for-each select=" BlockThesis/Thesis">
-              <xsl:call-template name="do_thesis"/>
+            <xsl:for-each select=" BlockThesis">
+              <xsl:if test="($display_thesis = 1)">
+                <xsl:text> </xsl:text>
+                <xsl:element name="a">
+                  <xsl:call-template name="add_hs_attrs"/>
+                  <xsl:call-template name="pcomment0">
+                    <xsl:with-param name="str">
+                      <xsl:text> thesis: </xsl:text>
+                    </xsl:with-param>
+                  </xsl:call-template>
+                </xsl:element>
+                <xsl:element name="span">
+                  <xsl:attribute name="class">
+                    <xsl:text>hide</xsl:text>
+                  </xsl:attribute>
+                  <xsl:text> </xsl:text>
+                  <xsl:apply-templates select="*[2]"/>
+                </xsl:element>
+              </xsl:if>
             </xsl:for-each>
           </xsl:element>
           <xsl:call-template name="now_body"/>

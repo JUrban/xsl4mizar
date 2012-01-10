@@ -3880,9 +3880,19 @@ tpl [Now](#nkw)
 	     add_hs2_attrs(); 
 	     if [$proof_links>0] { @title=`@newlevel`; } 
 	     pkeyword(#str="now "); 
-	     for-each [ BlockThesis/Thesis]
+	     for-each [ BlockThesis]
     	     {
-      	     do_thesis();
+      	       if [($display_thesis = 1)] 
+  {
+        " ";
+        <a 
+	{   
+	  add_hs_attrs();
+	  pcomment0(#str=" thesis: ");      
+	}
+
+	<span { @class="hide"; " "; apply[*[2]]; }
+  }
     	     }
           }
 
