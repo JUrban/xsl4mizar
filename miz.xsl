@@ -4872,8 +4872,17 @@
     </xsl:if>
     <!-- print right args preceded by "of" for types -->
     <xsl:for-each select="$vis">
-      <xsl:if test="(position() = 1) and (($k=&apos;M&apos;) or ($k=&apos;L&apos;))">
-        <xsl:text>of </xsl:text>
+      <xsl:if test="(position() = 1)">
+        <xsl:choose>
+          <xsl:when test="($k=&apos;M&apos;)">
+            <xsl:text>of </xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:if test="($k=&apos;L&apos;)">
+              <xsl:text>over </xsl:text>
+            </xsl:if>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:if>
       <xsl:if test="position() &gt; $la">
         <xsl:variable name="x" select="@x"/>

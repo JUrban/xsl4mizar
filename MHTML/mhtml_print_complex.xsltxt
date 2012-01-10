@@ -381,7 +381,10 @@ tpl pp2(#k, #nr, #i, #vis, #la, #loci, #args, #np, #rsym, #parenth, #fnr, #pid)
    // print right args preceded by "of" for types
    for-each [$vis] 
    { 
-      if [(position() = 1) and (($k='M') or ($k='L'))] { "of "; }
+      if [(position() = 1)] 
+      { 
+         if[($k='M')] { "of "; } else { if [($k='L')] { "over "; } }
+      }
       if [position() > $la] 
       {
 	$x=`@x`;
