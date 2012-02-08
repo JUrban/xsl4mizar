@@ -217,6 +217,63 @@ tpl iy
    ";"; <br; if [$mml="1"] { <br; }
 }
 
+tpl [Reduction] 
+{ 
+    $nr1 = `@nr`;
+    if [$generate_items>0]	
+    { 
+// <xsl:document href="proofhtml/redreg/{$anamelc}.{$nr1}" format="html">
+       reduce();
+// </xsl:document>
+   $bogus=`1`;
+    } 
+    else {  <div { @about=`concat("#RD",$nr1)`; reduce(); } }
+}
+
+tpl reduce
+{ 
+   if [($mml="1") or ($generate_items>0)] 
+   { 
+      argtypes(#el=`Typ`);
+   }
+
+   $nr1 = `@nr`;
+
+   <a 
+   { 
+      @NAME=`concat("RD",$nr1)`;
+      pkeyword(#str="reduce "); 
+   }
+
+   if [ErrorReduction] { "errorreduction"; }
+   else { if [($mml="1") or ($generate_items>0)] 
+   { 
+	   apply[*[position() = last() - 1]]; 
+       	   pkeyword(#str=" to "); 
+       	   apply[*[position() = last()]]; 
+   }
+   else // try nice display from the compatibility formula
+   {
+     for-each [following-sibling::*[1]/Proposition/*[1]]
+     {
+       if [name() = "Pred"] // equality - terms
+       { 
+         apply[*[1]]; 
+	 pkeyword(#str=" with "); 
+	 apply[*[2]];
+       }
+       else 
+       {
+          "REDUCE DISPLAY FAILED -  PLEASE COMPLAIN!"; <br;
+	  apply[.];		 
+       }
+     }
+   }}
+   ";"; <br; if [$mml="1"] { <br; }
+}
+
+
+
 
 // ignore them
 tpl [Reservation/Typ] { ""; }
@@ -562,7 +619,7 @@ tpl [JustifiedProperty]
 }
 
 //  Formula | ( elProposition, Justification )
-tpl [UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness] 
+tpl [UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Reducibility|Uniqueness] 
 { 
    <a 
    { 
@@ -853,6 +910,8 @@ tpl [Registration] { apply; }
 //   elIdentifyWithExp, CorrectnessCondition*, elCorrectness?
 tpl [IdentifyRegistration] { apply; }
 
+tpl [ReductionRegistration] { apply; }
+
 //   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
 tpl [RegistrationBlock] 
 {
@@ -981,6 +1040,21 @@ tpl [Now](#nkw)
 	     add_hs2_attrs(); 
 	     if [$proof_links>0] { @title=`@newlevel`; } 
 	     pkeyword(#str="now "); 
+
+	     if [($display_thesis = 1)] 
+    	     {
+      	       for-each [ BlockThesis]
+  	       {
+                  " ";   
+               	  <a 
+		  {   
+	  	     add_hs_attrs();
+	  	     pcomment0(#str=" thesis: ");      
+		  }
+
+		  <span { @class="hide"; " "; apply[*[position()=last()]]; }
+  	       }
+    	     }
           }
 
           now_body();

@@ -223,7 +223,7 @@ tpl [Theorem|Constructor|Pattern](#s) {
              apply(#s=$s); }}
 
 // the aid and nr are already in the standard xml now
-tpl [RCluster|CCluster|FCluster|IdentifyWithExp|Identify](#s)
+tpl [RCluster|CCluster|FCluster|IdentifyWithExp|Identify|Reduction](#s)
 { 
   $n=`name()`; <$n 
   { 
@@ -398,7 +398,7 @@ tpl [Conclusion | Assume | Take | Thesis | BlockThesis |
     Case | Suppose | PerCases | SchemeFuncDecl | SchemePredDecl |
    UnknownCorrCond | Coherence | 
    Compatibility | Consistency | Existence | Uniqueness | 
-   Correctness | JustifiedProperty](#s) 
+   Correctness | Reducibility | JustifiedProperty](#s) 
 {
   copy { copy-of `@*`; @plevel=$s;  apply(#s=$s);}
 }
@@ -437,7 +437,7 @@ tpl [Assume/Proposition | Given/Proposition | Consider/Proposition |
     UnknownCorrCond/Proposition | Coherence/Proposition | 
     Compatibility/Proposition | Consistency/Proposition | 
     Existence/Proposition | Uniqueness/Proposition | 
-    SchemePremises/Proposition | 
+    SchemePremises/Proposition | Reducibility/proposition |
     Correctness/Proposition | JustifiedProperty/Proposition](#s) {
     $s0 =  prevprops(#el=`..`); 
     $s1 =  `1 + $s0 + count(preceding-sibling::Proposition)`; //in this item
@@ -488,7 +488,7 @@ tpl prevprops(#el) { for-each [$el] {
 	or (name() = "UnknownCorrCond") or (name() = "Coherence") 
 	or (name() = "Compatibility") or (name() = "Consistency") 
 	or (name() = "Existence") or (name() = "Uniqueness")
-	or (name() = "SchemePremises")
+	or (name() = "SchemePremises") or (name() = "Reducibility")
 	or (name() = "Correctness") or (name() = "JustifiedProperty")]/*[(name() = "Now") 
 	or (name() = "Proposition") or (name() = "IterEquality")]) +
      count(preceding-sibling::*[(name() = "Now") or (name() = "Proposition") 
@@ -498,7 +498,7 @@ tpl prevprops(#el) { for-each [$el] {
 // adds the @plevel and @newlevel attributes.
 // Each Definition, Registration, and IdentifyRegistration inside such blocks create
 // their own block to properly number correctness conditions. 
-tpl [Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration|IdentifyRegistration|SkippedProof](#s)
+tpl [Proof|CaseBlock|SupposeBlock|PerCasesReasoning|DefinitionBlock|RegistrationBlock|NotationBlock|SchemeBlock|Definition|Registration|IdentifyRegistration|ReductionRegistration|SkippedProof](#s)
 { 
    $s0 =  prevblocks(#el=`.`); 
    $s1 = `1 + $s0`;
@@ -524,7 +524,7 @@ tpl prevblocks(#el) { for-each [$el] {
     if [parent::*[(name() = "Conclusion") or (name() = "JustifiedTheorem")
        or (name() = "UnknownCorrCond") or (name() = "Coherence") 
        or (name() = "Compatibility") or (name() = "Consistency") 
-       or (name() = "Existence") or (name() = "Uniqueness")
+       or (name() = "Existence") or (name() = "Uniqueness") or (name() = "Reducibility")
        or (name() = "Correctness") or (name() = "JustifiedProperty")]] { 
     for-each [parent::*] {
 	`count(preceding-sibling::*[(name() = "Proof") or (name() = "Now") 
@@ -533,12 +533,12 @@ tpl prevblocks(#el) { for-each [$el] {
 	(name() = "Registration") or (name() = "IterEquality") or
 	(name() = "IdentifyRegistration") or (name() = "SkippedProof") or
 	(name() = "DefinitionBlock") or (name() = "RegistrationBlock") or 
-	(name() = "NotationBlock") or (name() = "SchemeBlock")]) +
+	(name() = "NotationBlock") or (name() = "SchemeBlock") or (name() = "ReductionRegistration")]) +
 	count(preceding-sibling::*[(name() = "Conclusion") 
 	 or (name() = "JustifiedTheorem") or (name() = "UnknownCorrCond") 
 	 or (name() = "Coherence") or (name() = "Compatibility") 
 	 or (name() = "Consistency") or (name() = "Existence") 
-	 or (name() = "Uniqueness") or (name() = "Correctness")
+	 or (name() = "Uniqueness") or (name() = "Correctness") or (name() = "Reducibility")
 	 or (name() = "JustifiedProperty")]/*[(name() = "Proof") or 
 	 (name() = "Now") or (name() = "SkippedProof") or (name() = "IterEquality")])`; }}
     else  {
@@ -548,12 +548,12 @@ tpl prevblocks(#el) { for-each [$el] {
 	(name() = "Registration") or (name() = "IterEquality") or
 	(name() = "IdentifyRegistration") or (name() = "SkippedProof") or
 	(name() = "DefinitionBlock") or (name() = "RegistrationBlock") or 
-	(name() = "NotationBlock") or (name() = "SchemeBlock")]) +
+	(name() = "NotationBlock") or (name() = "SchemeBlock") or (name() = "ReductionRegistration")]) +
          count(preceding-sibling::*[(name() = "Conclusion") 
 	 or (name() = "JustifiedTheorem") or (name() = "UnknownCorrCond") 
 	 or (name() = "Coherence") or (name() = "Compatibility") 
 	 or (name() = "Consistency") or (name() = "Existence") 
-	 or (name() = "Uniqueness") or (name() = "Correctness")
+	 or (name() = "Uniqueness") or (name() = "Correctness") or (name() = "Reducibility")
 	 or (name() = "JustifiedProperty")]/*[(name() = "Proof") or 
 	 (name() = "Now") or (name() = "SkippedProof") or (name() = "IterEquality")])`;
 }}}

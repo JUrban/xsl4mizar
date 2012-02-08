@@ -1846,6 +1846,42 @@ tpl [IdentifyWithExp]
   }
 }
 
+// similar as Identify, the mptp_info slot uses identifyexp too for simplicity
+// sufficient proof refs done as for clusters
+// ##GRM: Reduction_Name : "rd" Number "_" Aid .
+tpl [Reduction] 
+{ 
+  if [ErrorReduction] { } 
+  else 
+  {
+    "fof("; absk(#el=`.`,#kind="rd"); ",theorem,";
+    if [Typ] 
+    {  
+       "!["; for-each [Typ] { 
+          ploci(#nr=`position()`); " : "; apply[.]; 
+          if [not(position()=last())] { ","; } }
+       "]: "; 
+    } 
+    "(";
+    "(";
+    apply[*[position() = last() - 1]]; 
+    $eq_s;
+    apply[*[position() = last()]];
+    "))";
+    ",file("; lc(#s=`@aid`); ",";
+    absk(#el=`.`,#kind="rd"); "),[mptp_info("; `@nr`; 
+    ",[],identifyexp,position(0,0),[";
+    if [$mml="0"] 
+    { 
+       "proof_level(["; `translate(../@newlevel,"_",",")`; "]),"; 
+       cluster_correctness_conditions(#el=`../*[position() > 1]`);
+    }
+    "])]).\n"; 
+  }
+}
+
+
+
 
 tpl [ArgTypes] { if [Typ] {
        "!["; for-each [Typ] { 
@@ -2117,7 +2153,7 @@ tpl [ByExplanations](#i,#pl) { for-each [Typ] { if[position() = 2] { "non"; } "z
 tpl [/] { if [$mml="0"] { apply[//Constructor|//Proposition[not(name(..)="Reconsider")]|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations]; 
+	     //CCluster|//FCluster|//RCluster|//Reduction|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations]; 
            dumproptable(); }
 	  else { apply; } }
 

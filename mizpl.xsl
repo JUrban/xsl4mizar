@@ -4437,6 +4437,69 @@
     </xsl:choose>
   </xsl:template>
 
+  <!-- similar as Identify, the mptp_info slot uses identifyexp too for simplicity -->
+  <!-- sufficient proof refs done as for clusters -->
+  <!-- ##GRM: Reduction_Name : "rd" Number "_" Aid . -->
+  <xsl:template match="Reduction">
+    <xsl:choose>
+      <xsl:when test="ErrorReduction"/>
+      <xsl:otherwise>
+        <xsl:text>fof(</xsl:text>
+        <xsl:call-template name="absk">
+          <xsl:with-param name="el" select="."/>
+          <xsl:with-param name="kind">
+            <xsl:text>rd</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+        <xsl:text>,theorem,</xsl:text>
+        <xsl:if test="Typ">
+          <xsl:text>![</xsl:text>
+          <xsl:for-each select="Typ">
+            <xsl:call-template name="ploci">
+              <xsl:with-param name="nr" select="position()"/>
+            </xsl:call-template>
+            <xsl:text> : </xsl:text>
+            <xsl:apply-templates select="."/>
+            <xsl:if test="not(position()=last())">
+              <xsl:text>,</xsl:text>
+            </xsl:if>
+          </xsl:for-each>
+          <xsl:text>]: </xsl:text>
+        </xsl:if>
+        <xsl:text>(</xsl:text>
+        <xsl:text>(</xsl:text>
+        <xsl:apply-templates select="*[position() = last() - 1]"/>
+        <xsl:value-of select="$eq_s"/>
+        <xsl:apply-templates select="*[position() = last()]"/>
+        <xsl:text>))</xsl:text>
+        <xsl:text>,file(</xsl:text>
+        <xsl:call-template name="lc">
+          <xsl:with-param name="s" select="@aid"/>
+        </xsl:call-template>
+        <xsl:text>,</xsl:text>
+        <xsl:call-template name="absk">
+          <xsl:with-param name="el" select="."/>
+          <xsl:with-param name="kind">
+            <xsl:text>rd</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+        <xsl:text>),[mptp_info(</xsl:text>
+        <xsl:value-of select="@nr"/>
+        <xsl:text>,[],identifyexp,position(0,0),[</xsl:text>
+        <xsl:if test="$mml=&quot;0&quot;">
+          <xsl:text>proof_level([</xsl:text>
+          <xsl:value-of select="translate(../@newlevel,&quot;_&quot;,&quot;,&quot;)"/>
+          <xsl:text>]),</xsl:text>
+          <xsl:call-template name="cluster_correctness_conditions">
+            <xsl:with-param name="el" select="../*[position() &gt; 1]"/>
+          </xsl:call-template>
+        </xsl:if>
+        <xsl:text>])]).
+</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <xsl:template match="ArgTypes">
     <xsl:if test="Typ">
       <xsl:text>![</xsl:text>
@@ -5230,7 +5293,7 @@
         <xsl:apply-templates select="//Constructor|//Proposition[not(name(..)=&quot;Reconsider&quot;)]|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
-	     //CCluster|//FCluster|//RCluster|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations"/>
+	     //CCluster|//FCluster|//RCluster|//Reduction|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations"/>
         <xsl:call-template name="dumproptable"/>
       </xsl:when>
       <xsl:otherwise>
