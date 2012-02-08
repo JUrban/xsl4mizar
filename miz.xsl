@@ -6681,6 +6681,88 @@
     </xsl:if>
   </xsl:template>
 
+  <xsl:template match="Reduction">
+    <xsl:variable name="nr1" select="@nr"/>
+    <xsl:choose>
+      <xsl:when test="$generate_items&gt;0">
+        <xsl:document href="proofhtml/redreg/{$anamelc}.{$nr1}" format="html"> 
+        <xsl:call-template name="reduce"/>
+        </xsl:document> 
+        <xsl:variable name="bogus" select="1"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:element name="div">
+          <xsl:attribute name="about">
+            <xsl:value-of select="concat(&quot;#RD&quot;,$nr1)"/>
+          </xsl:attribute>
+          <xsl:call-template name="reduce"/>
+        </xsl:element>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="reduce">
+    <xsl:if test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
+      <xsl:call-template name="argtypes">
+        <xsl:with-param name="el" select="Typ"/>
+      </xsl:call-template>
+    </xsl:if>
+    <xsl:variable name="nr1" select="@nr"/>
+    <xsl:element name="a">
+      <xsl:attribute name="NAME">
+        <xsl:value-of select="concat(&quot;RD&quot;,$nr1)"/>
+      </xsl:attribute>
+      <xsl:call-template name="pkeyword">
+        <xsl:with-param name="str">
+          <xsl:text>reduce </xsl:text>
+        </xsl:with-param>
+      </xsl:call-template>
+    </xsl:element>
+    <xsl:choose>
+      <xsl:when test="ErrorReduction">
+        <xsl:text>errorreduction</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="($mml=&quot;1&quot;) or ($generate_items&gt;0)">
+            <xsl:apply-templates select="*[position() = last() - 1]"/>
+            <xsl:call-template name="pkeyword">
+              <xsl:with-param name="str">
+                <xsl:text> to </xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+            <xsl:apply-templates select="*[position() = last()]"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:for-each select="following-sibling::*[1]/Proposition/*[1]">
+              <xsl:choose>
+                <xsl:when test="name() = &quot;Pred&quot;">
+                  <xsl:apply-templates select="*[1]"/>
+                  <xsl:call-template name="pkeyword">
+                    <xsl:with-param name="str">
+                      <xsl:text> with </xsl:text>
+                    </xsl:with-param>
+                  </xsl:call-template>
+                  <xsl:apply-templates select="*[2]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text>REDUCE DISPLAY FAILED -  PLEASE COMPLAIN!</xsl:text>
+                  <xsl:element name="br"/>
+                  <xsl:apply-templates select="."/>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:for-each>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text>;</xsl:text>
+    <xsl:element name="br"/>
+    <xsl:if test="$mml=&quot;1&quot;">
+      <xsl:element name="br"/>
+    </xsl:if>
+  </xsl:template>
+
   <!-- ignore them -->
   <xsl:template match="Reservation/Typ">
     <xsl:text/>
@@ -7232,7 +7314,7 @@
   </xsl:template>
 
   <!-- Formula | ( elProposition, Justification ) -->
-  <xsl:template match="UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Uniqueness">
+  <xsl:template match="UnknownCorrCond|Coherence|Compatibility|Consistency|Existence|Reducibility|Uniqueness">
     <xsl:element name="a">
       <xsl:call-template name="add_hs_attrs"/>
       <xsl:variable name="nm">
@@ -7732,6 +7814,10 @@
     <xsl:apply-templates/>
   </xsl:template>
 
+  <xsl:template match="ReductionRegistration">
+    <xsl:apply-templates/>
+  </xsl:template>
+
   <!-- ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition -->
   <xsl:template match="RegistrationBlock">
     <xsl:call-template name="add_comments">
@@ -8017,6 +8103,26 @@
                 <xsl:text>now </xsl:text>
               </xsl:with-param>
             </xsl:call-template>
+            <xsl:if test="($display_thesis = 1)">
+              <xsl:for-each select=" BlockThesis">
+                <xsl:text> </xsl:text>
+                <xsl:element name="a">
+                  <xsl:call-template name="add_hs_attrs"/>
+                  <xsl:call-template name="pcomment0">
+                    <xsl:with-param name="str">
+                      <xsl:text> thesis: </xsl:text>
+                    </xsl:with-param>
+                  </xsl:call-template>
+                </xsl:element>
+                <xsl:element name="span">
+                  <xsl:attribute name="class">
+                    <xsl:text>hide</xsl:text>
+                  </xsl:attribute>
+                  <xsl:text> </xsl:text>
+                  <xsl:apply-templates select="*[position()=last()]"/>
+                </xsl:element>
+              </xsl:for-each>
+            </xsl:if>
           </xsl:element>
           <xsl:call-template name="now_body"/>
           <xsl:call-template name="pkeyword">
