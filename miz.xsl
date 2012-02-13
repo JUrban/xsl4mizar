@@ -464,6 +464,9 @@
   <xsl:param name="is_s">
     <xsl:text> is </xsl:text>
   </xsl:param>
+  <xsl:param name="dots_s">
+    <xsl:text> ... </xsl:text>
+  </xsl:param>
   <xsl:param name="fraenkel_start">
     <xsl:text> { </xsl:text>
   </xsl:param>
@@ -3376,6 +3379,35 @@
     <xsl:text>errorfrm</xsl:text>
   </xsl:template>
 
+  <xsl:template match="FlexFrm">
+    <xsl:param name="i"/>
+    <xsl:param name="pr"/>
+    <xsl:param name="not"/>
+    <xsl:variable name="conn">
+      <xsl:choose>
+        <xsl:when test="$not=&quot;1&quot;">
+          <xsl:value-of select="$or_s"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$and_s"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:apply-templates select="*[1]">
+      <xsl:with-param name="i" select="$i"/>
+      <xsl:with-param name="pr" select="$pr"/>
+      <xsl:with-param name="not" select="$not"/>
+    </xsl:apply-templates>
+    <xsl:value-of select="$conn"/>
+    <xsl:copy-of select="$dots_s"/>
+    <xsl:value-of select="$conn"/>
+    <xsl:apply-templates select="*[2]">
+      <xsl:with-param name="i" select="$i"/>
+      <xsl:with-param name="pr" select="$pr"/>
+      <xsl:with-param name="not" select="$not"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
   <!-- Terms -->
   <!-- #p is the parenthesis count -->
   <!-- #i is the size of the var stack -->
@@ -5102,9 +5134,27 @@
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
+      <!-- we can only say that this is a lemma if it is a toplevel proposition -->
+      <!-- nontoplevel could be assumptions, etc. - this is a ##TODO -->
       <xsl:otherwise>
-        <xsl:apply-templates/>
-        <xsl:text> </xsl:text>
+        <xsl:choose>
+          <xsl:when test="not(string-length(@plevel)&gt;0)">
+            <xsl:element name="span">
+              <xsl:attribute name="about">
+                <xsl:value-of select="concat(&quot;#E&quot;,@propnr)"/>
+              </xsl:attribute>
+              <xsl:attribute name="typeof">
+                <xsl:text>oo:Lemma</xsl:text>
+              </xsl:attribute>
+              <xsl:apply-templates/>
+              <xsl:text> </xsl:text>
+            </xsl:element>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
@@ -6311,6 +6361,9 @@
               <xsl:attribute name="about">
                 <xsl:value-of select="concat(&quot;#RC&quot;,$nr1)"/>
               </xsl:attribute>
+              <xsl:attribute name="typeof">
+                <xsl:text>oo:Theorem</xsl:text>
+              </xsl:attribute>
               <xsl:call-template name="rc"/>
             </xsl:element>
           </xsl:otherwise>
@@ -6376,6 +6429,9 @@
             <xsl:element name="div">
               <xsl:attribute name="about">
                 <xsl:value-of select="concat(&quot;#CC&quot;,$nr1)"/>
+              </xsl:attribute>
+              <xsl:attribute name="typeof">
+                <xsl:text>oo:Theorem</xsl:text>
               </xsl:attribute>
               <xsl:call-template name="cc"/>
             </xsl:element>
@@ -6449,6 +6505,9 @@
               <xsl:attribute name="about">
                 <xsl:value-of select="concat(&quot;#FC&quot;,$nr1)"/>
               </xsl:attribute>
+              <xsl:attribute name="typeof">
+                <xsl:text>oo:Theorem</xsl:text>
+              </xsl:attribute>
               <xsl:call-template name="fc"/>
             </xsl:element>
           </xsl:otherwise>
@@ -6514,6 +6573,9 @@
         <xsl:element name="div">
           <xsl:attribute name="about">
             <xsl:value-of select="concat(&quot;#IE&quot;,$nr1)"/>
+          </xsl:attribute>
+          <xsl:attribute name="typeof">
+            <xsl:text>oo:Theorem</xsl:text>
           </xsl:attribute>
           <xsl:call-template name="iy"/>
         </xsl:element>
@@ -6695,6 +6757,9 @@
           <xsl:attribute name="about">
             <xsl:value-of select="concat(&quot;#RD&quot;,$nr1)"/>
           </xsl:attribute>
+          <xsl:attribute name="typeof">
+            <xsl:text>oo:Theorem</xsl:text>
+          </xsl:attribute>
           <xsl:call-template name="reduce"/>
         </xsl:element>
       </xsl:otherwise>
@@ -6784,6 +6849,39 @@
     </xsl:if>
   </xsl:template>
 
+  <!-- http://en.wikipedia.org/wiki/Cantor_Theorem to -->
+  <!-- http://dbpedia.org/resource/Cantor_theorem -->
+  <xsl:template name="wp2dp">
+    <xsl:param name="txt"/>
+    <xsl:value-of select="concat(&quot;http://dbpedia.org/resource/&quot;,substring-after($txt,&apos;/wiki/&apos;))"/>
+  </xsl:template>
+
+  <xsl:template name="add_dbpedia">
+    <xsl:param name="line"/>
+    <xsl:if test="$mk_comments &gt; 0">
+      <xsl:variable name="prevline" select="$line - 1"/>
+      <xsl:for-each select="document($cmt,/)">
+        <xsl:for-each select="key(&apos;CMT&apos;,$prevline)">
+          <xsl:for-each select="CmtLink/a">
+            <xsl:variable name="dbplink">
+              <xsl:call-template name="wp2dp">
+                <xsl:with-param name="txt" select="@href"/>
+              </xsl:call-template>
+            </xsl:variable>
+            <xsl:element name="span">
+              <xsl:attribute name="rel">
+                <xsl:text>owl:sameAs</xsl:text>
+              </xsl:attribute>
+              <xsl:attribute name="resource">
+                <xsl:value-of select="$dbplink"/>
+              </xsl:attribute>
+            </xsl:element>
+          </xsl:for-each>
+        </xsl:for-each>
+      </xsl:for-each>
+    </xsl:if>
+  </xsl:template>
+
   <!-- xsltxt cannot use xsl:document yet, so manually insert it -->
   <!-- (now done by the perl postproc) -->
   <!-- the bogus is there to ensure that the ending xsl:doc element -->
@@ -6813,6 +6911,9 @@
               <xsl:attribute name="typeof">
                 <xsl:text>oo:Theorem</xsl:text>
               </xsl:attribute>
+              <xsl:call-template name="add_dbpedia">
+                <xsl:with-param name="line" select="@line"/>
+              </xsl:call-template>
               <xsl:attribute name="style">
                 <xsl:value-of select="concat(&quot;background-color:rgb(&quot;,$intensity,&quot;%,100%,&quot;, $intensity, &quot;%);&quot;)"/>
               </xsl:attribute>
@@ -6827,6 +6928,9 @@
               <xsl:attribute name="typeof">
                 <xsl:text>oo:Theorem</xsl:text>
               </xsl:attribute>
+              <xsl:call-template name="add_dbpedia">
+                <xsl:with-param name="line" select="@line"/>
+              </xsl:call-template>
               <xsl:call-template name="jt"/>
             </xsl:element>
           </xsl:otherwise>
@@ -7192,6 +7296,9 @@
           <xsl:attribute name="about">
             <xsl:value-of select="concat(&quot;#DT&quot;,$nr1)"/>
           </xsl:attribute>
+          <xsl:attribute name="typeof">
+            <xsl:text>oo:Definition</xsl:text>
+          </xsl:attribute>
           <xsl:call-template name="dt"/>
         </xsl:element>
       </xsl:otherwise>
@@ -7428,6 +7535,12 @@
           <xsl:attribute name="about">
             <xsl:value-of select="concat(&quot;#S&quot;,@schemenr)"/>
           </xsl:attribute>
+          <xsl:attribute name="typeof">
+            <xsl:text>oo:Theorem</xsl:text>
+          </xsl:attribute>
+          <xsl:call-template name="add_dbpedia">
+            <xsl:with-param name="line" select="@line"/>
+          </xsl:call-template>
           <xsl:call-template name="sd"/>
         </xsl:element>
       </xsl:otherwise>
@@ -7597,6 +7710,12 @@
                   <xsl:attribute name="about">
                     <xsl:value-of select="concat(&quot;#D&quot;,@nr)"/>
                   </xsl:attribute>
+                  <xsl:attribute name="typeof">
+                    <xsl:text>oo:Definition</xsl:text>
+                  </xsl:attribute>
+                  <xsl:call-template name="add_dbpedia">
+                    <xsl:with-param name="line" select="@line"/>
+                  </xsl:call-template>
                   <xsl:call-template name="dfs"/>
                 </xsl:element>
               </xsl:when>
@@ -8017,6 +8136,30 @@
       </xsl:choose>
     </xsl:variable>
     <xsl:element name="div">
+      <xsl:attribute name="about">
+        <xsl:value-of select="concat(&quot;#PF&quot;,@newlevel)"/>
+      </xsl:attribute>
+      <xsl:attribute name="typeof">
+        <xsl:text>oo:Proof</xsl:text>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="(name(..) = &quot;JustifiedTheorem&quot;)">
+          <xsl:attribute name="for">
+            <xsl:value-of select="concat(&quot;#T&quot;,../@nr)"/>
+          </xsl:attribute>
+        </xsl:when>
+        <xsl:when test="(name(..) = &quot;SchemeBlock&quot;)">
+          <xsl:attribute name="for">
+            <xsl:value-of select="concat(&quot;#S&quot;,../@schemenr)"/>
+          </xsl:attribute>
+        </xsl:when>
+        <!-- toplevel lemma, hopefully -->
+        <xsl:when test="not(string-length(@plevel)&gt;0)">
+          <xsl:attribute name="for">
+            <xsl:value-of select="concat(&quot;#E&quot;,preceding-sibling::Proposition[1]/@propnr)"/>
+          </xsl:attribute>
+        </xsl:when>
+      </xsl:choose>
       <xsl:element name="a">
         <xsl:choose>
           <xsl:when test="($ajax_proofs=1) or ($ajax_proofs=3)">

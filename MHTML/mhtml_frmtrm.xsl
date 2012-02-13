@@ -964,6 +964,35 @@
     <xsl:text>errorfrm</xsl:text>
   </xsl:template>
 
+  <xsl:template match="FlexFrm">
+    <xsl:param name="i"/>
+    <xsl:param name="pr"/>
+    <xsl:param name="not"/>
+    <xsl:variable name="conn">
+      <xsl:choose>
+        <xsl:when test="$not=&quot;1&quot;">
+          <xsl:value-of select="$or_s"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$and_s"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:apply-templates select="*[1]">
+      <xsl:with-param name="i" select="$i"/>
+      <xsl:with-param name="pr" select="$pr"/>
+      <xsl:with-param name="not" select="$not"/>
+    </xsl:apply-templates>
+    <xsl:value-of select="$conn"/>
+    <xsl:copy-of select="$dots_s"/>
+    <xsl:value-of select="$conn"/>
+    <xsl:apply-templates select="*[2]">
+      <xsl:with-param name="i" select="$i"/>
+      <xsl:with-param name="pr" select="$pr"/>
+      <xsl:with-param name="not" select="$not"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
   <!-- Terms -->
   <!-- #p is the parenthesis count -->
   <!-- #i is the size of the var stack -->

@@ -57,7 +57,14 @@ tpl [Proposition]
 	 }
        }
     }
+    // we can only say that this is a lemma if it is a toplevel proposition
+    // nontoplevel could be assumptions, etc. - this is a ##TODO
+    else { if [not(string-length(@plevel)>0)] 
+    {
+       <span { @about=`concat("#E",@propnr)`; @typeof="oo:Lemma"; apply; " "; }
+    }
     else { apply; " ";} 
+    }
 }
 
 tpl mk_by_title(#line, #col) { `concat("Explain line ", $line, " column ", $col)`; }

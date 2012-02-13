@@ -353,6 +353,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 #be_s = { " be "; }
 #st_s = { " st "; }
 #is_s = { " is "; }
+#dots_s = { " ... "; }
 #fraenkel_start = { " { "; }
 #fraenkel_end = { " } "; }
 #of_sel_s = { " of "; }
@@ -1452,6 +1453,14 @@ tpl [Is](#i,#pr,#not) { apply[*[1]](#i = $i); copy-of $is_s; if [$not="1"] { cop
 tpl [Verum](#i,#pr,#not) { if [$not="1"] { "contradiction"; } else { "verum";} }
 tpl [ErrorFrm](#i,#pr,#not) { if [$not="1"] { copy-of $not_s; } "errorfrm"; }
 
+tpl [FlexFrm](#i,#pr,#not)
+{ 
+   $conn = { if [$not="1"] { $or_s; } else { $and_s; } }
+   apply[*[1]](#i = $i, #pr = $pr, #not = $not); 
+   $conn; copy-of $dots_s; $conn; 
+   apply[*[2]](#i = $i, #pr = $pr, #not = $not);
+} 
+
 // Terms
 // #p is the parenthesis count
 // #i is the size of the var stack
@@ -2315,7 +2324,14 @@ tpl [Proposition]
 	 }
        }
     }
+    // we can only say that this is a lemma if it is a toplevel proposition
+    // nontoplevel could be assumptions, etc. - this is a ##TODO
+    else { if [not(string-length(@plevel)>0)] 
+    {
+       <span { @about=`concat("#E",@propnr)`; @typeof="oo:Lemma"; apply; " "; }
+    }
     else { apply; " ";} 
+    }
 }
 
 tpl mk_by_title(#line, #col) { `concat("Explain line ", $line, " column ", $col)`; }
@@ -2925,7 +2941,7 @@ tpl [RCluster] {
 // </xsl:document>
           $bogus=`1`;
        } 
-       else {  <div { @about=`concat("#RC",$nr1)`; rc(); } }
+       else {  <div { @about=`concat("#RC",$nr1)`; @typeof="oo:Theorem"; rc(); } }
     }
 }
 
@@ -2952,7 +2968,7 @@ tpl [CCluster] {
 // </xsl:document>
          $bogus=`1`;
       } 
-      else {  <div { @about=`concat("#CC",$nr1)`; cc(); } }
+      else {  <div { @about=`concat("#CC",$nr1)`; @typeof="oo:Theorem"; cc(); } }
     }
 }
 
@@ -2992,7 +3008,7 @@ tpl [FCluster] {
 // </xsl:document>
        $bogus=`1`;
       } 
-      else {  <div { @about=`concat("#FC",$nr1)`; fc(); } }
+      else {  <div { @about=`concat("#FC",$nr1)`; @typeof="oo:Theorem"; fc(); } }
     }
 }
 
@@ -3019,7 +3035,7 @@ tpl [IdentifyWithExp|Identify]
 // </xsl:document>
    $bogus=`1`;
     } 
-    else {  <div { @about=`concat("#IE",$nr1)`; iy(); } }
+    else {  <div { @about=`concat("#IE",$nr1)`; @typeof="oo:Theorem"; iy(); } }
 }
 
 tpl iy
@@ -3129,7 +3145,7 @@ tpl [Reduction]
 // </xsl:document>
    $bogus=`1`;
     } 
-    else {  <div { @about=`concat("#RD",$nr1)`; reduce(); } }
+    else {  <div { @about=`concat("#RD",$nr1)`; @typeof="oo:Theorem"; reduce(); } }
 }
 
 tpl reduce
@@ -3197,6 +3213,33 @@ tpl add_comments(#line)
   }
 }
 
+// http://en.wikipedia.org/wiki/Cantor_Theorem to
+// http://dbpedia.org/resource/Cantor_theorem
+tpl wp2dp(#txt)
+{
+   `concat("http://dbpedia.org/resource/",substring-after($txt,'/wiki/'))`;
+}
+
+tpl add_dbpedia(#line)
+{
+  if[$mk_comments > 0] 
+  { 
+    $prevline = `$line - 1`;
+    for-each [document($cmt,/)]
+    {
+       for-each [key('CMT',$prevline)]
+       {
+          for-each [CmtLink/a]
+	  {
+	     $dbplink = wp2dp(#txt=`@href`); 
+	     <span { @rel="owl:sameAs"; @resource=$dbplink; }
+	  }
+       } 
+    }
+  }
+}
+
+
 // xsltxt cannot use xsl:document yet, so manually insert it 
 // (now done by the perl postproc)
 // the bogus is there to ensure that the ending xsl:doc element
@@ -3222,11 +3265,12 @@ tpl [JustifiedTheorem]
          <div 
 	 { 
             @about=`concat("#T",$nr1)`; @typeof="oo:Theorem";
+	    add_dbpedia(#line=`@line`);
 	    @style=`concat("background-color:rgb(",$intensity,"%,100%,", $intensity, "%);")`;
 	    jt();
          }
       }
-      else { <div { @about=`concat("#T",$nr1)`; @typeof="oo:Theorem"; jt();} } 
+      else { <div { @about=`concat("#T",$nr1)`; @typeof="oo:Theorem"; add_dbpedia(#line=`@line`); jt();} } 
     }
 }
 
@@ -3444,7 +3488,7 @@ tpl [DefTheorem]
 // </xsl:document>
        $bogus=`1`;
     } 
-    else {  <div { @about=`concat("#DT",$nr1)`; dt(); } }
+    else {  <div { @about=`concat("#DT",$nr1)`; @typeof="oo:Definition"; dt(); } }
 }
 
 // private - assumes that is inside DefTheorem
@@ -3564,7 +3608,7 @@ tpl [SchemeBlock] {
 // </xsl:document>
    $bogus=`1`;
    } 
-   else {  <div { @about=`concat("#S",@schemenr)`; sd(); } } }
+   else {  <div { @about=`concat("#S",@schemenr)`; @typeof="oo:Theorem"; add_dbpedia(#line=`@line`); sd(); } } }
 
 tpl sd 
 {
@@ -3672,7 +3716,7 @@ tpl [Definition]
        {
           if [@nr]
 	  {
-	     <div { @about=`concat("#D",@nr)`; dfs(); }
+	     <div { @about=`concat("#D",@nr)`; @typeof="oo:Definition"; add_dbpedia(#line=`@line`); dfs(); }
 	  }
 	  else
        	  {  
@@ -3907,13 +3951,22 @@ tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock
 tpl [Proof] {
     $nm0 = `concat($ajax_proof_dir,"/",$anamelc,"/",@newlevel)`;
     $nm =  { if[$ajax_proofs=3] { `concat($ltmpftptpcgi,"?tmp=",$lbytmpdir,"&raw=1","&file=",$nm0)`; } else { $nm0; } }
-    <div { 
+    <div {
+    	 @about=`concat("#PF",@newlevel)`; @typeof="oo:Proof"; 
+	 choose 
+	 {
+	    when[(name(..) = "JustifiedTheorem")] { @for = `concat("#T",../@nr)`; }
+	    when[(name(..) = "SchemeBlock")] { @for = `concat("#S",../@schemenr)`; }
+	    // toplevel lemma, hopefully
+	    when[not(string-length(@plevel)>0)] {  @for = `concat("#E",preceding-sibling::Proposition[1]/@propnr)`; }
+	 }
 	 <a { 
 	    if [($ajax_proofs=1) or ($ajax_proofs=3)]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
 	    if [$proof_links>0] { @title=`@newlevel`; } 
 	    pkeyword(#str="proof "); 
 	    }
-//	  add_ar_iconif(#line=`EndPosition[1]/@line`, #col=`EndPosition[1]/@col`); 
+
+ //	  add_ar_iconif(#line=`EndPosition[1]/@line`, #col=`EndPosition[1]/@col`); 
          if [$ajax_proofs>0]	{ <span { if[$ajax_proofs=2] {@filebasedproofinsert=`@newlevel`;}} 
 // <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html">
 	    <div { @class="add"; apply; }

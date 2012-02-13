@@ -244,6 +244,14 @@ tpl [Is](#i,#pr,#not) { apply[*[1]](#i = $i); copy-of $is_s; if [$not="1"] { cop
 tpl [Verum](#i,#pr,#not) { if [$not="1"] { "contradiction"; } else { "verum";} }
 tpl [ErrorFrm](#i,#pr,#not) { if [$not="1"] { copy-of $not_s; } "errorfrm"; }
 
+tpl [FlexFrm](#i,#pr,#not)
+{ 
+   $conn = { if [$not="1"] { $or_s; } else { $and_s; } }
+   apply[*[1]](#i = $i, #pr = $pr, #not = $not); 
+   $conn; copy-of $dots_s; $conn; 
+   apply[*[2]](#i = $i, #pr = $pr, #not = $not);
+} 
+
 // Terms
 // #p is the parenthesis count
 // #i is the size of the var stack

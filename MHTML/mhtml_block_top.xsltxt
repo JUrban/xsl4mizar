@@ -23,7 +23,7 @@ tpl [RCluster] {
 // </xsl:document>
           $bogus=`1`;
        } 
-       else {  <div { @about=`concat("#RC",$nr1)`; rc(); } }
+       else {  <div { @about=`concat("#RC",$nr1)`; @typeof="oo:Theorem"; rc(); } }
     }
 }
 
@@ -50,7 +50,7 @@ tpl [CCluster] {
 // </xsl:document>
          $bogus=`1`;
       } 
-      else {  <div { @about=`concat("#CC",$nr1)`; cc(); } }
+      else {  <div { @about=`concat("#CC",$nr1)`; @typeof="oo:Theorem"; cc(); } }
     }
 }
 
@@ -90,7 +90,7 @@ tpl [FCluster] {
 // </xsl:document>
        $bogus=`1`;
       } 
-      else {  <div { @about=`concat("#FC",$nr1)`; fc(); } }
+      else {  <div { @about=`concat("#FC",$nr1)`; @typeof="oo:Theorem"; fc(); } }
     }
 }
 
@@ -117,7 +117,7 @@ tpl [IdentifyWithExp|Identify]
 // </xsl:document>
    $bogus=`1`;
     } 
-    else {  <div { @about=`concat("#IE",$nr1)`; iy(); } }
+    else {  <div { @about=`concat("#IE",$nr1)`; @typeof="oo:Theorem"; iy(); } }
 }
 
 tpl iy
@@ -227,7 +227,7 @@ tpl [Reduction]
 // </xsl:document>
    $bogus=`1`;
     } 
-    else {  <div { @about=`concat("#RD",$nr1)`; reduce(); } }
+    else {  <div { @about=`concat("#RD",$nr1)`; @typeof="oo:Theorem"; reduce(); } }
 }
 
 tpl reduce
@@ -295,6 +295,33 @@ tpl add_comments(#line)
   }
 }
 
+// http://en.wikipedia.org/wiki/Cantor_Theorem to
+// http://dbpedia.org/resource/Cantor_theorem
+tpl wp2dp(#txt)
+{
+   `concat("http://dbpedia.org/resource/",substring-after($txt,'/wiki/'))`;
+}
+
+tpl add_dbpedia(#line)
+{
+  if[$mk_comments > 0] 
+  { 
+    $prevline = `$line - 1`;
+    for-each [document($cmt,/)]
+    {
+       for-each [key('CMT',$prevline)]
+       {
+          for-each [CmtLink/a]
+	  {
+	     $dbplink = wp2dp(#txt=`@href`); 
+	     <span { @rel="owl:sameAs"; @resource=$dbplink; }
+	  }
+       } 
+    }
+  }
+}
+
+
 // xsltxt cannot use xsl:document yet, so manually insert it 
 // (now done by the perl postproc)
 // the bogus is there to ensure that the ending xsl:doc element
@@ -320,11 +347,12 @@ tpl [JustifiedTheorem]
          <div 
 	 { 
             @about=`concat("#T",$nr1)`; @typeof="oo:Theorem";
+	    add_dbpedia(#line=`@line`);
 	    @style=`concat("background-color:rgb(",$intensity,"%,100%,", $intensity, "%);")`;
 	    jt();
          }
       }
-      else { <div { @about=`concat("#T",$nr1)`; @typeof="oo:Theorem"; jt();} } 
+      else { <div { @about=`concat("#T",$nr1)`; @typeof="oo:Theorem"; add_dbpedia(#line=`@line`); jt();} } 
     }
 }
 
@@ -662,7 +690,7 @@ tpl [SchemeBlock] {
 // </xsl:document>
    $bogus=`1`;
    } 
-   else {  <div { @about=`concat("#S",@schemenr)`; sd(); } } }
+   else {  <div { @about=`concat("#S",@schemenr)`; @typeof="oo:Theorem"; add_dbpedia(#line=`@line`); sd(); } } }
 
 tpl sd 
 {
@@ -770,7 +798,7 @@ tpl [Definition]
        {
           if [@nr]
 	  {
-	     <div { @about=`concat("#D",@nr)`; dfs(); }
+	     <div { @about=`concat("#D",@nr)`; @typeof="oo:Definition"; add_dbpedia(#line=`@line`); dfs(); }
 	  }
 	  else
        	  {  
@@ -1010,6 +1038,9 @@ tpl [Proof] {
 	 choose 
 	 {
 	    when[(name(..) = "JustifiedTheorem")] { @for = `concat("#T",../@nr)`; }
+	    when[(name(..) = "SchemeBlock")] { @for = `concat("#S",../@schemenr)`; }
+	    // toplevel lemma, hopefully
+	    when[not(string-length(@plevel)>0)] {  @for = `concat("#E",preceding-sibling::Proposition[1]/@propnr)`; }
 	 }
 	 <a { 
 	    if [($ajax_proofs=1) or ($ajax_proofs=3)]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }

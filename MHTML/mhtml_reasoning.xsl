@@ -75,9 +75,27 @@
           </xsl:otherwise>
         </xsl:choose>
       </xsl:when>
+      <!-- we can only say that this is a lemma if it is a toplevel proposition -->
+      <!-- nontoplevel could be assumptions, etc. - this is a ##TODO -->
       <xsl:otherwise>
-        <xsl:apply-templates/>
-        <xsl:text> </xsl:text>
+        <xsl:choose>
+          <xsl:when test="not(string-length(@plevel)&gt;0)">
+            <xsl:element name="span">
+              <xsl:attribute name="about">
+                <xsl:value-of select="concat(&quot;#E&quot;,@propnr)"/>
+              </xsl:attribute>
+              <xsl:attribute name="typeof">
+                <xsl:text>oo:Lemma</xsl:text>
+              </xsl:attribute>
+              <xsl:apply-templates/>
+              <xsl:text> </xsl:text>
+            </xsl:element>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>

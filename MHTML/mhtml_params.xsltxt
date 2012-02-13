@@ -307,6 +307,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 #be_s = { " be "; }
 #st_s = { " st "; }
 #is_s = { " is "; }
+#dots_s = { " ... "; }
 #fraenkel_start = { " { "; }
 #fraenkel_end = { " } "; }
 #of_sel_s = { " of "; }

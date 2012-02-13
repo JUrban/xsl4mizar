@@ -432,6 +432,9 @@
   <xsl:param name="is_s">
     <xsl:text> is </xsl:text>
   </xsl:param>
+  <xsl:param name="dots_s">
+    <xsl:text> ... </xsl:text>
+  </xsl:param>
   <xsl:param name="fraenkel_start">
     <xsl:text> { </xsl:text>
   </xsl:param>
