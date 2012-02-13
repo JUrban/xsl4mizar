@@ -1005,13 +1005,19 @@ tpl [Proof/Proof | Now/Proof | Conclusion/Proof | CaseBlock/Proof | SupposeBlock
 tpl [Proof] {
     $nm0 = `concat($ajax_proof_dir,"/",$anamelc,"/",@newlevel)`;
     $nm =  { if[$ajax_proofs=3] { `concat($ltmpftptpcgi,"?tmp=",$lbytmpdir,"&raw=1","&file=",$nm0)`; } else { $nm0; } }
-    <div { 
+    <div {
+    	 @about=`concat("#PF",@newlevel)`; @typeof="oo:Proof"; 
+	 choose 
+	 {
+	    when[(name(..) = "JustifiedTheorem")] { @for = `concat("#T",../@nr)`; }
+	 }
 	 <a { 
 	    if [($ajax_proofs=1) or ($ajax_proofs=3)]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
 	    if [$proof_links>0] { @title=`@newlevel`; } 
 	    pkeyword(#str="proof "); 
 	    }
-//	  add_ar_iconif(#line=`EndPosition[1]/@line`, #col=`EndPosition[1]/@col`); 
+
+ //	  add_ar_iconif(#line=`EndPosition[1]/@line`, #col=`EndPosition[1]/@col`); 
          if [$ajax_proofs>0]	{ <span { if[$ajax_proofs=2] {@filebasedproofinsert=`@newlevel`;}} 
 // <xsl:document href="{$ajax_proof_dir}/{$anamelc}/{@newlevel}" format="html">
 	    <div { @class="add"; apply; }
