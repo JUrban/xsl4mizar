@@ -775,7 +775,7 @@
     </xsl:choose>
   </xsl:template>
 
-  <xsl:template match="PrivPred">
+  <xsl:template match="PrivPred|FlexFrm">
     <xsl:param name="i"/>
     <xsl:param name="pl"/>
     <xsl:apply-templates select="*[position() = last()]">
