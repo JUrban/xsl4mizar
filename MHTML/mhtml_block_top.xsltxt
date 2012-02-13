@@ -542,7 +542,7 @@ tpl [DefTheorem]
 // </xsl:document>
        $bogus=`1`;
     } 
-    else {  <div { @about=`concat("#DT",$nr1)`; dt(); } }
+    else {  <div { @about=`concat("#DT",$nr1)`; @typeof="oo:Definition"; dt(); } }
 }
 
 // private - assumes that is inside DefTheorem
