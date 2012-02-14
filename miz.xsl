@@ -8144,20 +8144,35 @@
       </xsl:attribute>
       <xsl:choose>
         <xsl:when test="(name(..) = &quot;JustifiedTheorem&quot;)">
-          <xsl:attribute name="for">
-            <xsl:value-of select="concat(&quot;#T&quot;,../@nr)"/>
-          </xsl:attribute>
+          <xsl:element name="span">
+            <xsl:attribute name="rel">
+              <xsl:text>oo:proves</xsl:text>
+            </xsl:attribute>
+            <xsl:attribute name="resource">
+              <xsl:value-of select="concat(&quot;#T&quot;,../@nr)"/>
+            </xsl:attribute>
+          </xsl:element>
         </xsl:when>
         <xsl:when test="(name(..) = &quot;SchemeBlock&quot;)">
-          <xsl:attribute name="for">
-            <xsl:value-of select="concat(&quot;#S&quot;,../@schemenr)"/>
-          </xsl:attribute>
+          <xsl:element name="span">
+            <xsl:attribute name="rel">
+              <xsl:text>oo:proves</xsl:text>
+            </xsl:attribute>
+            <xsl:attribute name="resource">
+              <xsl:value-of select="concat(&quot;#S&quot;,../@schemenr)"/>
+            </xsl:attribute>
+          </xsl:element>
         </xsl:when>
         <!-- toplevel lemma, hopefully -->
         <xsl:when test="not(string-length(@plevel)&gt;0)">
-          <xsl:attribute name="for">
-            <xsl:value-of select="concat(&quot;#E&quot;,preceding-sibling::Proposition[1]/@propnr)"/>
-          </xsl:attribute>
+          <xsl:element name="span">
+            <xsl:attribute name="rel">
+              <xsl:text>oo:proves</xsl:text>
+            </xsl:attribute>
+            <xsl:attribute name="resource">
+              <xsl:value-of select="concat(&quot;#E&quot;,preceding-sibling::Proposition[1]/@propnr)"/>
+            </xsl:attribute>
+          </xsl:element>
         </xsl:when>
       </xsl:choose>
       <xsl:element name="a">

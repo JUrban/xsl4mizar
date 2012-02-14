@@ -3955,10 +3955,10 @@ tpl [Proof] {
     	 @about=`concat("#PF",@newlevel)`; @typeof="oo:Proof"; 
 	 choose 
 	 {
-	    when[(name(..) = "JustifiedTheorem")] { @for = `concat("#T",../@nr)`; }
-	    when[(name(..) = "SchemeBlock")] { @for = `concat("#S",../@schemenr)`; }
+	    when[(name(..) = "JustifiedTheorem")] { <span { @rel="oo:proves"; @resource=`concat("#T",../@nr)`; } }
+	    when[(name(..) = "SchemeBlock")] { <span { @rel="oo:proves"; @resource=`concat("#S",../@schemenr)`; } }
 	    // toplevel lemma, hopefully
-	    when[not(string-length(@plevel)>0)] {  @for = `concat("#E",preceding-sibling::Proposition[1]/@propnr)`; }
+	    when[not(string-length(@plevel)>0)] {  <span { @rel="oo:proves"; @resource=`concat("#E",preceding-sibling::Proposition[1]/@propnr)`; } }
 	 }
 	 <a { 
 	    if [($ajax_proofs=1) or ($ajax_proofs=3)]	{ add_ajax_attrs(#u=$nm); } else { add_hs2_attrs(); }
