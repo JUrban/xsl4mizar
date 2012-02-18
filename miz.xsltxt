@@ -3177,7 +3177,7 @@ tpl reduce
        if [name() = "Pred"] // equality - terms
        { 
          apply[*[1]]; 
-	 pkeyword(#str=" with "); 
+	 pkeyword(#str=" to "); 
 	 apply[*[2]];
        }
        else 

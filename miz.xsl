@@ -6805,7 +6805,7 @@
                   <xsl:apply-templates select="*[1]"/>
                   <xsl:call-template name="pkeyword">
                     <xsl:with-param name="str">
-                      <xsl:text> with </xsl:text>
+                      <xsl:text> to </xsl:text>
                     </xsl:with-param>
                   </xsl:call-template>
                   <xsl:apply-templates select="*[2]"/>
