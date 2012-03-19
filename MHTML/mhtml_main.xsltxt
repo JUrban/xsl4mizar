@@ -237,7 +237,9 @@ var tooltip=function(){
        }
    }
    else { if ((how == 'hs') || (how == 'hs2')) { tt.innerHTML = v.nextSibling.innerHTML; }
+   else { if (how == 'txt') { tt.innerHTML = v; }
 	  else { tt.innerHTML = ''; }
+	}
    }
 
    tt.style.width = w ? w + 'px' : 'auto';
