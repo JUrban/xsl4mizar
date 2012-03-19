@@ -221,7 +221,7 @@ var tooltip=function(){
  var tt,t,c,b,h;
  var ie = document.all ? true : false;
  return{
-  show:function(v,w){
+  show:function(how,v,w){
    if(tt == null){
     tt = document.createElement(&apos;div&apos;);
     tt.setAttribute(&apos;id&apos;,id);
@@ -230,13 +230,21 @@ var tooltip=function(){
     tt.style.filter = &apos;alpha(opacity=0)&apos;;
     document.onmousemove = this.pos;
    }
+
    tt.style.display = &apos;block&apos;;
-   if(rrCache[v]==null) { 
-       tt.innerHTML =&apos;&lt;div&gt;loading...&lt;/div&gt;&apos;; 
-       makeRequest(tt,v,1); 
-   } else { 
-       tt.innerHTML = rrCache[v]; 
+   if(how == &apos;url&apos;)
+   {
+       if(rrCache[v]==null) { 
+	   tt.innerHTML =&apos;&lt;div&gt;loading...&lt;/div&gt;&apos;; 
+	   makeRequest(tt,v,1); 
+       } else { 
+	   tt.innerHTML = rrCache[v]; 
+       }
    }
+   else { if ((how == &apos;hs&apos;) || (how == &apos;hs2&apos;)) { tt.innerHTML = v.nextSibling.innerHTML; }
+	  else { tt.innerHTML = &apos;&apos;; }
+   }
+
    tt.style.width = w ? w + &apos;px&apos; : &apos;auto&apos;;
    if(!w &amp;&amp; ie){
     tt.style.width = tt.offsetWidth;

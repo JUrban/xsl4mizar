@@ -193,6 +193,11 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // tells to display thesis after skeleton items
 #display_thesis = { "1"; }
 
+// tooltips wherever the corresponding hide/show functions apply
+#hs_tooltips= { "1"; }
+#hs2_tooltips= { "1"; }
+
+
 // tells if only selected items are generated to subdirs; default is off
 #generate_items = { "0"; }
 

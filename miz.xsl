@@ -278,6 +278,13 @@
   <xsl:param name="display_thesis">
     <xsl:text>1</xsl:text>
   </xsl:param>
+  <!-- tooltips wherever the corresponding hide/show functions apply -->
+  <xsl:param name="hs_tooltips">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
+  <xsl:param name="hs2_tooltips">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
   <!-- tells if only selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items">
     <xsl:text>0</xsl:text>
@@ -2381,6 +2388,14 @@
     <xsl:attribute name="class">
       <xsl:text>txt</xsl:text>
     </xsl:attribute>
+    <xsl:if test="$hs_tooltips=&quot;1&quot;">
+      <xsl:attribute name="onmouseover">
+        <xsl:text>tooltip.show(&apos;hs&apos;,this)</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="onmouseout">
+        <xsl:text>tooltip.hide()</xsl:text>
+      </xsl:attribute>
+    </xsl:if>
     <xsl:attribute name="onclick">
       <xsl:text>hs(this)</xsl:text>
     </xsl:attribute>
@@ -2393,6 +2408,14 @@
     <xsl:attribute name="class">
       <xsl:text>txt</xsl:text>
     </xsl:attribute>
+    <xsl:if test="$hs2_tooltips=&quot;1&quot;">
+      <xsl:attribute name="onmouseover">
+        <xsl:text>tooltip.show(&apos;hs2&apos;,this)</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="onmouseout">
+        <xsl:text>tooltip.hide()</xsl:text>
+      </xsl:attribute>
+    </xsl:if>
     <xsl:attribute name="onclick">
       <xsl:text>hs2(this)</xsl:text>
     </xsl:attribute>
@@ -2420,7 +2443,7 @@
     </xsl:attribute>
     <xsl:if test="$ajax_tooltips=&quot;1&quot;">
       <xsl:attribute name="onmouseover">
-        <xsl:value-of select="concat(&quot;tooltip.show(&apos;&quot;, $u, &quot;&apos;)&quot;)"/>
+        <xsl:value-of select="concat(&quot;tooltip.show(&apos;url&apos;,&apos;&quot;, $u, &quot;&apos;)&quot;)"/>
       </xsl:attribute>
       <xsl:attribute name="onmouseout">
         <xsl:text>tooltip.hide()</xsl:text>
@@ -8997,7 +9020,7 @@ var tooltip=function(){
  var tt,t,c,b,h;
  var ie = document.all ? true : false;
  return{
-  show:function(v,w){
+  show:function(how,v,w){
    if(tt == null){
     tt = document.createElement(&apos;div&apos;);
     tt.setAttribute(&apos;id&apos;,id);
@@ -9006,13 +9029,21 @@ var tooltip=function(){
     tt.style.filter = &apos;alpha(opacity=0)&apos;;
     document.onmousemove = this.pos;
    }
+
    tt.style.display = &apos;block&apos;;
-   if(rrCache[v]==null) { 
-       tt.innerHTML =&apos;&lt;div&gt;loading...&lt;/div&gt;&apos;; 
-       makeRequest(tt,v,1); 
-   } else { 
-       tt.innerHTML = rrCache[v]; 
+   if(how == &apos;url&apos;)
+   {
+       if(rrCache[v]==null) { 
+	   tt.innerHTML =&apos;&lt;div&gt;loading...&lt;/div&gt;&apos;; 
+	   makeRequest(tt,v,1); 
+       } else { 
+	   tt.innerHTML = rrCache[v]; 
+       }
    }
+   else { if ((how == &apos;hs&apos;) || (how == &apos;hs2&apos;)) { tt.innerHTML = v.nextSibling.innerHTML; }
+	  else { tt.innerHTML = &apos;&apos;; }
+   }
+
    tt.style.width = w ? w + &apos;px&apos; : &apos;auto&apos;;
    if(!w &amp;&amp; ie){
     tt.style.width = tt.offsetWidth;

@@ -216,7 +216,7 @@ var tooltip=function(){
  var tt,t,c,b,h;
  var ie = document.all ? true : false;
  return{
-  show:function(v,w){
+  show:function(how,v,w){
    if(tt == null){
     tt = document.createElement('div');
     tt.setAttribute('id',id);
@@ -225,13 +225,21 @@ var tooltip=function(){
     tt.style.filter = 'alpha(opacity=0)';
     document.onmousemove = this.pos;
    }
+
    tt.style.display = 'block';
-   if(rrCache[v]==null) { 
-       tt.innerHTML ='<div>loading...</div>'; 
-       makeRequest(tt,v,1); 
-   } else { 
-       tt.innerHTML = rrCache[v]; 
+   if(how == 'url')
+   {
+       if(rrCache[v]==null) { 
+	   tt.innerHTML ='<div>loading...</div>'; 
+	   makeRequest(tt,v,1); 
+       } else { 
+	   tt.innerHTML = rrCache[v]; 
+       }
    }
+   else { if ((how == 'hs') || (how == 'hs2')) { tt.innerHTML = v.nextSibling.innerHTML; }
+	  else { tt.innerHTML = ''; }
+   }
+
    tt.style.width = w ? w + 'px' : 'auto';
    if(!w && ie){
     tt.style.width = tt.offsetWidth;

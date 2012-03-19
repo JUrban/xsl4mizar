@@ -246,6 +246,13 @@
   <xsl:param name="display_thesis">
     <xsl:text>1</xsl:text>
   </xsl:param>
+  <!-- tooltips wherever the corresponding hide/show functions apply -->
+  <xsl:param name="hs_tooltips">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
+  <xsl:param name="hs2_tooltips">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
   <!-- tells if only selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items">
     <xsl:text>0</xsl:text>

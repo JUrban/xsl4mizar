@@ -239,6 +239,11 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // tells to display thesis after skeleton items
 #display_thesis = { "1"; }
 
+// tooltips wherever the corresponding hide/show functions apply
+#hs_tooltips= { "1"; }
+#hs2_tooltips= { "1"; }
+
+
 // tells if only selected items are generated to subdirs; default is off
 #generate_items = { "0"; }
 
@@ -1213,9 +1218,29 @@ tpl get_parent_level(#pl, #ls, #n)
 
 
 
-tpl add_hs_attrs { @class="txt"; @onclick="hs(this)"; @href="javascript:()"; }
+tpl add_hs_attrs 
+{ 
+  @class="txt"; 
+  if [$hs_tooltips="1"]
+  { 
+     @onmouseover="tooltip.show('hs',this)"; 
+     @onmouseout="tooltip.hide()"; 
+  }
+  @onclick="hs(this)"; 
+  @href="javascript:()"; 
+}
 
-tpl add_hs2_attrs { @class="txt"; @onclick="hs2(this)"; @href="javascript:()"; }
+tpl add_hs2_attrs 
+{
+  @class="txt"; 
+  if [$hs2_tooltips="1"]
+  { 
+     @onmouseover="tooltip.show('hs2',this)"; 
+     @onmouseout="tooltip.hide()"; 
+  }
+  @onclick="hs2(this)"; 
+  @href="javascript:()"; 
+}
 
 tpl add_hsNdiv_attrs { @class="txt"; @onclick="hsNdiv(this)"; @href="javascript:()"; }
 
@@ -1224,7 +1249,7 @@ tpl add_ajax_attrs(#u)
   @class="txt"; 
   if [$ajax_tooltips="1"]
   { 
-     @onmouseover=`concat("tooltip.show('", $u, "')")`; 
+     @onmouseover=`concat("tooltip.show('url','", $u, "')")`; 
      @onmouseout="tooltip.hide()"; 
   }
   @onclick=`concat("makeRequest(this,'",$u,"')")`;
@@ -4467,7 +4492,7 @@ var tooltip=function(){
  var tt,t,c,b,h;
  var ie = document.all ? true : false;
  return{
-  show:function(v,w){
+  show:function(how,v,w){
    if(tt == null){
     tt = document.createElement('div');
     tt.setAttribute('id',id);
@@ -4476,13 +4501,21 @@ var tooltip=function(){
     tt.style.filter = 'alpha(opacity=0)';
     document.onmousemove = this.pos;
    }
+
    tt.style.display = 'block';
-   if(rrCache[v]==null) { 
-       tt.innerHTML ='<div>loading...</div>'; 
-       makeRequest(tt,v,1); 
-   } else { 
-       tt.innerHTML = rrCache[v]; 
+   if(how == 'url')
+   {
+       if(rrCache[v]==null) { 
+	   tt.innerHTML ='<div>loading...</div>'; 
+	   makeRequest(tt,v,1); 
+       } else { 
+	   tt.innerHTML = rrCache[v]; 
+       }
    }
+   else { if ((how == 'hs') || (how == 'hs2')) { tt.innerHTML = v.nextSibling.innerHTML; }
+	  else { tt.innerHTML = ''; }
+   }
+
    tt.style.width = w ? w + 'px' : 'auto';
    if(!w && ie){
     tt.style.width = tt.offsetWidth;
