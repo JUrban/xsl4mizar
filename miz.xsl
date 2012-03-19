@@ -285,9 +285,21 @@
   <xsl:param name="hs2_tooltips">
     <xsl:text>1</xsl:text>
   </xsl:param>
+  <!-- tooltips for references -->
+  <xsl:param name="ref_tooltips">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
   <!-- tells if only selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items">
     <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- put ajax for references (theorems, defs, schems) to $ajax_refs_dir -->
+  <xsl:param name="mk_ajax_refs">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- the dir with refs that can be fetched by AJAX -->
+  <xsl:param name="ajax_refs_dir">
+    <xsl:text>refs</xsl:text>
   </xsl:param>
   <!-- relevant only if $generate_items>0 -->
   <!-- tells if proofs of selected items are generated to subdirs; default is off -->
@@ -4283,6 +4295,14 @@
           </xsl:if>
         </xsl:otherwise>
       </xsl:choose>
+      <xsl:if test="$ref_tooltips=&quot;1&quot;">
+        <xsl:attribute name="onmouseover">
+          <xsl:value-of select="concat(&quot;rs(&apos;&quot;,$alc, &quot;/&quot;, $k, $nr, &quot;&apos;)&quot;)"/>
+        </xsl:attribute>
+        <xsl:attribute name="onmouseout">
+          <xsl:text>rh()</xsl:text>
+        </xsl:attribute>
+      </xsl:if>
       <xsl:if test="$titles=&quot;1&quot;">
         <xsl:attribute name="title">
           <xsl:value-of select="concat($aid,&quot;:&quot;,$mk,&quot;.&quot;,$nr)"/>
@@ -7324,7 +7344,11 @@
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
         <xsl:document href="proofhtml/def/{$anamelc}.{$nr1}" format="html"> 
-        <xsl:call-template name="dt"/>
+        <xsl:call-template name="dt">
+          <xsl:with-param name="nohide">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
       </xsl:when>
@@ -7340,10 +7364,23 @@
         </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:if test="$mk_ajax_refs&gt;0">
+      <xsl:document href="{$ajax_refs_dir}/{$anamelc}/D{$nr1}" format="html"> 
+      <xsl:element name="div">
+        <xsl:call-template name="dt">
+          <xsl:with-param name="nohide">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:element>
+      </xsl:document> 
+      <xsl:variable name="bogus" select="1"/>
+    </xsl:if>
   </xsl:template>
 
   <!-- private - assumes that is inside DefTheorem -->
   <xsl:template name="dt">
+    <xsl:param name="nohide"/>
     <xsl:variable name="nr1" select="1+count(preceding-sibling::DefTheorem)"/>
     <xsl:text>:: </xsl:text>
     <xsl:call-template name="pkeyword">
@@ -7397,9 +7434,11 @@
       <xsl:element name="br"/>
     </xsl:element>
     <xsl:element name="span">
-      <xsl:attribute name="class">
-        <xsl:text>hide</xsl:text>
-      </xsl:attribute>
+      <xsl:if test="not($nohide=&quot;1&quot;)">
+        <xsl:attribute name="class">
+          <xsl:text>hide</xsl:text>
+        </xsl:attribute>
+      </xsl:if>
       <!-- ##NOTE: div is not allowed inside span -->
       <!-- <div -->
       <!-- { -->
@@ -9041,7 +9080,9 @@ var tooltip=function(){
        }
    }
    else { if ((how == &apos;hs&apos;) || (how == &apos;hs2&apos;)) { tt.innerHTML = v.nextSibling.innerHTML; }
+   else { if (how == &apos;txt&apos;) { tt.innerHTML = v; }
 	  else { tt.innerHTML = &apos;&apos;; }
+	}
    }
 
    tt.style.width = w ? w + &apos;px&apos; : &apos;auto&apos;;
@@ -9079,6 +9120,10 @@ var tooltip=function(){
  hide:function(){tt.style.display  = &apos;none&apos;;}
  };
 }();
+
+// reference show/hide - shortened because frequent, just a wrapper to tooltip.show/hide
+function rs(ref) { tooltip.show(&apos;url&apos;, &apos;refs/&apos; + ref); }
+function rh() { tooltip.hide(); } 
 
 // End --&gt;
 </xsl:text>

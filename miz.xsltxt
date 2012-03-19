@@ -243,9 +243,17 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 #hs_tooltips= { "1"; }
 #hs2_tooltips= { "1"; }
 
+// tooltips for references
+#ref_tooltips= { "1"; }
 
 // tells if only selected items are generated to subdirs; default is off
 #generate_items = { "0"; }
+
+// put ajax for references (theorems, defs, schems) to $ajax_refs_dir
+#mk_ajax_refs = { "0"; }
+
+// the dir with refs that can be fetched by AJAX
+#ajax_refs_dir = { "refs"; }
 
 // relevant only if $generate_items>0
 // tells if proofs of selected items are generated to subdirs; default is off
@@ -1880,6 +1888,12 @@ tpl mkref(#aid, #nr, #k, #c, #nm)
 	{
           @target = "_self";
         }
+      }
+
+      if [$ref_tooltips="1"]
+      { 
+         @onmouseover=`concat("rs('",$alc, "/", $k, $nr, "')")`; 
+      	 @onmouseout="rh()"; 
       }
 
       if [$titles="1"] 
@@ -3524,15 +3538,23 @@ tpl [DefTheorem]
     if [$generate_items>0]	
     { 
 // <xsl:document href="proofhtml/def/{$anamelc}.{$nr1}" format="html">
-       dt();
+       dt(#nohide="1");
 // </xsl:document>
        $bogus=`1`;
     } 
     else {  <div { @about=`concat("#DT",$nr1)`; @typeof="oo:Definition"; dt(); } }
+
+    if [$mk_ajax_refs>0]
+    { 
+// <xsl:document href="{$ajax_refs_dir}/{$anamelc}/D{$nr1}" format="html">
+	<div { dt(#nohide="1"); }
+// </xsl:document>
+   $bogus=`1`;
+    }
 }
 
 // private - assumes that is inside DefTheorem
-tpl dt 
+tpl dt(#nohide)
 {
   $nr1 = `1+count(preceding-sibling::DefTheorem)`;
 
@@ -3567,7 +3589,7 @@ tpl dt
 
   <span 
   { 
-     @class = "hide"; 
+     if [not($nohide="1")] { @class = "hide"; }
 
 // ##NOTE: div is not allowed inside span
 //     <div 
@@ -4513,7 +4535,9 @@ var tooltip=function(){
        }
    }
    else { if ((how == 'hs') || (how == 'hs2')) { tt.innerHTML = v.nextSibling.innerHTML; }
+   else { if (how == 'txt') { tt.innerHTML = v; }
 	  else { tt.innerHTML = ''; }
+	}
    }
 
    tt.style.width = w ? w + 'px' : 'auto';
@@ -4551,6 +4575,10 @@ var tooltip=function(){
  hide:function(){tt.style.display  = 'none';}
  };
 }();
+
+// reference show/hide - shortened because frequent, just a wrapper to tooltip.show/hide
+function rs(ref) { tooltip.show('url', 'refs/' + ref); }
+function rh() { tooltip.hide(); } 
 
 // End -->
 "; }

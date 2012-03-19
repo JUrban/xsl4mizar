@@ -197,9 +197,17 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 #hs_tooltips= { "1"; }
 #hs2_tooltips= { "1"; }
 
+// tooltips for references
+#ref_tooltips= { "1"; }
 
 // tells if only selected items are generated to subdirs; default is off
 #generate_items = { "0"; }
+
+// put ajax for references (theorems, defs, schems) to $ajax_refs_dir
+#mk_ajax_refs = { "0"; }
+
+// the dir with refs that can be fetched by AJAX
+#ajax_refs_dir = { "refs"; }
 
 // relevant only if $generate_items>0
 // tells if proofs of selected items are generated to subdirs; default is off

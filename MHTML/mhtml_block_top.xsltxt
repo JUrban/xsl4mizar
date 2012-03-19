@@ -566,15 +566,23 @@ tpl [DefTheorem]
     if [$generate_items>0]	
     { 
 // <xsl:document href="proofhtml/def/{$anamelc}.{$nr1}" format="html">
-       dt();
+       dt(#nohide="1");
 // </xsl:document>
        $bogus=`1`;
     } 
     else {  <div { @about=`concat("#DT",$nr1)`; @typeof="oo:Definition"; dt(); } }
+
+    if [$mk_ajax_refs>0]
+    { 
+// <xsl:document href="{$ajax_refs_dir}/{$anamelc}/D{$nr1}" format="html">
+	<div { dt(#nohide="1"); }
+// </xsl:document>
+   $bogus=`1`;
+    }
 }
 
 // private - assumes that is inside DefTheorem
-tpl dt 
+tpl dt(#nohide)
 {
   $nr1 = `1+count(preceding-sibling::DefTheorem)`;
 
@@ -609,7 +617,7 @@ tpl dt
 
   <span 
   { 
-     @class = "hide"; 
+     if [not($nohide="1")] { @class = "hide"; }
 
 // ##NOTE: div is not allowed inside span
 //     <div 

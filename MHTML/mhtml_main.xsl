@@ -242,7 +242,9 @@ var tooltip=function(){
        }
    }
    else { if ((how == &apos;hs&apos;) || (how == &apos;hs2&apos;)) { tt.innerHTML = v.nextSibling.innerHTML; }
+   else { if (how == &apos;txt&apos;) { tt.innerHTML = v; }
 	  else { tt.innerHTML = &apos;&apos;; }
+	}
    }
 
    tt.style.width = w ? w + &apos;px&apos; : &apos;auto&apos;;
@@ -280,6 +282,10 @@ var tooltip=function(){
  hide:function(){tt.style.display  = &apos;none&apos;;}
  };
 }();
+
+// reference show/hide - shortened because frequent, just a wrapper to tooltip.show/hide
+function rs(ref) { tooltip.show(&apos;url&apos;, &apos;refs/&apos; + ref); }
+function rh() { tooltip.hide(); } 
 
 // End --&gt;
 </xsl:text>

@@ -957,7 +957,11 @@
     <xsl:choose>
       <xsl:when test="$generate_items&gt;0">
         <xsl:document href="proofhtml/def/{$anamelc}.{$nr1}" format="html"> 
-        <xsl:call-template name="dt"/>
+        <xsl:call-template name="dt">
+          <xsl:with-param name="nohide">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
         </xsl:document> 
         <xsl:variable name="bogus" select="1"/>
       </xsl:when>
@@ -973,10 +977,23 @@
         </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:if test="$mk_ajax_refs&gt;0">
+      <xsl:document href="{$ajax_refs_dir}/{$anamelc}/D{$nr1}" format="html"> 
+      <xsl:element name="div">
+        <xsl:call-template name="dt">
+          <xsl:with-param name="nohide">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:element>
+      </xsl:document> 
+      <xsl:variable name="bogus" select="1"/>
+    </xsl:if>
   </xsl:template>
 
   <!-- private - assumes that is inside DefTheorem -->
   <xsl:template name="dt">
+    <xsl:param name="nohide"/>
     <xsl:variable name="nr1" select="1+count(preceding-sibling::DefTheorem)"/>
     <xsl:text>:: </xsl:text>
     <xsl:call-template name="pkeyword">
@@ -1030,9 +1047,11 @@
       <xsl:element name="br"/>
     </xsl:element>
     <xsl:element name="span">
-      <xsl:attribute name="class">
-        <xsl:text>hide</xsl:text>
-      </xsl:attribute>
+      <xsl:if test="not($nohide=&quot;1&quot;)">
+        <xsl:attribute name="class">
+          <xsl:text>hide</xsl:text>
+        </xsl:attribute>
+      </xsl:if>
       <!-- ##NOTE: div is not allowed inside span -->
       <!-- <div -->
       <!-- { -->

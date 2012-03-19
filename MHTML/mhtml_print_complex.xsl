@@ -60,6 +60,14 @@
           </xsl:if>
         </xsl:otherwise>
       </xsl:choose>
+      <xsl:if test="$ref_tooltips=&quot;1&quot;">
+        <xsl:attribute name="onmouseover">
+          <xsl:value-of select="concat(&quot;rs(&apos;&quot;,$alc, &quot;/&quot;, $k, $nr, &quot;&apos;)&quot;)"/>
+        </xsl:attribute>
+        <xsl:attribute name="onmouseout">
+          <xsl:text>rh()</xsl:text>
+        </xsl:attribute>
+      </xsl:if>
       <xsl:if test="$titles=&quot;1&quot;">
         <xsl:attribute name="title">
           <xsl:value-of select="concat($aid,&quot;:&quot;,$mk,&quot;.&quot;,$nr)"/>

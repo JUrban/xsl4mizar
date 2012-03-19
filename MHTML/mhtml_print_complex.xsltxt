@@ -47,6 +47,12 @@ tpl mkref(#aid, #nr, #k, #c, #nm)
         }
       }
 
+      if [$ref_tooltips="1"]
+      { 
+         @onmouseover=`concat("rs('",$alc, "/", $k, $nr, "')")`; 
+      	 @onmouseout="rh()"; 
+      }
+
       if [$titles="1"] 
       {
         @title = `concat($aid,":",$mk,".",$nr)`;

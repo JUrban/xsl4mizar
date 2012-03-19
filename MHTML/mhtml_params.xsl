@@ -253,9 +253,21 @@
   <xsl:param name="hs2_tooltips">
     <xsl:text>1</xsl:text>
   </xsl:param>
+  <!-- tooltips for references -->
+  <xsl:param name="ref_tooltips">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
   <!-- tells if only selected items are generated to subdirs; default is off -->
   <xsl:param name="generate_items">
     <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- put ajax for references (theorems, defs, schems) to $ajax_refs_dir -->
+  <xsl:param name="mk_ajax_refs">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
+  <!-- the dir with refs that can be fetched by AJAX -->
+  <xsl:param name="ajax_refs_dir">
+    <xsl:text>refs</xsl:text>
   </xsl:param>
   <!-- relevant only if $generate_items>0 -->
   <!-- tells if proofs of selected items are generated to subdirs; default is off -->
