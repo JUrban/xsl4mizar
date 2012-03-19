@@ -549,4 +549,14 @@ tpl add_hs2_attrs { @class="txt"; @onclick="hs2(this)"; @href="javascript:()"; }
 
 tpl add_hsNdiv_attrs { @class="txt"; @onclick="hsNdiv(this)"; @href="javascript:()"; }
 
-tpl add_ajax_attrs(#u) { @class="txt"; @onclick=`concat("makeRequest(this,'",$u,"')")`; @href="javascript:()"; }
+tpl add_ajax_attrs(#u) 
+{ 
+  @class="txt"; 
+  if [$ajax_tooltips="1"]
+  { 
+     @onmouseover=`concat("tooltip.show('", $u, "')")`; 
+     @onmouseout="tooltip.hide()"; 
+  }
+  @onclick=`concat("makeRequest(this,'",$u,"')")`;
+  @href="javascript:()"; 
+}

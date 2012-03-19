@@ -1329,6 +1329,14 @@
     <xsl:attribute name="class">
       <xsl:text>txt</xsl:text>
     </xsl:attribute>
+    <xsl:if test="$ajax_tooltips=&quot;1&quot;">
+      <xsl:attribute name="onmouseover">
+        <xsl:value-of select="concat(&quot;tooltip.show(&apos;&quot;, $u, &quot;&apos;)&quot;)"/>
+      </xsl:attribute>
+      <xsl:attribute name="onmouseout">
+        <xsl:text>tooltip.hide()</xsl:text>
+      </xsl:attribute>
+    </xsl:if>
     <xsl:attribute name="onclick">
       <xsl:value-of select="concat(&quot;makeRequest(this,&apos;&quot;,$u,&quot;&apos;)&quot;)"/>
     </xsl:attribute>

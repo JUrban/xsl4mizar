@@ -232,6 +232,12 @@
   <xsl:param name="ajax_proofs">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- tells if ajax-able clicking requests (like proofs) are -->
+  <!-- executed already on mouseover; default is on, but this -->
+  <!-- will only work of $ajax_proofs>0 -->
+  <xsl:param name="ajax_tooltips">
+    <xsl:text>1</xsl:text>
+  </xsl:param>
   <!-- the dir with proofs that are fetched through AJAX -->
   <xsl:param name="ajax_proof_dir">
     <xsl:text>proofs</xsl:text>

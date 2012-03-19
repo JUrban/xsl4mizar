@@ -182,6 +182,11 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // value 3 uses the ltmpftptpcgi to fetch the proof in the ajax request - like for by
 #ajax_proofs = { "0"; }
 
+// tells if ajax-able clicking requests (like proofs) are
+// executed already on mouseover; default is on, but this 
+// will only work of $ajax_proofs>0
+#ajax_tooltips = { "1"; }
+
 // the dir with proofs that are fetched through AJAX
 #ajax_proof_dir = { "proofs"; }
 

@@ -52,7 +52,7 @@
           <xsl:when test="$body_only = &quot;0&quot;">
             <xsl:element name="html">
               <xsl:attribute name="prefix">
-                <xsl:text>oo: http://omdoc.org/ontology#</xsl:text>
+                <xsl:text>oo: http://omdoc.org/ontology# owl: http://www.w3.org/2002/07/owl#</xsl:text>
               </xsl:attribute>
               <!-- output the css defaults for div and p (for indenting) -->
               <xsl:element name="style">
@@ -86,6 +86,7 @@ span.p5:hover { color : inherit; background-color : #CAFFCA; }
 span.p0:hover { color : inherit; background-color : #FFBAFF; }
 .default { background-color: white; color: black; } 
 .default:hover { background-color: white; color: black; }
+#tt { position:absolute; display:block; font-size: small; background: LightYellow; padding:2px 12px 3px 7px; margin-left:5px;}
 :target { background: #5D9BF7; border: solid 1px #aaa;}
 </xsl:text>
               </xsl:element>
@@ -137,8 +138,21 @@ while (ndiv.nextSibling.nodeName != &apos;DIV&apos;) { ndiv = ndiv.nextSibling; 
 return hs2(ndiv);
 }
 
+// remote request cache - for each url its http_request.responseText
+var rrCache= {};
+rrCache[0]=&apos;&apos;;
+
 // explorer7 implements XMLHttpRequest in some strange way
-function makeRequest(obj,url) {
+// optional tooltip is passed to insertRequest
+function makeRequest(obj,url,tooltip) 
+{
+    // if the result is cached, insert it now
+    if (rrCache[url] != null)
+    {
+	insertRequest(obj,null,url,tooltip);
+    }
+    else
+    {
         var http_request = false;
         if (window.XMLHttpRequest &amp;&amp; !(window.ActiveXObject)) { // Mozilla, Safari,...
             http_request = new XMLHttpRequest();
@@ -158,23 +172,107 @@ function makeRequest(obj,url) {
             alert(&apos;Giving up :( Cannot create an XMLHTTP instance&apos;);
             return false;
         }
-        http_request.onreadystatechange = function() { insertRequest(obj,http_request); };
+        http_request.onreadystatechange = function() { insertRequest(obj,http_request,url,tooltip); };
         http_request.open(&apos;GET&apos;, url, true);
         http_request.send(null);
     }
+}
 // commented the 200 state to have local requests too
-function insertRequest(obj,http_request) {
-        if (http_request.readyState == 4) {
+// if tooltip nonnil, obj.innerHTML is changed, and the result is put in rrCache
+function insertRequest(obj,http_request,url,tooltip) 
+{
+    var respText = null;
+    if(http_request == null) // no request done, we are called with cached result
+    {
+	respText = rrCache[url];
+    }
+    else { if (http_request.readyState == 4) { 
+	respText = http_request.responseText; 
+    }}
+
+    if (respText != null) 
+    {
 //            if (http_request.status == 200) {
+	if(http_request != null) {rrCache[url] = respText;}
+	if(tooltip != null)
+	{
+	    obj.innerHTML = respText;	    
+	}
+	else
+	{
 	    var ndiv = obj;
 	    while (ndiv.nodeName != &apos;SPAN&apos;) { ndiv = ndiv.nextSibling; }
-	    ndiv.innerHTML = http_request.responseText;
+	    ndiv.innerHTML = respText;
 	    obj.onclick = function(){ return hs2(obj) };
-//            } else {
-//                alert(&apos;There was a problem with the request.&apos;);
-//		alert(http_request.status);
-//            }
-	    }}
+	}
+    }
+}
+
+// simple tooltips
+var tooltip=function(){
+ var id = &apos;tt&apos;;
+ var top = 3;
+ var left = 3;
+ var maxw = 500;
+ var speed = 10;
+ var timer = 2;
+ var endalpha = 95;
+ var alpha = 0;
+ var tt,t,c,b,h;
+ var ie = document.all ? true : false;
+ return{
+  show:function(v,w){
+   if(tt == null){
+    tt = document.createElement(&apos;div&apos;);
+    tt.setAttribute(&apos;id&apos;,id);
+    document.body.appendChild(tt);
+    tt.style.opacity = 0;
+    tt.style.filter = &apos;alpha(opacity=0)&apos;;
+    document.onmousemove = this.pos;
+   }
+   tt.style.display = &apos;block&apos;;
+   if(rrCache[v]==null) { 
+       tt.innerHTML =&apos;&lt;div&gt;loading...&lt;/div&gt;&apos;; 
+       makeRequest(tt,v,1); 
+   } else { 
+       tt.innerHTML = rrCache[v]; 
+   }
+   tt.style.width = w ? w + &apos;px&apos; : &apos;auto&apos;;
+   if(!w &amp;&amp; ie){
+    tt.style.width = tt.offsetWidth;
+   }
+  if(tt.offsetWidth &gt; maxw){tt.style.width = maxw + &apos;px&apos;}
+  h = parseInt(tt.offsetHeight) + top;
+  clearInterval(tt.timer);
+  tt.timer = setInterval(function(){tooltip.fade(1)},timer);
+  },
+  pos:function(e){
+   var u = ie ? event.clientY + document.documentElement.scrollTop : e.pageY;
+   var l = ie ? event.clientX + document.documentElement.scrollLeft : e.pageX;
+   tt.style.top = (u - h) + &apos;px&apos;;
+   tt.style.left = (l + left) + &apos;px&apos;;
+  },
+  fade:function(d){
+   var a = alpha;
+   if((a != endalpha &amp;&amp; d == 1) || (a != 0 &amp;&amp; d == -1)){
+    var i = speed;
+   if(endalpha - a &lt; speed &amp;&amp; d == 1){
+    i = endalpha - a;
+   }else if(alpha &lt; speed &amp;&amp; d == -1){
+     i = a;
+   }
+   alpha = a + (i * d);
+   tt.style.opacity = alpha * .01;
+   tt.style.filter = &apos;alpha(opacity=&apos; + alpha + &apos;)&apos;;
+  }else{
+    clearInterval(tt.timer);
+     if(d == -1){tt.style.display = &apos;none&apos;}
+  }
+ },
+ hide:function(){tt.style.display  = &apos;none&apos;;}
+ };
+}();
+
 // End --&gt;
 </xsl:text>
                 </xsl:element>
