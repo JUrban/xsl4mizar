@@ -352,12 +352,19 @@ tpl [JustifiedTheorem]
 	    jt();
          }
       }
-      else { <div { @about=`concat("#T",$nr1)`; @typeof="oo:Theorem"; add_dbpedia(#line=`@line`); jt();} } 
+      else { <div { @about=`concat("#T",$nr1)`; @typeof="oo:Theorem"; add_dbpedia(#line=`@line`); jt();} }
+    }
+    if [$mk_ajax_refs>0]
+    { 
+// <xsl:document href="{$ajax_refs_dir}/{$anamelc}/T{$nr1}" format="html">
+	<div { jt(#noproof="1"); }
+// </xsl:document>
+        $bogus=`1`;
     }
 }
 
 // private - assumes that is inside JustifiedTheorem
-tpl jt 
+tpl jt(#noproof) 
 {
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
 
@@ -409,7 +416,7 @@ tpl jt
     if [Proof] 
     { 
        <div { @class="add"; apply[*[1]/*[1]]; } 
-       if [not($generate_items>0) or ($generate_items_proofs>0)]
+       if [(not($noproof="1")) and (not($generate_items>0) or ($generate_items_proofs>0))]
        {
          apply[*[2]]; 
        }
@@ -689,7 +696,8 @@ tpl [SchemePredDecl] {
 //   ( elSchemeFuncDecl | elSchemePredDecl )*,
 //   element elSchemePremises { elProposition* },
 //   elProposition, Justification, elEndPosition
-tpl [SchemeBlock] {
+tpl [SchemeBlock] 
+{
     add_comments(#line=`@line`);
     if [$generate_items>0]	
     { 
@@ -698,9 +706,18 @@ tpl [SchemeBlock] {
 // </xsl:document>
    $bogus=`1`;
    } 
-   else {  <div { @about=`concat("#S",@schemenr)`; @typeof="oo:Theorem"; add_dbpedia(#line=`@line`); sd(); } } }
+   else {  <div { @about=`concat("#S",@schemenr)`; @typeof="oo:Theorem"; add_dbpedia(#line=`@line`); sd(); } } 
 
-tpl sd 
+    if [$mk_ajax_refs>0]
+    { 
+// <xsl:document href="{$ajax_refs_dir}/{$anamelc}/S{@schemenr}" format="html">
+	<div { sd(#noproof="1"); }
+// </xsl:document>
+        $bogus=`1`;
+    }
+}
+
+tpl sd(#noproof)
 {
   <div 
   { 
@@ -733,7 +750,7 @@ tpl sd
 	  andlist(#elems=`SchemePremises/Proposition`); 
        } 
     }
-    if [not($generate_items>0)]
+    if [(not($noproof="1")) and (not($generate_items>0))]
     {
        apply[*[position() = last() - 1]];
     }

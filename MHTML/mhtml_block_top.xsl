@@ -607,10 +607,23 @@
         </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:if test="$mk_ajax_refs&gt;0">
+      <xsl:document href="{$ajax_refs_dir}/{$anamelc}/T{$nr1}" format="html"> 
+      <xsl:element name="div">
+        <xsl:call-template name="jt">
+          <xsl:with-param name="noproof">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:element>
+      </xsl:document> 
+      <xsl:variable name="bogus" select="1"/>
+    </xsl:if>
   </xsl:template>
 
   <!-- private - assumes that is inside JustifiedTheorem -->
   <xsl:template name="jt">
+    <xsl:param name="noproof"/>
     <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
     <xsl:call-template name="pkeyword">
       <xsl:with-param name="str">
@@ -712,7 +725,7 @@
           </xsl:attribute>
           <xsl:apply-templates select="*[1]/*[1]"/>
         </xsl:element>
-        <xsl:if test="not($generate_items&gt;0) or ($generate_items_proofs&gt;0)">
+        <xsl:if test="(not($noproof=&quot;1&quot;)) and (not($generate_items&gt;0) or ($generate_items_proofs&gt;0))">
           <xsl:apply-templates select="*[2]"/>
         </xsl:if>
       </xsl:when>
@@ -1234,9 +1247,22 @@
         </xsl:element>
       </xsl:otherwise>
     </xsl:choose>
+    <xsl:if test="$mk_ajax_refs&gt;0">
+      <xsl:document href="{$ajax_refs_dir}/{$anamelc}/S{@schemenr}" format="html"> 
+      <xsl:element name="div">
+        <xsl:call-template name="sd">
+          <xsl:with-param name="noproof">
+            <xsl:text>1</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:element>
+      </xsl:document> 
+      <xsl:variable name="bogus" select="1"/>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template name="sd">
+    <xsl:param name="noproof"/>
     <xsl:element name="div">
       <xsl:element name="a">
         <xsl:attribute name="NAME">
@@ -1301,7 +1327,7 @@
           </xsl:call-template>
         </xsl:element>
       </xsl:if>
-      <xsl:if test="not($generate_items&gt;0)">
+      <xsl:if test="(not($noproof=&quot;1&quot;)) and (not($generate_items&gt;0))">
         <xsl:apply-templates select="*[position() = last() - 1]"/>
       </xsl:if>
     </xsl:element>
