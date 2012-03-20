@@ -262,8 +262,9 @@
     <xsl:text>0</xsl:text>
   </xsl:param>
   <!-- put ajax for references (theorems, defs, schems) to $ajax_refs_dir -->
+  <!-- seems to be wanted in the same situations as $ajax_proofs, so it is linked to them -->
   <xsl:param name="mk_ajax_refs">
-    <xsl:text>0</xsl:text>
+    <xsl:value-of select="$ajax_proofs"/>
   </xsl:param>
   <!-- the dir with refs that can be fetched by AJAX -->
   <xsl:param name="ajax_refs_dir">

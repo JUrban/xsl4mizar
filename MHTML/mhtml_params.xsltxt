@@ -204,7 +204,8 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 #generate_items = { "0"; }
 
 // put ajax for references (theorems, defs, schems) to $ajax_refs_dir
-#mk_ajax_refs = { "0"; }
+// seems to be wanted in the same situations as $ajax_proofs, so it is linked to them
+#mk_ajax_refs = { $ajax_proofs; }
 
 // the dir with refs that can be fetched by AJAX
 #ajax_refs_dir = { "refs"; }
