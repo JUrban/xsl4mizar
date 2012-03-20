@@ -62,6 +62,7 @@
       </xsl:choose>
       <xsl:if test="$ref_tooltips=&quot;1&quot;">
         <!-- quick hack for MizAR; should get the local ones from the DOM -->
+        <!-- we use ($mk_ajax_refs > 0) as the confirmation that local refs are produced -->
         <xsl:if test="(not($c = &quot;1&quot;)) or ($mk_ajax_refs &gt; 0)">
           <xsl:attribute name="onmouseover">
             <xsl:value-of select="concat(&quot;rs(&apos;&quot;,$alc, &quot;/&quot;, $k, $nr, &quot;&apos;)&quot;)"/>
@@ -72,9 +73,12 @@
         </xsl:if>
       </xsl:if>
       <xsl:if test="$titles=&quot;1&quot;">
-        <xsl:attribute name="title">
-          <xsl:value-of select="concat($aid,&quot;:&quot;,$mk,&quot;.&quot;,$nr)"/>
-        </xsl:attribute>
+        <!-- no title if there is a tooltip -->
+        <xsl:if test="not($ref_tooltips=&quot;1&quot;) or (($c = &quot;1&quot;) and not($mk_ajax_refs &gt; 0))">
+          <xsl:attribute name="title">
+            <xsl:value-of select="concat($aid,&quot;:&quot;,$mk,&quot;.&quot;,$nr)"/>
+          </xsl:attribute>
+        </xsl:if>
       </xsl:if>
       <xsl:choose>
         <xsl:when test="$nm">

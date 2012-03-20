@@ -50,6 +50,7 @@ tpl mkref(#aid, #nr, #k, #c, #nm)
       if [$ref_tooltips="1"]
       { 
          // quick hack for MizAR; should get the local ones from the DOM
+	 // we use ($mk_ajax_refs > 0) as the confirmation that local refs are produced
 	 if[(not($c = "1")) or ($mk_ajax_refs > 0)]
 	 {
            @onmouseover=`concat("rs('",$alc, "/", $k, $nr, "')")`; 
@@ -59,7 +60,11 @@ tpl mkref(#aid, #nr, #k, #c, #nm)
 
       if [$titles="1"] 
       {
-        @title = `concat($aid,":",$mk,".",$nr)`;
+         // no title if there is a tooltip
+	 if[not($ref_tooltips="1") or (($c = "1") and not($mk_ajax_refs > 0))]
+	 {
+           @title = `concat($aid,":",$mk,".",$nr)`;
+         }
       }
 
       if [$nm] 
