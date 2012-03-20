@@ -8975,6 +8975,12 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
                   </xsl:attribute>
                   <xsl:text>
 &lt;!-- 
+
+// for saving in rs
+var mizhtm=&apos;</xsl:text>
+                  <xsl:value-of select="$mizhtml"/>
+                  <xsl:text>&apos;;</xsl:text>
+                  <xsl:text>
 function hs(obj)
 {
 // document.getElementById(&apos;myimage&apos;).nextSibling.style.display = &apos;block&apos;;
@@ -9148,7 +9154,7 @@ var tooltip=function(){
 }();
 
 // reference show/hide - shortened because frequent, just a wrapper to tooltip.show/hide
-function rs(ref) { tooltip.show(&apos;url&apos;, &apos;refs/&apos; + ref); }
+function rs(ref) { tooltip.show(&apos;url&apos;, mizhtm + &apos;refs/&apos; + ref); }
 function rh() { tooltip.hide(); } 
 
 // End --&gt;
