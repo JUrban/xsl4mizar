@@ -4297,12 +4297,15 @@
         </xsl:otherwise>
       </xsl:choose>
       <xsl:if test="$ref_tooltips=&quot;1&quot;">
-        <xsl:attribute name="onmouseover">
-          <xsl:value-of select="concat(&quot;rs(&apos;&quot;,$alc, &quot;/&quot;, $k, $nr, &quot;&apos;)&quot;)"/>
-        </xsl:attribute>
-        <xsl:attribute name="onmouseout">
-          <xsl:text>rh()</xsl:text>
-        </xsl:attribute>
+        <!-- quick hack for MizAR; should get the local ones from the DOM -->
+        <xsl:if test="(not($c = &quot;1&quot;)) or ($mk_ajax_refs &gt; 0)">
+          <xsl:attribute name="onmouseover">
+            <xsl:value-of select="concat(&quot;rs(&apos;&quot;,$alc, &quot;/&quot;, $k, $nr, &quot;&apos;)&quot;)"/>
+          </xsl:attribute>
+          <xsl:attribute name="onmouseout">
+            <xsl:text>rh()</xsl:text>
+          </xsl:attribute>
+        </xsl:if>
       </xsl:if>
       <xsl:if test="$titles=&quot;1&quot;">
         <xsl:attribute name="title">
