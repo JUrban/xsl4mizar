@@ -1,0 +1,65 @@
+
+stylesheet 1.0;
+
+// the import directive is useful because anything 
+// imported can be later overrriden - we'll use it for
+// the pretty-printing funcs
+import ../MHTML/mhtml_block_top.xsl;  // ##INCLUDE HERE
+
+output method=html;
+
+
+// $Revision: 1.4 $
+//
+// File: isa_main.xsltxt - Isabell-ization of Mizar XML, main file
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// XML terms, formulas and types to Isabelle format.
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar ../xsltxt.jar toXSL isa_main.xsltxt >isa_main.xsl
+
+
+// include fm_print_complex.xsl;
+
+// include mhtml_block_top.xsl;  // ##INCLUDE HERE
+
+// the Isabelle specific code:
+
+
+#for_s = { " ∀ "; }
+#ex_s = { " ∃ "; }
+#not_s = { " ¬ "; }
+#non_s = { " ¬ "; }
+#and_s = { " ∧ "; }
+#imp_s = { " ⇒ "; }
+#equiv_s = { " ⇔ "; }
+#or_s = { " ∨ "; }
+#holds_s = { " . "; }
+#being_s = { " :: "; }
+#be_s = { " :: "; }
+#st_s = { " . "; }
+#is_s = { " is "; }
+#dots_s = { " ... "; }
+#fraenkel_start = { " { "; }
+#fraenkel_end = { " } "; }
+#of_sel_s = { " of  "; }
+#of_typ_s = { " of  "; }
+#the_sel_s = { " the  "; }
+#choice_s = { " the  "; }
+#lbracket_s = { "("; }
+#rbracket_s = { ")"; }
+
+
+tpl add_hs_attrs { }
+
+tpl add_hs2_attrs { }
+
+tpl add_hsNdiv_attrs { }
+
+tpl add_ajax_attrs(#u) { }
+
