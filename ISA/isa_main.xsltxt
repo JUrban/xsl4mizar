@@ -33,14 +33,14 @@ output method=html;
 // the (very initial) Isabelle specific code:
 
 
-#for_s = { " &#x02200; "; }
-#ex_s = { " &#x02203; "; }
-#not_s = { " &#x000AC; "; }
-#non_s = { " &#x000AC; "; }
-#and_s = { " &#x02227; "; }
-#imp_s = { " &#x021D2; "; }
-#equiv_s = { " &#x021D4; "; }
-#or_s = { " &#x02228; "; }
+#for_s = { " &forall; "; }
+#ex_s = { " &exist; "; }
+#not_s = { " &not; "; }
+#non_s = { " non "; }
+#and_s = { " &and; "; }
+#imp_s = { " &rArr; "; }
+#equiv_s = { " &equiv; "; }
+#or_s = { " &or; "; }
 #holds_s = { " . "; }
 #being_s = { " :: "; }
 #be_s = { " :: "; }

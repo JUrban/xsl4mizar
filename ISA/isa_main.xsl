@@ -22,28 +22,28 @@
   <!-- include mhtml_block_top.xsl;  // ##INCLUDE HERE -->
   <!-- the (very initial) Isabelle specific code: -->
   <xsl:param name="for_s">
-    <xsl:text> &#x02200; </xsl:text>
+    <xsl:text> &forall; </xsl:text>
   </xsl:param>
   <xsl:param name="ex_s">
-    <xsl:text> &#x02203; </xsl:text>
+    <xsl:text> &exist; </xsl:text>
   </xsl:param>
   <xsl:param name="not_s">
-    <xsl:text> &#x000AC; </xsl:text>
+    <xsl:text> &not; </xsl:text>
   </xsl:param>
   <xsl:param name="non_s">
-    <xsl:text> &#x000AC; </xsl:text>
+    <xsl:text> non </xsl:text>
   </xsl:param>
   <xsl:param name="and_s">
-    <xsl:text> &#x02227; </xsl:text>
+    <xsl:text> &and; </xsl:text>
   </xsl:param>
   <xsl:param name="imp_s">
-    <xsl:text> &#x021D2; </xsl:text>
+    <xsl:text> &rArr; </xsl:text>
   </xsl:param>
   <xsl:param name="equiv_s">
-    <xsl:text> &#x021D4; </xsl:text>
+    <xsl:text> &equiv; </xsl:text>
   </xsl:param>
   <xsl:param name="or_s">
-    <xsl:text> &#x02228; </xsl:text>
+    <xsl:text> &or; </xsl:text>
   </xsl:param>
   <xsl:param name="holds_s">
     <xsl:text> . </xsl:text>
