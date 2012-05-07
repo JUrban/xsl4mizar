@@ -82,13 +82,13 @@ tpl thm_header(#nr1)
 
 
 
-tpl add_hs_attrs { }
+// tpl add_hs_attrs { }
 
-tpl add_hs2_attrs { }
+// tpl add_hs2_attrs { }
 
-tpl add_hsNdiv_attrs { }
+// tpl add_hsNdiv_attrs { }
 
-tpl add_ajax_attrs(#u) { }
+// tpl add_ajax_attrs(#u) { }
 
 tpl [/] 
 { 

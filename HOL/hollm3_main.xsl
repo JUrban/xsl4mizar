@@ -128,16 +128,10 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template name="add_hs_attrs"/>
-
-  <xsl:template name="add_hs2_attrs"/>
-
-  <xsl:template name="add_hsNdiv_attrs"/>
-
-  <xsl:template name="add_ajax_attrs">
-    <xsl:param name="u"/>
-  </xsl:template>
-
+  <!-- tpl add_hs_attrs { } -->
+  <!-- tpl add_hs2_attrs { } -->
+  <!-- tpl add_hsNdiv_attrs { } -->
+  <!-- tpl add_ajax_attrs(#u) { } -->
   <xsl:template match="/">
     <xsl:element name="html">
       <xsl:attribute name="prefix">
