@@ -22,10 +22,10 @@
   <!-- include mhtml_block_top.xsl;  // ##INCLUDE HERE -->
   <!-- the (very initial) Isabelle specific code: -->
   <xsl:param name="for_s">
-    <xsl:text> &forall; </xsl:text>
+    <xsl:text> &#8704; </xsl:text>
   </xsl:param>
   <xsl:param name="ex_s">
-    <xsl:text> &exist; </xsl:text>
+    <xsl:text> &#8707; </xsl:text>
   </xsl:param>
   <xsl:param name="not_s">
     <xsl:text> &not; </xsl:text>

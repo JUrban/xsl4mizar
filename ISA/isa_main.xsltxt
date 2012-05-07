@@ -33,8 +33,8 @@ output method=html;
 // the (very initial) Isabelle specific code:
 
 
-#for_s = { " &forall; "; }
-#ex_s = { " &exist; "; }
+#for_s = { " &#8704; "; }
+#ex_s = { " &#8707; "; }
 #not_s = { " &not; "; }
 #non_s = { " non "; }
 #and_s = { " &and; "; }
