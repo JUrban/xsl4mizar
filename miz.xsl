@@ -520,6 +520,188 @@
   <xsl:param name="top_proof_end">
     <xsl:text>end;</xsl:text>
   </xsl:param>
+  <!-- the javascript that we are so reluctant to outsource -->
+  <xsl:param name="mizjs1">
+    <xsl:text>
+function hs(obj)
+{
+// document.getElementById(&apos;myimage&apos;).nextSibling.style.display = &apos;block&apos;;
+if (obj.nextSibling.style.display == &apos;inline&apos;)
+ { obj.nextSibling.style.display = &apos;none&apos;; }
+else { if (obj.nextSibling.style.display == &apos;none&apos;)
+ { obj.nextSibling.style.display = &apos;inline&apos;; }
+ else { obj.nextSibling.style.display = &apos;inline&apos;;  }}
+return false;
+}
+
+function hs2(obj)
+{
+if (obj.nextSibling.style.display == &apos;block&apos;)
+ { obj.nextSibling.style.display = &apos;none&apos;; }
+else { if (obj.nextSibling.style.display == &apos;none&apos;)
+ { obj.nextSibling.style.display = &apos;block&apos;; }
+ else { obj.nextSibling.style.display = &apos;none&apos;;  }}
+return false;
+}
+function hsNdiv(obj)
+{
+var ndiv = obj;
+while (ndiv.nextSibling.nodeName != &apos;DIV&apos;) { ndiv = ndiv.nextSibling; }
+return hs2(ndiv);
+}
+
+// remote request cache - for each url its http_request.responseText
+var rrCache= {};
+rrCache[0]=&apos;&apos;;
+
+// explorer7 implements XMLHttpRequest in some strange way
+// optional tooltip is passed to insertRequest
+function makeRequest(obj,url,tooltip) 
+{
+    // if the result is cached, insert it now
+    if (rrCache[url] != null)
+    {
+	insertRequest(obj,null,url,tooltip);
+    }
+    else
+    {
+        var http_request = false;
+        if (window.XMLHttpRequest &amp;&amp; !(window.ActiveXObject)) { // Mozilla, Safari,...
+            http_request = new XMLHttpRequest();
+            if (http_request.overrideMimeType) {
+                http_request.overrideMimeType(&apos;text/xml&apos;);
+            }
+        } else if (window.ActiveXObject) { // IE
+            try {
+                http_request = new ActiveXObject(&apos;Msxml2.XMLHTTP&apos;);
+            } catch (e) {
+                try {
+                    http_request = new ActiveXObject(&apos;Microsoft.XMLHTTP&apos;);
+                } catch (e) {}
+            }
+        }
+        if (!http_request) {
+            alert(&apos;Giving up :( Cannot create an XMLHTTP instance&apos;);
+            return false;
+        }
+        http_request.onreadystatechange = function() { insertRequest(obj,http_request,url,tooltip); };
+        http_request.open(&apos;GET&apos;, url, true);
+        http_request.send(null);
+    }
+}
+// commented the 200 state to have local requests too
+// if tooltip nonnil, obj.innerHTML is changed, and the result is put in rrCache
+function insertRequest(obj,http_request,url,tooltip) 
+{
+    var respText = null;
+    if(http_request == null) // no request done, we are called with cached result
+    {
+	respText = rrCache[url];
+    }
+    else { if (http_request.readyState == 4) { 
+	respText = http_request.responseText; 
+    }}
+
+    if (respText != null) 
+    {
+//            if (http_request.status == 200) {
+	if(http_request != null) {rrCache[url] = respText;}
+	if(tooltip != null)
+	{
+	    obj.innerHTML = respText;	    
+	}
+	else
+	{
+	    var ndiv = obj;
+	    while (ndiv.nodeName != &apos;SPAN&apos;) { ndiv = ndiv.nextSibling; }
+	    ndiv.innerHTML = respText;
+	    obj.onclick = function(){ return hs2(obj) };
+	}
+    }
+}
+
+// simple tooltips
+var tooltip=function(){
+ var id = &apos;tt&apos;;
+ var top = 3;
+ var left = 3;
+ var maxw = 500;
+ var speed = 10;
+ var timer = 2;
+ var endalpha = 95;
+ var alpha = 0;
+ var tt,t,c,b,h;
+ var ie = document.all ? true : false;
+ return{
+  show:function(how,v,w){
+   if(tt == null){
+    tt = document.createElement(&apos;div&apos;);
+    tt.setAttribute(&apos;id&apos;,id);
+    document.body.appendChild(tt);
+    tt.style.opacity = 0;
+    tt.style.filter = &apos;alpha(opacity=0)&apos;;
+    document.onmousemove = this.pos;
+   }
+
+   tt.style.display = &apos;block&apos;;
+   if(how == &apos;url&apos;)
+   {
+       if(rrCache[v]==null) { 
+	   tt.innerHTML =&apos;&lt;div&gt;loading...&lt;/div&gt;&apos;; 
+	   makeRequest(tt,v,1); 
+       } else { 
+	   tt.innerHTML = rrCache[v]; 
+       }
+   }
+   else { if ((how == &apos;hs&apos;) || (how == &apos;hs2&apos;)) { tt.innerHTML = v.nextSibling.innerHTML; }
+   else { if (how == &apos;txt&apos;) { tt.innerHTML = v; }
+	  else { tt.innerHTML = &apos;&apos;; }
+	}
+   }
+
+   tt.style.width = w ? w + &apos;px&apos; : &apos;auto&apos;;
+   if(!w &amp;&amp; ie){
+    tt.style.width = tt.offsetWidth;
+   }
+  if(tt.offsetWidth &gt; maxw){tt.style.width = maxw + &apos;px&apos;}
+  h = parseInt(tt.offsetHeight) + top;
+  clearInterval(tt.timer);
+  tt.timer = setInterval(function(){tooltip.fade(1)},timer);
+  },
+  pos:function(e){
+   var u = ie ? event.clientY + document.documentElement.scrollTop : e.pageY;
+   var l = ie ? event.clientX + document.documentElement.scrollLeft : e.pageX;
+   tt.style.top = (u - h) + &apos;px&apos;;
+   tt.style.left = (l + left) + &apos;px&apos;;
+  },
+  fade:function(d){
+   var a = alpha;
+   if((a != endalpha &amp;&amp; d == 1) || (a != 0 &amp;&amp; d == -1)){
+    var i = speed;
+   if(endalpha - a &lt; speed &amp;&amp; d == 1){
+    i = endalpha - a;
+   }else if(alpha &lt; speed &amp;&amp; d == -1){
+     i = a;
+   }
+   alpha = a + (i * d);
+   tt.style.opacity = alpha * .01;
+   tt.style.filter = &apos;alpha(opacity=&apos; + alpha + &apos;)&apos;;
+  }else{
+    clearInterval(tt.timer);
+     if(d == -1){tt.style.display = &apos;none&apos;}
+  }
+ },
+ hide:function(){tt.style.display  = &apos;none&apos;;}
+ };
+}();
+
+// reference show/hide - shortened because frequent, just a wrapper to tooltip.show/hide
+function rs(ref) { tooltip.show(&apos;url&apos;, mizhtm + &apos;refs/&apos; + ref); }
+function rh() { tooltip.hide(); } 
+
+// End --&gt;
+</xsl:text>
+  </xsl:param>
   <!--  -->
   <!-- File: keys.xsltxt - html-ization of Mizar XML, definition of keys (indexes) -->
   <!--  -->
@@ -8997,210 +9179,7 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 var mizhtm=&apos;</xsl:text>
                   <xsl:value-of select="$mizhtml"/>
                   <xsl:text>&apos;;</xsl:text>
-                  <xsl:text>
-function hs(obj)
-{
-// document.getElementById(&apos;myimage&apos;).nextSibling.style.display = &apos;block&apos;;
-if (obj.nextSibling.style.display == &apos;inline&apos;)
- { obj.nextSibling.style.display = &apos;none&apos;; }
-else { if (obj.nextSibling.style.display == &apos;none&apos;)
- { obj.nextSibling.style.display = &apos;inline&apos;; }
- else { obj.nextSibling.style.display = &apos;inline&apos;;  }}
-return false;
-}
-
-function hs2(obj)
-{
-if (obj.nextSibling.style.display == &apos;block&apos;)
- { obj.nextSibling.style.display = &apos;none&apos;; }
-else { if (obj.nextSibling.style.display == &apos;none&apos;)
- { obj.nextSibling.style.display = &apos;block&apos;; }
- else { obj.nextSibling.style.display = &apos;none&apos;;  }}
-return false;
-}
-function hsNdiv(obj)
-{
-var ndiv = obj;
-while (ndiv.nextSibling.nodeName != &apos;DIV&apos;) { ndiv = ndiv.nextSibling; }
-return hs2(ndiv);
-}
-
-// remote request cache - for each url its http_request.responseText
-var rrCache= {};
-rrCache[0]=&apos;&apos;;
-
-// explorer7 implements XMLHttpRequest in some strange way
-// optional tooltip is passed to insertRequest
-function makeRequest(obj,url,tooltip) 
-{
-    // if the result is cached, insert it now
-    if (rrCache[url] != null)
-    {
-	insertRequest(obj,null,url,tooltip);
-    }
-    else
-    {
-        var http_request = false;
-        if (window.XMLHttpRequest &amp;&amp; !(window.ActiveXObject)) { // Mozilla, Safari,...
-            http_request = new XMLHttpRequest();
-            if (http_request.overrideMimeType) {
-                http_request.overrideMimeType(&apos;text/xml&apos;);
-            }
-        } else if (window.ActiveXObject) { // IE
-            try {
-                http_request = new ActiveXObject(&apos;Msxml2.XMLHTTP&apos;);
-            } catch (e) {
-                try {
-                    http_request = new ActiveXObject(&apos;Microsoft.XMLHTTP&apos;);
-                } catch (e) {}
-            }
-        }
-        if (!http_request) {
-            alert(&apos;Giving up :( Cannot create an XMLHTTP instance&apos;);
-            return false;
-        }
-        http_request.onreadystatechange = function() { insertRequest(obj,http_request,url,tooltip); };
-        http_request.open(&apos;GET&apos;, url, true);
-        http_request.send(null);
-    }
-}
-// commented the 200 state to have local requests too
-// if tooltip nonnil, obj.innerHTML is changed, and the result is put in rrCache
-function insertRequest(obj,http_request,url,tooltip) 
-{
-    var respText = null;
-    if(http_request == null) // no request done, we are called with cached result
-    {
-	respText = rrCache[url];
-    }
-    else { if (http_request.readyState == 4) { 
-	respText = http_request.responseText; 
-    }}
-
-    if (respText != null) 
-    {
-//            if (http_request.status == 200) {
-	if(http_request != null) {rrCache[url] = respText;}
-	if(tooltip != null)
-	{
-	    obj.innerHTML = respText;	    
-	}
-	else
-	{
-	    var ndiv = obj;
-	    while (ndiv.nodeName != &apos;SPAN&apos;) { ndiv = ndiv.nextSibling; }
-	    ndiv.innerHTML = respText;
-	    obj.onclick = function(){ return hs2(obj) };
-	}
-    }
-}
-
-// simple tooltips
-var tooltip=function(){
- var id = &apos;tt&apos;;
- var top = 3;
- var left = 3;
- var maxw = 500;
- var speed = 10;
- var timer = 2;
- var endalpha = 95;
- var alpha = 0;
- var tt,t,c,b,h;
- var ie = document.all ? true : false;
- return{
-  show:function(how,v,w){
-   if(tt == null){
-    tt = document.createElement(&apos;div&apos;);
-    tt.setAttribute(&apos;id&apos;,id);
-    document.body.appendChild(tt);
-    tt.style.opacity = 0;
-    tt.style.filter = &apos;alpha(opacity=0)&apos;;
-    document.onmousemove = this.pos;
-   }
-
-   tt.style.display = &apos;block&apos;;
-   if(how == &apos;url&apos;)
-   {
-       if(rrCache[v]==null) { 
-	   tt.innerHTML =&apos;&lt;div&gt;loading...&lt;/div&gt;&apos;; 
-	   makeRequest(tt,v,1); 
-       } else { 
-	   tt.innerHTML = rrCache[v]; 
-       }
-   }
-   else { if ((how == &apos;hs&apos;) || (how == &apos;hs2&apos;)) { tt.innerHTML = v.nextSibling.innerHTML; }
-   else { if (how == &apos;txt&apos;) { tt.innerHTML = v; }
-	  else { tt.innerHTML = &apos;&apos;; }
-	}
-   }
-
-   tt.style.width = w ? w + &apos;px&apos; : &apos;auto&apos;;
-   if(!w &amp;&amp; ie){
-    tt.style.width = tt.offsetWidth;
-   }
-  if(tt.offsetWidth &gt; maxw){tt.style.width = maxw + &apos;px&apos;}
-  h = parseInt(tt.offsetHeight) + top;
-  clearInterval(tt.timer);
-  tt.timer = setInterval(function(){tooltip.fade(1)},timer);
-  },
-  pos:function(e){
-   var u = ie ? event.clientY + document.documentElement.scrollTop : e.pageY;
-   var l = ie ? event.clientX + document.documentElement.scrollLeft : e.pageX;
-   tt.style.top = (u - h) + &apos;px&apos;;
-   tt.style.left = (l + left) + &apos;px&apos;;
-  },
-  fade:function(d){
-   var a = alpha;
-   if((a != endalpha &amp;&amp; d == 1) || (a != 0 &amp;&amp; d == -1)){
-    var i = speed;
-   if(endalpha - a &lt; speed &amp;&amp; d == 1){
-    i = endalpha - a;
-   }else if(alpha &lt; speed &amp;&amp; d == -1){
-     i = a;
-   }
-   alpha = a + (i * d);
-   tt.style.opacity = alpha * .01;
-   tt.style.filter = &apos;alpha(opacity=&apos; + alpha + &apos;)&apos;;
-  }else{
-    clearInterval(tt.timer);
-     if(d == -1){tt.style.display = &apos;none&apos;}
-  }
- },
- hide:function(){tt.style.display  = &apos;none&apos;;}
- };
-}();
-
-// reference show/hide - shortened because frequent, just a wrapper to tooltip.show/hide
-function rs(ref) { tooltip.show(&apos;url&apos;, mizhtm + &apos;refs/&apos; + ref); }
-function rh() { tooltip.hide(); } 
-
-// End --&gt;
-</xsl:text>
-                </xsl:element>
-                <xsl:if test="$idv&gt;0">
-                  <xsl:element name="script">
-                    <xsl:attribute name="type">
-                      <xsl:text>text/javascript</xsl:text>
-                    </xsl:attribute>
-                    <xsl:text>
-&lt;!--
-var tstp_dump;
-function openSoTSTP (dump) {
-var tstp_url = &apos;http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTSTP&apos;;
-var tstp_browser = window.open(tstp_url, &apos;_blank&apos;);
-tstp_dump = dump;
-}
-function getTSTPDump () {
-return tstp_dump;
-}
-// End --&gt;
-</xsl:text>
-                  </xsl:element>
-                </xsl:if>
-                <xsl:element name="base">
-                  <xsl:attribute name="target">
-                    <xsl:value-of select="$default_target"/>
-                  </xsl:attribute>
+                  <xsl:value-of select="$mizjs1"/>
                 </xsl:element>
               </xsl:element>
               <xsl:element name="body">
