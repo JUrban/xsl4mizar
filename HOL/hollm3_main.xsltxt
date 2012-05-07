@@ -136,6 +136,16 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
        }
        else { $aname; }
      }
+     <script { @type="text/javascript";
+
+"
+<!-- 
+
+// for saving in rs
+var mizhtm='"; $mizhtml; "';"; 
+$mizjs1;
+       }
+
     <base { @target=$default_target; }}
     <body 
     {  

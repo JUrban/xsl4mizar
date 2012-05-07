@@ -194,6 +194,19 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
             </xsl:otherwise>
           </xsl:choose>
         </xsl:element>
+        <xsl:element name="script">
+          <xsl:attribute name="type">
+            <xsl:text>text/javascript</xsl:text>
+          </xsl:attribute>
+          <xsl:text>
+&lt;!-- 
+
+// for saving in rs
+var mizhtm=&apos;</xsl:text>
+          <xsl:value-of select="$mizhtml"/>
+          <xsl:text>&apos;;</xsl:text>
+          <xsl:value-of select="$mizjs1"/>
+        </xsl:element>
         <xsl:element name="base">
           <xsl:attribute name="target">
             <xsl:value-of select="$default_target"/>
