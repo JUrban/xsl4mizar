@@ -144,3 +144,31 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 }
 
 
+// Header rules
+tpl [dc:title] { pcomment(#str=`text()`); }
+tpl [dc:creator] { pcomment(#str=`concat("by ", text())`); pcomment(#str=""); }
+tpl [dc:date] { pcomment(#str=`concat("Received ", text())`); }
+tpl [dc:rights] { pcomment(#str=`concat("Copyright ", text())`); }
+
+// comment rules
+
+tpl [Comment] 
+{ 
+   <div { @class="comment";
+   	if [$colored="1"] {
+          <font {@color=$commentcolor; apply; }
+     	}
+     	else {  apply; }
+   }
+}
+tpl [CmtLine]  { `text()`; <br; }
+tpl [CmtLink]  { ":: "; add_wp_icon(); " "; for-each [*] { copy { copy-of `@*`; copy-of `text()`;}} <br; }
+
+tpl add_wp_icon
+{
+     <img
+     {
+       	       @src= `concat($ltptproot,"WP.ico")`;
+       	       @alt= "WP: ";
+     }
+}

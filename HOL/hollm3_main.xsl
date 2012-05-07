@@ -209,4 +209,85 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
       </xsl:element>
     </xsl:element>
   </xsl:template>
+
+  <!-- Header rules -->
+  <xsl:template match="dc:title">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="text()"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:creator">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;by &quot;, text())"/>
+    </xsl:call-template>
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str">
+        <xsl:text/>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:date">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;Received &quot;, text())"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:rights">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;Copyright &quot;, text())"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <!-- comment rules -->
+  <xsl:template match="Comment">
+    <xsl:element name="div">
+      <xsl:attribute name="class">
+        <xsl:text>comment</xsl:text>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="$colored=&quot;1&quot;">
+          <xsl:element name="font">
+            <xsl:attribute name="color">
+              <xsl:value-of select="$commentcolor"/>
+            </xsl:attribute>
+            <xsl:apply-templates/>
+          </xsl:element>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="CmtLine">
+    <xsl:value-of select="text()"/>
+    <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template match="CmtLink">
+    <xsl:text>:: </xsl:text>
+    <xsl:call-template name="add_wp_icon"/>
+    <xsl:text> </xsl:text>
+    <xsl:for-each select="*">
+      <xsl:copy>
+        <xsl:copy-of select="@*"/>
+        <xsl:copy-of select="text()"/>
+      </xsl:copy>
+    </xsl:for-each>
+    <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template name="add_wp_icon">
+    <xsl:element name="img">
+      <xsl:attribute name="src">
+        <xsl:value-of select="concat($ltptproot,&quot;WP.ico&quot;)"/>
+      </xsl:attribute>
+      <xsl:attribute name="alt">
+        <xsl:text>WP: </xsl:text>
+      </xsl:attribute>
+    </xsl:element>
+  </xsl:template>
 </xsl:stylesheet>
