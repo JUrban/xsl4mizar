@@ -35,12 +35,12 @@ output method=html;
 
 #for_s = { " &#8704; "; }
 #ex_s = { " &#8707; "; }
-#not_s = { " &not; "; }
+#not_s = { " &#172; "; }
 #non_s = { " non "; }
-#and_s = { " &and; "; }
-#imp_s = { " &rArr; "; }
-#equiv_s = { " &equiv; "; }
-#or_s = { " &or; "; }
+#and_s = { " &#8743; "; }
+#imp_s = { " &#8658; "; }
+#equiv_s = { " &#8660; "; }
+#or_s = { " &#8744; "; }
 #holds_s = { " . "; }
 #being_s = { " :: "; }
 #be_s = { " :: "; }

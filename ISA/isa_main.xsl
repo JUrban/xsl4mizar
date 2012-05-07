@@ -28,22 +28,22 @@
     <xsl:text> &#8707; </xsl:text>
   </xsl:param>
   <xsl:param name="not_s">
-    <xsl:text> &not; </xsl:text>
+    <xsl:text> &#172; </xsl:text>
   </xsl:param>
   <xsl:param name="non_s">
     <xsl:text> non </xsl:text>
   </xsl:param>
   <xsl:param name="and_s">
-    <xsl:text> &and; </xsl:text>
+    <xsl:text> &#8743; </xsl:text>
   </xsl:param>
   <xsl:param name="imp_s">
-    <xsl:text> &rArr; </xsl:text>
+    <xsl:text> &#8658; </xsl:text>
   </xsl:param>
   <xsl:param name="equiv_s">
-    <xsl:text> &equiv; </xsl:text>
+    <xsl:text> &#8660; </xsl:text>
   </xsl:param>
   <xsl:param name="or_s">
-    <xsl:text> &or; </xsl:text>
+    <xsl:text> &#8744; </xsl:text>
   </xsl:param>
   <xsl:param name="holds_s">
     <xsl:text> . </xsl:text>
