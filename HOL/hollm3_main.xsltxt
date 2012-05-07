@@ -1,5 +1,7 @@
 
-stylesheet 1.0;
+stylesheet 1.0
+extension-element-prefixes = "dc";
+xmlns dc "http://purl.org/dc/elements/1.1/";
 
 // the import directive is useful because anything 
 // imported can be later overrriden - we'll use it for
