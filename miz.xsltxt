@@ -381,6 +381,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 #choice_s = { " the "; }
 #lbracket_s = { "("; }
 #rbracket_s = { ")"; }
+#top_proof_end = { "end;"; }
 //
 // File: keys.xsltxt - html-ization of Mizar XML, definition of keys (indexes)
 //
@@ -3350,6 +3351,39 @@ tpl jt(#noproof)
 {
     $nr1 = `1+count(preceding-sibling::JustifiedTheorem)`;
 
+    thm_header(#nr1=$nr1);
+
+    if [Proof] 
+    { 
+       <div { @class="add"; apply[*[1]/*[1]]; } 
+       if [(not($noproof="1")) and (not($generate_items>0) or ($generate_items_proofs>0))]
+       {
+         apply[*[2]]; 
+       }
+    }
+    else 
+    { 
+       <div 
+       { 
+          @class="add"; 
+
+          if [Proposition/Verum] 
+	  { 
+	     pkeyword(#str="canceled; ");
+	  }
+	  else 
+	  { 
+	     apply[*[1]/*[1]]; " "; 
+	     apply[*[2]]; 
+	  } 
+       } 
+    } 
+}
+
+
+// private inside jt
+tpl thm_header(#nr1)
+{
     pkeyword(#str="theorem "); 
 
     if [($proof_links > 0) and ($print_lab_identifiers = 0)]
@@ -3394,33 +3428,8 @@ tpl jt(#noproof)
 
        <br;
     }
-
-    if [Proof] 
-    { 
-       <div { @class="add"; apply[*[1]/*[1]]; } 
-       if [(not($noproof="1")) and (not($generate_items>0) or ($generate_items_proofs>0))]
-       {
-         apply[*[2]]; 
-       }
-    }
-    else 
-    { 
-       <div 
-       { 
-          @class="add"; 
-
-          if [Proposition/Verum] 
-	  { 
-	     pkeyword(#str="canceled; ");
-	  }
-	  else 
-	  { 
-	     apply[*[1]/*[1]]; " "; 
-	     apply[*[2]]; 
-	  } 
-       } 
-    } 
 }
+
 
 tpl idv_for_item(#k,#nr)
 {
@@ -4063,7 +4072,7 @@ tpl [Proof] {
    $bogus=`1`;
  }
 	 else { <div { @class="add"; apply; } }
-	 pkeyword(#str="end;"); 
+	 pkeyword(#str=$top_proof_end); 
 	 } 
      }
 

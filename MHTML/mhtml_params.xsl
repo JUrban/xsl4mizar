@@ -485,4 +485,7 @@
   <xsl:param name="rbracket_s">
     <xsl:text>)</xsl:text>
   </xsl:param>
+  <xsl:param name="top_proof_end">
+    <xsl:text>end;</xsl:text>
+  </xsl:param>
 </xsl:stylesheet>

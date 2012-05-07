@@ -335,3 +335,4 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 #choice_s = { " the "; }
 #lbracket_s = { "("; }
 #rbracket_s = { ")"; }
+#top_proof_end = { "end;"; }

@@ -1,0 +1,146 @@
+
+stylesheet 1.0;
+
+// the import directive is useful because anything 
+// imported can be later overrriden - we'll use it for
+// the pretty-printing funcs
+import ../MHTML/mhtml_block_top.xsl;  // ##INCLUDE HERE
+
+output method=html;
+
+
+// $Revision: 1.4 $
+//
+// File: hollm3_main.xsltxt - HOL Light miz3-ization of Mizar XML, main file
+//
+// Author: Josef Urban
+//
+// License: GPL (GNU GENERAL PUBLIC LICENSE)
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet taking 
+// XML terms, formulas and types to HOL Light miz3 format.
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar ../xsltxt.jar toXSL hollm3_main.xsltxt >hollm3_main.xsl
+
+
+// include fm_print_complex.xsl;
+
+// include mhtml_block_top.xsl;  // ##INCLUDE HERE
+
+// the (very initial) HOL Light miz3 specific code:
+
+
+#for_s = { " !; "; }
+#ex_s = { " ?; "; }
+#not_s = { " ~; "; }
+#non_s = { " ~; "; }
+#and_s = { " /\; "; }
+#imp_s = { " ==>; "; }
+#equiv_s = { " <=>; "; }
+#or_s = { " \/; "; }
+#holds_s = { " . "; }
+#being_s = { " : "; }
+#be_s = { " be "; }
+#st_s = { " . "; }
+#is_s = { " is "; }
+#dots_s = { " ... "; }
+#fraenkel_start = { " { "; }
+#fraenkel_end = { " } "; }
+#of_sel_s = { " of  "; }
+#of_typ_s = { " of  "; }
+#the_sel_s = { " the  "; }
+#choice_s = { " the  "; }
+#lbracket_s = { "("; }
+#rbracket_s = { ")"; }
+#top_proof_end = { "end`;;"; }
+
+tpl thm_header(#nr1)
+{
+    pkeyword(#str="let "); 
+
+    if [($proof_links > 0) and ($print_lab_identifiers = 0)]
+    { 
+       plab1(#nr=$nr1,#txt="Th"); 
+    }
+    else 
+    { 
+       for-each [Proposition[@nr > 0]] { pplab(#nr=`@nr`, #vid=`@vid`);  }
+    }
+
+    " = thm `";
+
+    <a 
+    { 
+       @NAME = `concat("T", $nr1)`; 
+       pcomment0(#str = `concat($aname,":", $nr1)`); 
+       <br;
+    }
+}
+
+
+
+tpl add_hs_attrs { }
+
+tpl add_hs2_attrs { }
+
+tpl add_hsNdiv_attrs { }
+
+tpl add_ajax_attrs(#u) { }
+
+tpl [/] 
+{ 
+   <html 
+   { 
+      @prefix="oo: http://omdoc.org/ontology# owl: http://www.w3.org/2002/07/owl#";
+
+// output the css defaults for div and p (for indenting)
+        <style { @type="text/css";  "
+div { padding: 0 0 0 0; margin: 0 0 0 0; } 
+div.add { padding-left: 3mm; padding-bottom: 0mm;  margin: 0 0 0 0; } 
+div.box { border-width:thin; border-color:blue; border-style:solid; }
+p { margin: 0 0 0 0; } 
+body {font-family: monospace; margin: 0px;}
+a {text-decoration:none} a:hover { color: red; } 
+a.ref { font-size:x-small; }
+a.ref:link { color:green; } 
+a.ref:hover { color: red; } 
+a.txt:link { color:black; } 
+a.txt:hover { color: red; } 
+.wikiactions ul { background-color: DarkSeaGreen ; color:blue; margin: 0; padding: 6px; list-style-type: none; border-bottom: 1px solid #000; }
+.wikiactions li { display: inline; padding: .2em .4em; }
+.wikiactions a {text-decoration:underline;} 
+span.kw {font-weight: bold; }
+span.lab {font-style: italic; }
+span.comment {font-style: italic; }
+span.hide { display: none; }
+span.p1:hover { color : inherit; background-color : #BAFFFF; } 
+span.p2:hover { color : inherit; background-color : #FFCACA; }
+span.p3:hover { color : inherit; background-color : #FFFFBA; }
+span.p4:hover { color : inherit; background-color : #CACAFF; }
+span.p5:hover { color : inherit; background-color : #CAFFCA; }
+span.p0:hover { color : inherit; background-color : #FFBAFF; }
+.default { background-color: white; color: black; } 
+.default:hover { background-color: white; color: black; }
+#tt { position:absolute; display:block; font-size: small; background: LightYellow; padding:2px 12px 3px 7px; margin-left:5px;}
+:target { background: #5D9BF7; border: solid 1px #aaa;}
+";
+	                } 
+     <head {  
+     <title { 
+       if [$mk_header > 0]
+       {
+          $aname; ": "; for-each [document($hdr,/)/Header/dc:title] { `text()`; }
+       }
+       else { $aname; }
+     }
+    <base { @target=$default_target; }}
+    <body 
+    {  
+       	if[$mk_header > 0] { apply[document($hdr,/)/Header/*]; <br; }
+          apply; 
+     }
+  }
+}
+
+

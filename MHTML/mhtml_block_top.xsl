@@ -625,6 +625,48 @@
   <xsl:template name="jt">
     <xsl:param name="noproof"/>
     <xsl:variable name="nr1" select="1+count(preceding-sibling::JustifiedTheorem)"/>
+    <xsl:call-template name="thm_header">
+      <xsl:with-param name="nr1" select="$nr1"/>
+    </xsl:call-template>
+    <xsl:choose>
+      <xsl:when test="Proof">
+        <xsl:element name="div">
+          <xsl:attribute name="class">
+            <xsl:text>add</xsl:text>
+          </xsl:attribute>
+          <xsl:apply-templates select="*[1]/*[1]"/>
+        </xsl:element>
+        <xsl:if test="(not($noproof=&quot;1&quot;)) and (not($generate_items&gt;0) or ($generate_items_proofs&gt;0))">
+          <xsl:apply-templates select="*[2]"/>
+        </xsl:if>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:element name="div">
+          <xsl:attribute name="class">
+            <xsl:text>add</xsl:text>
+          </xsl:attribute>
+          <xsl:choose>
+            <xsl:when test="Proposition/Verum">
+              <xsl:call-template name="pkeyword">
+                <xsl:with-param name="str">
+                  <xsl:text>canceled; </xsl:text>
+                </xsl:with-param>
+              </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:apply-templates select="*[1]/*[1]"/>
+              <xsl:text> </xsl:text>
+              <xsl:apply-templates select="*[2]"/>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:element>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- private inside jt -->
+  <xsl:template name="thm_header">
+    <xsl:param name="nr1"/>
     <xsl:call-template name="pkeyword">
       <xsl:with-param name="str">
         <xsl:text>theorem </xsl:text>
@@ -717,40 +759,6 @@
       </xsl:if>
       <xsl:element name="br"/>
     </xsl:element>
-    <xsl:choose>
-      <xsl:when test="Proof">
-        <xsl:element name="div">
-          <xsl:attribute name="class">
-            <xsl:text>add</xsl:text>
-          </xsl:attribute>
-          <xsl:apply-templates select="*[1]/*[1]"/>
-        </xsl:element>
-        <xsl:if test="(not($noproof=&quot;1&quot;)) and (not($generate_items&gt;0) or ($generate_items_proofs&gt;0))">
-          <xsl:apply-templates select="*[2]"/>
-        </xsl:if>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:element name="div">
-          <xsl:attribute name="class">
-            <xsl:text>add</xsl:text>
-          </xsl:attribute>
-          <xsl:choose>
-            <xsl:when test="Proposition/Verum">
-              <xsl:call-template name="pkeyword">
-                <xsl:with-param name="str">
-                  <xsl:text>canceled; </xsl:text>
-                </xsl:with-param>
-              </xsl:call-template>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:apply-templates select="*[1]/*[1]"/>
-              <xsl:text> </xsl:text>
-              <xsl:apply-templates select="*[2]"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:element>
-      </xsl:otherwise>
-    </xsl:choose>
   </xsl:template>
 
   <xsl:template name="idv_for_item">
@@ -1942,9 +1950,7 @@
         </xsl:otherwise>
       </xsl:choose>
       <xsl:call-template name="pkeyword">
-        <xsl:with-param name="str">
-          <xsl:text>end;</xsl:text>
-        </xsl:with-param>
+        <xsl:with-param name="str" select="$top_proof_end"/>
       </xsl:call-template>
     </xsl:element>
   </xsl:template>
