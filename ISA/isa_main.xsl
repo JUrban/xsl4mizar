@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" extension-element-prefixes="dc" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <!-- the import directive is useful because anything -->
   <!-- imported can be later overrriden - we'll use it for -->
   <!-- the pretty-printing funcs -->
@@ -20,7 +20,7 @@
   <!-- java -jar ../xsltxt.jar toXSL isa_main.xsltxt >isa_main.xsl -->
   <!-- include fm_print_complex.xsl; -->
   <!-- include mhtml_block_top.xsl;  // ##INCLUDE HERE -->
-  <!-- the Isabelle specific code: -->
+  <!-- the (very initial) Isabelle specific code: -->
   <xsl:param name="for_s">
     <xsl:text> &#x02200; </xsl:text>
   </xsl:param>
@@ -88,16 +88,47 @@
     <xsl:text>)</xsl:text>
   </xsl:param>
 
-  <xsl:template name="add_hs_attrs"/>
-
-  <xsl:template name="add_hs2_attrs"/>
-
-  <xsl:template name="add_hsNdiv_attrs"/>
-
-  <xsl:template name="add_ajax_attrs">
-    <xsl:param name="u"/>
+  <xsl:template name="thm_header">
+    <xsl:param name="nr1"/>
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str">
+        <xsl:text>let </xsl:text>
+      </xsl:with-param>
+    </xsl:call-template>
+    <xsl:choose>
+      <xsl:when test="($proof_links &gt; 0) and ($print_lab_identifiers = 0)">
+        <xsl:call-template name="plab1">
+          <xsl:with-param name="nr" select="$nr1"/>
+          <xsl:with-param name="txt">
+            <xsl:text>Th</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:for-each select="Proposition[@nr &gt; 0]">
+          <xsl:call-template name="pplab">
+            <xsl:with-param name="nr" select="@nr"/>
+            <xsl:with-param name="vid" select="@vid"/>
+          </xsl:call-template>
+        </xsl:for-each>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text> = thm `</xsl:text>
+    <xsl:element name="a">
+      <xsl:attribute name="NAME">
+        <xsl:value-of select="concat(&quot;T&quot;, $nr1)"/>
+      </xsl:attribute>
+      <xsl:call-template name="pcomment0">
+        <xsl:with-param name="str" select="concat($aname,&quot;:&quot;, $nr1)"/>
+      </xsl:call-template>
+      <xsl:element name="br"/>
+    </xsl:element>
   </xsl:template>
 
+  <!-- tpl add_hs_attrs { } -->
+  <!-- tpl add_hs2_attrs { } -->
+  <!-- tpl add_hsNdiv_attrs { } -->
+  <!-- tpl add_ajax_attrs(#u) { } -->
   <xsl:template match="/">
     <xsl:element name="html">
       <xsl:attribute name="prefix">
@@ -154,6 +185,19 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
             </xsl:otherwise>
           </xsl:choose>
         </xsl:element>
+        <xsl:element name="script">
+          <xsl:attribute name="type">
+            <xsl:text>text/javascript</xsl:text>
+          </xsl:attribute>
+          <xsl:text>
+&lt;!-- 
+
+// for saving in rs
+var mizhtm=&apos;</xsl:text>
+          <xsl:value-of select="$mizhtml"/>
+          <xsl:text>&apos;;</xsl:text>
+          <xsl:value-of select="$mizjs1"/>
+        </xsl:element>
         <xsl:element name="base">
           <xsl:attribute name="target">
             <xsl:value-of select="$default_target"/>
@@ -167,6 +211,87 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
         </xsl:if>
         <xsl:apply-templates/>
       </xsl:element>
+    </xsl:element>
+  </xsl:template>
+
+  <!-- Header rules -->
+  <xsl:template match="dc:title">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="text()"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:creator">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;by &quot;, text())"/>
+    </xsl:call-template>
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str">
+        <xsl:text/>
+      </xsl:with-param>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:date">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;Received &quot;, text())"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="dc:rights">
+    <xsl:call-template name="pcomment">
+      <xsl:with-param name="str" select="concat(&quot;Copyright &quot;, text())"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <!-- comment rules -->
+  <xsl:template match="Comment">
+    <xsl:element name="div">
+      <xsl:attribute name="class">
+        <xsl:text>comment</xsl:text>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="$colored=&quot;1&quot;">
+          <xsl:element name="font">
+            <xsl:attribute name="color">
+              <xsl:value-of select="$commentcolor"/>
+            </xsl:attribute>
+            <xsl:apply-templates/>
+          </xsl:element>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="CmtLine">
+    <xsl:value-of select="text()"/>
+    <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template match="CmtLink">
+    <xsl:text>:: </xsl:text>
+    <xsl:call-template name="add_wp_icon"/>
+    <xsl:text> </xsl:text>
+    <xsl:for-each select="*">
+      <xsl:copy>
+        <xsl:copy-of select="@*"/>
+        <xsl:copy-of select="text()"/>
+      </xsl:copy>
+    </xsl:for-each>
+    <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template name="add_wp_icon">
+    <xsl:element name="img">
+      <xsl:attribute name="src">
+        <xsl:value-of select="concat($ltptproot,&quot;WP.ico&quot;)"/>
+      </xsl:attribute>
+      <xsl:attribute name="alt">
+        <xsl:text>WP: </xsl:text>
+      </xsl:attribute>
     </xsl:element>
   </xsl:template>
 </xsl:stylesheet>

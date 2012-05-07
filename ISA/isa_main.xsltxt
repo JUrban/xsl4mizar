@@ -1,5 +1,7 @@
 
-stylesheet 1.0;
+stylesheet 1.0
+extension-element-prefixes = "dc";
+xmlns dc "http://purl.org/dc/elements/1.1/";
 
 // the import directive is useful because anything 
 // imported can be later overrriden - we'll use it for
@@ -55,13 +57,38 @@ output method=html;
 #rbracket_s = { ")"; }
 
 
-tpl add_hs_attrs { }
+tpl thm_header(#nr1)
+{
+    pkeyword(#str="let "); 
 
-tpl add_hs2_attrs { }
+    if [($proof_links > 0) and ($print_lab_identifiers = 0)]
+    { 
+       plab1(#nr=$nr1,#txt="Th"); 
+    }
+    else 
+    { 
+       for-each [Proposition[@nr > 0]] { pplab(#nr=`@nr`, #vid=`@vid`);  }
+    }
 
-tpl add_hsNdiv_attrs { }
+    " = thm `";
 
-tpl add_ajax_attrs(#u) { }
+    <a 
+    { 
+       @NAME = `concat("T", $nr1)`; 
+       pcomment0(#str = `concat($aname,":", $nr1)`); 
+       <br;
+    }
+}
+
+
+
+// tpl add_hs_attrs { }
+
+// tpl add_hs2_attrs { }
+
+// tpl add_hsNdiv_attrs { }
+
+// tpl add_ajax_attrs(#u) { }
 
 tpl [/] 
 { 
@@ -109,6 +136,16 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
        }
        else { $aname; }
      }
+     <script { @type="text/javascript";
+
+"
+<!-- 
+
+// for saving in rs
+var mizhtm='"; $mizhtml; "';"; 
+$mizjs1;
+       }
+
     <base { @target=$default_target; }}
     <body 
     {  
@@ -119,3 +156,31 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 }
 
 
+// Header rules
+tpl [dc:title] { pcomment(#str=`text()`); }
+tpl [dc:creator] { pcomment(#str=`concat("by ", text())`); pcomment(#str=""); }
+tpl [dc:date] { pcomment(#str=`concat("Received ", text())`); }
+tpl [dc:rights] { pcomment(#str=`concat("Copyright ", text())`); }
+
+// comment rules
+
+tpl [Comment] 
+{ 
+   <div { @class="comment";
+   	if [$colored="1"] {
+          <font {@color=$commentcolor; apply; }
+     	}
+     	else {  apply; }
+   }
+}
+tpl [CmtLine]  { `text()`; <br; }
+tpl [CmtLink]  { ":: "; add_wp_icon(); " "; for-each [*] { copy { copy-of `@*`; copy-of `text()`;}} <br; }
+
+tpl add_wp_icon
+{
+     <img
+     {
+       	       @src= `concat($ltptproot,"WP.ico")`;
+       	       @alt= "WP: ";
+     }
+}
