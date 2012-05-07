@@ -34,7 +34,7 @@
     <xsl:text> ~ </xsl:text>
   </xsl:param>
   <xsl:param name="and_s">
-    <xsl:text> / </xsl:text>
+    <xsl:text> /\ </xsl:text>
   </xsl:param>
   <xsl:param name="imp_s">
     <xsl:text> ==&gt; </xsl:text>
@@ -43,7 +43,7 @@
     <xsl:text> &lt;=&gt; </xsl:text>
   </xsl:param>
   <xsl:param name="or_s">
-    <xsl:text> / </xsl:text>
+    <xsl:text> \/ </xsl:text>
   </xsl:param>
   <xsl:param name="holds_s">
     <xsl:text> . </xsl:text>

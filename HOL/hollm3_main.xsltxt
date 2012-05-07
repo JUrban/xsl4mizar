@@ -37,10 +37,10 @@ output method=html;
 #ex_s = { " ? "; }
 #not_s = { " ~ "; }
 #non_s = { " ~ "; }
-#and_s = { " /\ "; }
-#imp_s = { " ==> "; }
-#equiv_s = { " <=> "; }
-#or_s = { " \/ "; }
+#and_s = { " /\\ "; }
+#imp_s = { " ==&gt; "; }
+#equiv_s = { " &lt;=&gt; "; }
+#or_s = { " \\/ "; }
 #holds_s = { " . "; }
 #being_s = { " : "; }
 #be_s = { " be "; }
