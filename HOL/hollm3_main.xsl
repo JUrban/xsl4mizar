@@ -22,28 +22,28 @@
   <!-- include mhtml_block_top.xsl;  // ##INCLUDE HERE -->
   <!-- the (very initial) HOL Light miz3 specific code: -->
   <xsl:param name="for_s">
-    <xsl:text> !; </xsl:text>
+    <xsl:text> ! </xsl:text>
   </xsl:param>
   <xsl:param name="ex_s">
-    <xsl:text> ?; </xsl:text>
+    <xsl:text> ? </xsl:text>
   </xsl:param>
   <xsl:param name="not_s">
-    <xsl:text> ~; </xsl:text>
+    <xsl:text> ~ </xsl:text>
   </xsl:param>
   <xsl:param name="non_s">
-    <xsl:text> ~; </xsl:text>
+    <xsl:text> ~ </xsl:text>
   </xsl:param>
   <xsl:param name="and_s">
-    <xsl:text> /; </xsl:text>
+    <xsl:text> / </xsl:text>
   </xsl:param>
   <xsl:param name="imp_s">
-    <xsl:text> ==&gt;; </xsl:text>
+    <xsl:text> ==&gt; </xsl:text>
   </xsl:param>
   <xsl:param name="equiv_s">
-    <xsl:text> &lt;=&gt;; </xsl:text>
+    <xsl:text> &lt;=&gt; </xsl:text>
   </xsl:param>
   <xsl:param name="or_s">
-    <xsl:text> /; </xsl:text>
+    <xsl:text> / </xsl:text>
   </xsl:param>
   <xsl:param name="holds_s">
     <xsl:text> . </xsl:text>
