@@ -144,8 +144,7 @@ tpl [Proposition]
     if [$proof_links>0] {<a { @NAME=propname(#n=`@propnr`, #pl=`@plevel`); }}
 
     // only print labels if not followed by simple justification
-    if [(@nr>0) and not(following-sibling::*[1][(name()="By") or (name()="From")])]
-    { proplabmiz3(); }
+    if [(@nr>0)] { proplabmiz3(); }
 }
 
 // more for by/from
@@ -159,17 +158,10 @@ tpl [By	](#nbr)
       linkbyif(#line = `@line`, #col = `@col`,#by = "by");
       <span { @class="lab"; if[@linked="true"] { "-"; }
               if[(count(Ref)>0)] { if[(@linked="true")] { ", "; } list(#separ = ", ", #elems = `Ref`); }} 
-
-      if [preceding-sibling::*[1][(name()="Proposition") and (@nr>0)]] 
-      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { " "; proplabmiz3(); } }
-
       ";";
    }
    else 
    { 
-      if [preceding-sibling::*[1][(name()="Proposition") and (@nr>0)]] 
-      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { " "; proplabmiz3(); } }
-
       if [$linkby>0] {  linkbyif(#line = `@line`, #col = `@col`,#by = ";"); }
       else { ";"; }
    }
@@ -177,31 +169,6 @@ tpl [By	](#nbr)
    if [not($nbr = "1")] { <br;  }
 }
 
-tpl [IterStep/By] { if [(count(Ref)>0)] { 
-      linkbyif(#line=`@line`,#col=`@col`,#by="by");
-      <span { @class="lab"; list(#separ=", ", #elems=`Ref`); } }}
-tpl [From](#nbr) 
-{ 
-    linkbyif(#line=`@line`,#col=`@col`,#by="from");
-    <span 
-    { 
-        @class="lab";
-        getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
-	list(#separ=", ", #elems=`Ref`); ")"; 
-    }
-
-    if [preceding-sibling::*[1][(name()="Proposition") and (@nr>0)]] 
-      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { " "; proplabmiz3(); } }
-
-    ";"; 
-    if [not($nbr="1")] { <br;  } 
-}
-tpl [IterStep/From] 
-{ 
-   linkbyif(#line=`@line`,#col=`@col`,#by="from");
-   <span { @class="lab"; getref(#k="S", #anr=`@articlenr`, #nr=`@nr`); "(";
-        list(#separ=", ", #elems=`Ref`); ")"; } 
-}
 
 
 
