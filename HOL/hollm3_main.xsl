@@ -220,6 +220,64 @@
     </xsl:if>
   </xsl:template>
 
+  <!-- more for by -->
+  <!-- if #nbr=1 then no <br; is put in the end -->
+  <!-- (used e.g. for conclusions, where definitional -->
+  <!-- expansions are handled on the same line) -->
+  <xsl:template match="By	">
+    <xsl:param name="nbr"/>
+    <xsl:choose>
+      <xsl:when test="(count(Ref)&gt;0) or (@linked=&quot;true&quot;)">
+        <xsl:call-template name="linkbyif">
+          <xsl:with-param name="line" select="@line"/>
+          <xsl:with-param name="col" select="@col"/>
+          <xsl:with-param name="by">
+            <xsl:text>by</xsl:text>
+          </xsl:with-param>
+        </xsl:call-template>
+        <xsl:element name="span">
+          <xsl:attribute name="class">
+            <xsl:text>lab</xsl:text>
+          </xsl:attribute>
+          <xsl:if test="@linked=&quot;true&quot;">
+            <xsl:text>-</xsl:text>
+          </xsl:if>
+          <xsl:if test="(count(Ref)&gt;0)">
+            <xsl:if test="(@linked=&quot;true&quot;)">
+              <xsl:text>, </xsl:text>
+            </xsl:if>
+            <xsl:call-template name="list">
+              <xsl:with-param name="separ">
+                <xsl:text>, </xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="elems" select="Ref"/>
+            </xsl:call-template>
+          </xsl:if>
+        </xsl:element>
+        <xsl:text>;</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="$linkby&gt;0">
+            <xsl:call-template name="linkbyif">
+              <xsl:with-param name="line" select="@line"/>
+              <xsl:with-param name="col" select="@col"/>
+              <xsl:with-param name="by">
+                <xsl:text>;</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:text>;</xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:if test="not($nbr = &quot;1&quot;)">
+      <xsl:element name="br"/>
+    </xsl:if>
+  </xsl:template>
+
   <!-- tpl add_hs_attrs { } -->
   <!-- tpl add_hs2_attrs { } -->
   <!-- tpl add_hsNdiv_attrs { } -->

@@ -142,6 +142,30 @@ tpl [Proposition]
     }
 }
 
+// more for by
+// if #nbr=1 then no <br; is put in the end 
+// (used e.g. for conclusions, where definitional 
+//  expansions are handled on the same line)
+tpl [By	](#nbr) 
+{ 
+   if [(count(Ref)>0) or (@linked="true")] 
+   { 
+      linkbyif(#line = `@line`, #col = `@col`,#by = "by");
+      <span { @class="lab"; if[@linked="true"] { "-"; }
+              if[(count(Ref)>0)] { if[(@linked="true")] { ", "; } list(#separ = ", ", #elems = `Ref`); }} 
+      ";"; 
+   }
+   else 
+   { 
+      if [$linkby>0] {  linkbyif(#line = `@line`, #col = `@col`,#by = ";"); }
+      else { ";"; }
+   }
+
+   if [not($nbr = "1")] { <br;  }
+}
+
+
+
 
 // tpl add_hs_attrs { }
 
