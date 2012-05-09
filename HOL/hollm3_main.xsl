@@ -220,7 +220,7 @@
       </xsl:element>
     </xsl:if>
     <!-- only print labels if not followed by simple justification -->
-    <xsl:if test="(@nr&gt;0) and not(following-sibling::*[1][(name()=&quot;By&quot;) or (name()=&quot;From&quot;)])">
+    <xsl:if test="(@nr&gt;0)">
       <xsl:call-template name="proplabmiz3"/>
     </xsl:if>
   </xsl:template>
@@ -259,21 +259,9 @@
             </xsl:call-template>
           </xsl:if>
         </xsl:element>
-        <xsl:if test="preceding-sibling::*[1][(name()=&quot;Proposition&quot;) and (@nr&gt;0)]">
-          <xsl:for-each select="preceding-sibling::*[1][(name()=&quot;Proposition&quot;)]">
-            <xsl:text> </xsl:text>
-            <xsl:call-template name="proplabmiz3"/>
-          </xsl:for-each>
-        </xsl:if>
         <xsl:text>;</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:if test="preceding-sibling::*[1][(name()=&quot;Proposition&quot;) and (@nr&gt;0)]">
-          <xsl:for-each select="preceding-sibling::*[1][(name()=&quot;Proposition&quot;)]">
-            <xsl:text> </xsl:text>
-            <xsl:call-template name="proplabmiz3"/>
-          </xsl:for-each>
-        </xsl:if>
         <xsl:choose>
           <xsl:when test="$linkby&gt;0">
             <xsl:call-template name="linkbyif">
@@ -293,100 +281,6 @@
     <xsl:if test="not($nbr = &quot;1&quot;)">
       <xsl:element name="br"/>
     </xsl:if>
-  </xsl:template>
-
-  <xsl:template match="IterStep/By">
-    <xsl:if test="(count(Ref)&gt;0)">
-      <xsl:call-template name="linkbyif">
-        <xsl:with-param name="line" select="@line"/>
-        <xsl:with-param name="col" select="@col"/>
-        <xsl:with-param name="by">
-          <xsl:text>by</xsl:text>
-        </xsl:with-param>
-      </xsl:call-template>
-      <xsl:element name="span">
-        <xsl:attribute name="class">
-          <xsl:text>lab</xsl:text>
-        </xsl:attribute>
-        <xsl:call-template name="list">
-          <xsl:with-param name="separ">
-            <xsl:text>, </xsl:text>
-          </xsl:with-param>
-          <xsl:with-param name="elems" select="Ref"/>
-        </xsl:call-template>
-      </xsl:element>
-    </xsl:if>
-  </xsl:template>
-
-  <xsl:template match="From">
-    <xsl:param name="nbr"/>
-    <xsl:call-template name="linkbyif">
-      <xsl:with-param name="line" select="@line"/>
-      <xsl:with-param name="col" select="@col"/>
-      <xsl:with-param name="by">
-        <xsl:text>from</xsl:text>
-      </xsl:with-param>
-    </xsl:call-template>
-    <xsl:element name="span">
-      <xsl:attribute name="class">
-        <xsl:text>lab</xsl:text>
-      </xsl:attribute>
-      <xsl:call-template name="getref">
-        <xsl:with-param name="k">
-          <xsl:text>S</xsl:text>
-        </xsl:with-param>
-        <xsl:with-param name="anr" select="@articlenr"/>
-        <xsl:with-param name="nr" select="@nr"/>
-      </xsl:call-template>
-      <xsl:text>(</xsl:text>
-      <xsl:call-template name="list">
-        <xsl:with-param name="separ">
-          <xsl:text>, </xsl:text>
-        </xsl:with-param>
-        <xsl:with-param name="elems" select="Ref"/>
-      </xsl:call-template>
-      <xsl:text>)</xsl:text>
-    </xsl:element>
-    <xsl:if test="preceding-sibling::*[1][(name()=&quot;Proposition&quot;) and (@nr&gt;0)]">
-      <xsl:for-each select="preceding-sibling::*[1][(name()=&quot;Proposition&quot;)]">
-        <xsl:text> </xsl:text>
-        <xsl:call-template name="proplabmiz3"/>
-      </xsl:for-each>
-    </xsl:if>
-    <xsl:text>;</xsl:text>
-    <xsl:if test="not($nbr=&quot;1&quot;)">
-      <xsl:element name="br"/>
-    </xsl:if>
-  </xsl:template>
-
-  <xsl:template match="IterStep/From">
-    <xsl:call-template name="linkbyif">
-      <xsl:with-param name="line" select="@line"/>
-      <xsl:with-param name="col" select="@col"/>
-      <xsl:with-param name="by">
-        <xsl:text>from</xsl:text>
-      </xsl:with-param>
-    </xsl:call-template>
-    <xsl:element name="span">
-      <xsl:attribute name="class">
-        <xsl:text>lab</xsl:text>
-      </xsl:attribute>
-      <xsl:call-template name="getref">
-        <xsl:with-param name="k">
-          <xsl:text>S</xsl:text>
-        </xsl:with-param>
-        <xsl:with-param name="anr" select="@articlenr"/>
-        <xsl:with-param name="nr" select="@nr"/>
-      </xsl:call-template>
-      <xsl:text>(</xsl:text>
-      <xsl:call-template name="list">
-        <xsl:with-param name="separ">
-          <xsl:text>, </xsl:text>
-        </xsl:with-param>
-        <xsl:with-param name="elems" select="Ref"/>
-      </xsl:call-template>
-      <xsl:text>)</xsl:text>
-    </xsl:element>
   </xsl:template>
 
   <!-- tpl add_hs_attrs { } -->
