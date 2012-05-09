@@ -91,6 +91,7 @@
     <xsl:text>end`;;</xsl:text>
   </xsl:param>
 
+  <!-- start a miz3 theorem -->
   <xsl:template name="thm_header">
     <xsl:param name="nr1"/>
     <xsl:call-template name="pkeyword">
@@ -116,7 +117,7 @@
         </xsl:for-each>
       </xsl:otherwise>
     </xsl:choose>
-    <xsl:text> = thm `</xsl:text>
+    <xsl:text> = thm `;</xsl:text>
     <xsl:element name="a">
       <xsl:attribute name="NAME">
         <xsl:value-of select="concat(&quot;T&quot;, $nr1)"/>
@@ -126,6 +127,97 @@
       </xsl:call-template>
       <xsl:element name="br"/>
     </xsl:element>
+  </xsl:template>
+
+  <!-- start a miz3 proposition -->
+  <xsl:template match="Proposition">
+    <!-- no then/hence in miz3, just use "by -" -->
+    <!-- if [following-sibling::*[1][(name()="By") and (@linked="true")]] -->
+    <!-- { -->
+    <!-- if [not((name(..) = "Consider") or (name(..) = "Reconsider") -->
+    <!-- or (name(..) = "Conclusion"))] -->
+    <!-- { -->
+    <!-- pkeyword(#str="then "); -->
+    <!-- } -->
+    <!-- } -->
+    <!-- ###TODO: include the possible link when generating items -->
+    <xsl:choose>
+      <xsl:when test="($generate_items&gt;0) and not(string-length(@plevel)&gt;0)">
+        <xsl:choose>
+          <xsl:when test="name(..) = &quot;SchemeBlock&quot;">
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:if test="not(name(..) = &quot;SchemePremises&quot;)">
+              <xsl:call-template name="pcomment">
+                <xsl:with-param name="str" select="concat($aname, &quot;:lemma &quot;, @propnr)"/>
+              </xsl:call-template>
+            </xsl:if>
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+            <xsl:if test="($generate_items_proofs&gt;0) and
+	      (following-sibling::*[1][(name()=&quot;By&quot;) or (name()=&quot;From&quot;) or (name()=&quot;Proof&quot;)])">
+              <xsl:apply-templates select="following-sibling::*[1]"/>
+            </xsl:if>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:when>
+      <!-- we can only say that this is a lemma if it is a toplevel proposition -->
+      <!-- nontoplevel could be assumptions, etc. - this is a ##TODO -->
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="not(string-length(@plevel)&gt;0)">
+            <xsl:element name="span">
+              <xsl:attribute name="about">
+                <xsl:value-of select="concat(&quot;#E&quot;,@propnr)"/>
+              </xsl:attribute>
+              <xsl:attribute name="typeof">
+                <xsl:text>oo:Lemma</xsl:text>
+              </xsl:attribute>
+              <xsl:apply-templates/>
+              <xsl:text> </xsl:text>
+            </xsl:element>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:apply-templates/>
+            <xsl:text> </xsl:text>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:if test="$proof_links&gt;0">
+      <xsl:element name="a">
+        <xsl:attribute name="NAME">
+          <xsl:call-template name="propname">
+            <xsl:with-param name="n" select="@propnr"/>
+            <xsl:with-param name="pl" select="@plevel"/>
+          </xsl:call-template>
+        </xsl:attribute>
+      </xsl:element>
+    </xsl:if>
+    <!-- only print labels if not followed by simple justification -->
+    <xsl:if test="(@nr&gt;0) and not(following-sibling::*[1][(name()=&quot;By&quot;) or (name()=&quot;From&quot;)])">
+      <xsl:text>[</xsl:text>
+      <xsl:choose>
+        <xsl:when test="($proof_links&gt;0) and ($print_lab_identifiers = 0) 
+            and not(string-length(@plevel)&gt;0)">
+          <xsl:call-template name="plab1">
+            <xsl:with-param name="nr" select="@nr"/>
+            <xsl:with-param name="txt">
+              <xsl:text>Lemma</xsl:text>
+            </xsl:with-param>
+          </xsl:call-template>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="pplab">
+            <xsl:with-param name="nr" select="@nr"/>
+            <xsl:with-param name="vid" select="@vid"/>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:text>] </xsl:text>
+    </xsl:if>
   </xsl:template>
 
   <!-- tpl add_hs_attrs { } -->

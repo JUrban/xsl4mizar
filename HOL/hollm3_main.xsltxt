@@ -57,6 +57,7 @@ output method=html;
 #rbracket_s = { ")"; }
 #top_proof_end = { "end`;;"; }
 
+// start a miz3 theorem
 tpl thm_header(#nr1)
 {
     pkeyword(#str="let "); 
@@ -70,7 +71,7 @@ tpl thm_header(#nr1)
        for-each [Proposition[@nr > 0]] { pplab(#nr=`@nr`, #vid=`@vid`);  }
     }
 
-    " = thm `";
+    " = thm `;";
 
     <a 
     { 
@@ -80,6 +81,66 @@ tpl thm_header(#nr1)
     }
 }
 
+
+// start a miz3 proposition
+tpl [Proposition] 
+{ 
+
+
+    // no then/hence in miz3, just use "by -"
+    // if [following-sibling::*[1][(name()="By") and (@linked="true")]] 
+    // { 
+    //    if [not((name(..) = "Consider") or (name(..) = "Reconsider") 
+    //        or (name(..) = "Conclusion"))] 
+    //    { 
+    //       pkeyword(#str="then "); 
+    //    }
+    // }
+
+
+    // ###TODO: include the possible link when generating items
+    if [($generate_items>0) and not(string-length(@plevel)>0)] 
+    { 
+       if [name(..) = "SchemeBlock"] { apply; " "; }
+       else
+       {
+         if [not(name(..) = "SchemePremises")]
+	 {
+	   pcomment(#str = `concat($aname, ":lemma ", @propnr)`);
+         }
+	 apply; " "; 
+	 if [($generate_items_proofs>0) and
+	      (following-sibling::*[1][(name()="By") or (name()="From") or (name()="Proof")])] 
+	 { 	 
+	   apply[`following-sibling::*[1]`]; 
+	 }
+       }
+    }
+
+    // we can only say that this is a lemma if it is a toplevel proposition
+    // nontoplevel could be assumptions, etc. - this is a ##TODO
+    else { if [not(string-length(@plevel)>0)] 
+    {
+       <span { @about=`concat("#E",@propnr)`; @typeof="oo:Lemma"; apply; " "; }
+    }
+    else { apply; " ";} 
+    }
+
+    if [$proof_links>0] {<a { @NAME=propname(#n=`@propnr`, #pl=`@plevel`); }}
+
+    // only print labels if not followed by simple justification
+    if [(@nr>0) and not(following-sibling::*[1][(name()="By") or (name()="From")])]
+    { 
+       "[";
+       if [($proof_links>0) and ($print_lab_identifiers = 0) 
+            and not(string-length(@plevel)>0)]
+       { 
+	  plab1(#nr=`@nr`,#txt="Lemma"); 
+       }
+       else { pplab(#nr=`@nr`, #vid = `@vid`); }
+       "] ";
+    }
+}
 
 
 // tpl add_hs_attrs { }
