@@ -161,14 +161,14 @@ tpl [By	](#nbr)
               if[(count(Ref)>0)] { if[(@linked="true")] { ", "; } list(#separ = ", ", #elems = `Ref`); }} 
 
       if [preceding-sibling::*[1][(name()="Proposition") and (@nr>0)]] 
-      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { proplabmiz3(); } }
+      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { " "; proplabmiz3(); } }
 
       ";";
    }
    else 
    { 
       if [preceding-sibling::*[1][(name()="Proposition") and (@nr>0)]] 
-      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { proplabmiz3(); } }
+      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { " "; proplabmiz3(); } }
 
       if [$linkby>0] {  linkbyif(#line = `@line`, #col = `@col`,#by = ";"); }
       else { ";"; }
@@ -191,7 +191,7 @@ tpl [From](#nbr)
     }
 
     if [preceding-sibling::*[1][(name()="Proposition") and (@nr>0)]] 
-      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { proplabmiz3(); } }
+      { for-each [preceding-sibling::*[1][(name()="Proposition")]] { " "; proplabmiz3(); } }
 
     ";"; 
     if [not($nbr="1")] { <br;  } 

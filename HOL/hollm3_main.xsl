@@ -261,6 +261,7 @@
         </xsl:element>
         <xsl:if test="preceding-sibling::*[1][(name()=&quot;Proposition&quot;) and (@nr&gt;0)]">
           <xsl:for-each select="preceding-sibling::*[1][(name()=&quot;Proposition&quot;)]">
+            <xsl:text> </xsl:text>
             <xsl:call-template name="proplabmiz3"/>
           </xsl:for-each>
         </xsl:if>
@@ -269,6 +270,7 @@
       <xsl:otherwise>
         <xsl:if test="preceding-sibling::*[1][(name()=&quot;Proposition&quot;) and (@nr&gt;0)]">
           <xsl:for-each select="preceding-sibling::*[1][(name()=&quot;Proposition&quot;)]">
+            <xsl:text> </xsl:text>
             <xsl:call-template name="proplabmiz3"/>
           </xsl:for-each>
         </xsl:if>
@@ -347,6 +349,7 @@
     </xsl:element>
     <xsl:if test="preceding-sibling::*[1][(name()=&quot;Proposition&quot;) and (@nr&gt;0)]">
       <xsl:for-each select="preceding-sibling::*[1][(name()=&quot;Proposition&quot;)]">
+        <xsl:text> </xsl:text>
         <xsl:call-template name="proplabmiz3"/>
       </xsl:for-each>
     </xsl:if>
