@@ -976,7 +976,7 @@
           <xsl:when test="(@kind=&quot;M&quot;) or (@kind=&quot;L&quot;)">
             <xsl:variable name="radix">
               <xsl:choose>
-                <xsl:when test="(@aid = &quot;HIDDEN&quot;) and (@kind=&quot;M&quot;) and (@nr=&quot;1&quot;)">
+                <xsl:when test="(@aid = &quot;HIDDEN&quot;) and (@kind=&quot;M&quot;) and ((@nr=&quot;1&quot;) or (@nr=&quot;2&quot;))">
                   <xsl:text>0</xsl:text>
                 </xsl:when>
                 <xsl:otherwise>

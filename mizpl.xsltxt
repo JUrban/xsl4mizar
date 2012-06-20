@@ -331,7 +331,7 @@ tpl [Fraenkel](#i,#pl) {
 tpl [Typ](#i,#pl) { 
       if [@kind='errortyp'] { "errortyp"; }
       else { if [(@kind="M") or (@kind="L")] {
-        $radix = { if [(@aid = "HIDDEN") and (@kind="M") and (@nr="1")]
+        $radix = { if [(@aid = "HIDDEN") and (@kind="M") and ((@nr="1") or (@nr="2"))]
                          { "0"; } else { "1"; } }
         $adjectives = { `count(*[1]/*)`; }
         if [($adjectives + $radix) = 0] { "$true"; }
