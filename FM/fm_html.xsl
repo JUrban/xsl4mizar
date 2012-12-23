@@ -883,103 +883,84 @@
     <xsl:param name="i"/>
     <xsl:param name="not"/>
     <xsl:param name="pr"/>
-    <xsl:choose>
-      <xsl:when test="@kind=&apos;P&apos;">
-        <xsl:call-template name="pschpvar">
-          <xsl:with-param name="nr" select="@nr"/>
-        </xsl:call-template>
-        <xsl:text>[</xsl:text>
-        <xsl:call-template name="ilist">
-          <xsl:with-param name="separ">
-            <xsl:text>,</xsl:text>
-          </xsl:with-param>
-          <xsl:with-param name="elems" select="*"/>
-          <xsl:with-param name="i" select="$i"/>
-        </xsl:call-template>
-        <xsl:text>]</xsl:text>
-      </xsl:when>
-      <xsl:when test="(@kind=&apos;V&apos;) or (@kind=&apos;R&apos;)">
-        <xsl:variable name="pi">
-          <xsl:call-template name="patt_info">
-            <xsl:with-param name="k" select="@kind"/>
-            <xsl:with-param name="nr" select="@nr"/>
-            <xsl:with-param name="pid" select="@pid"/>
-          </xsl:call-template>
-        </xsl:variable>
-        <xsl:variable name="fnr">
-          <xsl:call-template name="car">
-            <xsl:with-param name="l" select="$pi"/>
-          </xsl:call-template>
-        </xsl:variable>
-        <xsl:variable name="antonym">
-          <xsl:call-template name="cadr">
-            <xsl:with-param name="l" select="$pi"/>
-          </xsl:call-template>
-        </xsl:variable>
-        <xsl:variable name="plink">
-          <xsl:call-template name="third">
-            <xsl:with-param name="l" select="$pi"/>
-          </xsl:call-template>
-        </xsl:variable>
-        <xsl:variable name="pid">
-          <xsl:choose>
-            <xsl:when test="$plink=&quot;1&quot;">
-              <xsl:value-of select="@pid"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:text>0</xsl:text>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
-        <xsl:variable name="predattr">
-          <xsl:choose>
-            <xsl:when test="$antonym&gt;1">
-              <xsl:text>1</xsl:text>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:text>0</xsl:text>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
-        <xsl:variable name="neg">
-          <xsl:choose>
-            <xsl:when test="$not=&quot;1&quot;">
-              <xsl:value-of select="($antonym + $not) mod 2"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="$antonym mod 2"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:variable>
-        <xsl:if test="$neg=&quot;1&quot;">
-          <xsl:copy-of select="$not_s"/>
-        </xsl:if>
-        <xsl:choose>
-          <xsl:when test="(@kind=&apos;V&apos;) and ($predattr=&quot;0&quot;)">
-            <xsl:apply-templates select="*[position() = last()]">
-              <xsl:with-param name="i" select="$i"/>
-            </xsl:apply-templates>
-            <xsl:copy-of select="$is_s"/>
-            <xsl:call-template name="pp">
+    <xsl:element name="Pred">
+      <xsl:copy-of select="@*"/>
+      <xsl:choose>
+        <xsl:when test="@kind=&apos;P&apos;">
+          <xsl:apply-templates>
+            <xsl:with-param name="p" select="$p"/>
+            <xsl:with-param name="i" select="$i"/>
+          </xsl:apply-templates>
+        </xsl:when>
+        <xsl:when test="(@kind=&apos;V&apos;) or (@kind=&apos;R&apos;)">
+          <xsl:variable name="pi">
+            <xsl:call-template name="patt_info">
               <xsl:with-param name="k" select="@kind"/>
               <xsl:with-param name="nr" select="@nr"/>
-              <xsl:with-param name="args" select="*[position() &lt; last()]"/>
               <xsl:with-param name="pid" select="@pid"/>
-              <xsl:with-param name="i" select="$i"/>
             </xsl:call-template>
-          </xsl:when>
-          <xsl:otherwise>
-            <xsl:call-template name="pp">
-              <xsl:with-param name="k" select="@kind"/>
-              <xsl:with-param name="nr" select="@nr"/>
-              <xsl:with-param name="args" select="*"/>
-              <xsl:with-param name="pid" select="@pid"/>
-              <xsl:with-param name="i" select="$i"/>
+          </xsl:variable>
+          <xsl:variable name="fnr">
+            <xsl:call-template name="car">
+              <xsl:with-param name="l" select="$pi"/>
             </xsl:call-template>
-          </xsl:otherwise>
-        </xsl:choose>
-      </xsl:when>
-    </xsl:choose>
+          </xsl:variable>
+          <xsl:variable name="antonym">
+            <xsl:call-template name="cadr">
+              <xsl:with-param name="l" select="$pi"/>
+            </xsl:call-template>
+          </xsl:variable>
+          <xsl:variable name="plink">
+            <xsl:call-template name="third">
+              <xsl:with-param name="l" select="$pi"/>
+            </xsl:call-template>
+          </xsl:variable>
+          <xsl:variable name="pid">
+            <xsl:choose>
+              <xsl:when test="$plink=&quot;1&quot;">
+                <xsl:value-of select="@pid"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>0</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
+          <xsl:variable name="predattr">
+            <xsl:choose>
+              <xsl:when test="$antonym&gt;1">
+                <xsl:text>1</xsl:text>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>0</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
+          <xsl:variable name="neg">
+            <xsl:choose>
+              <xsl:when test="$not=&quot;1&quot;">
+                <xsl:value-of select="($antonym + $not) mod 2"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="$antonym mod 2"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
+          <xsl:if test="$neg=&quot;1&quot;">
+            <xsl:copy-of select="$not_s"/>
+          </xsl:if>
+          <xsl:attribute name="formatnr">
+            <xsl:value-of select="$fnr"/>
+          </xsl:attribute>
+          <xsl:attribute name="neg">
+            <xsl:value-of select="$neg"/>
+          </xsl:attribute>
+          <xsl:apply-templates>
+            <xsl:with-param name="i" select="$i"/>
+            <xsl:with-param name="pr" select="$pr"/>
+          </xsl:apply-templates>
+        </xsl:when>
+      </xsl:choose>
+    </xsl:element>
   </xsl:template>
 
   <!-- ,#sym1=abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`))); }} -->
@@ -988,90 +969,83 @@
     <xsl:param name="i"/>
     <xsl:param name="pr"/>
     <xsl:param name="not"/>
-    <xsl:if test="$not=&quot;1&quot;">
-      <xsl:copy-of select="$not_s"/>
-    </xsl:if>
-    <xsl:call-template name="pppred">
-      <xsl:with-param name="nr" select="@nr"/>
-    </xsl:call-template>
-    <xsl:text>[</xsl:text>
-    <xsl:call-template name="ilist">
-      <xsl:with-param name="separ">
-        <xsl:text>,</xsl:text>
-      </xsl:with-param>
-      <xsl:with-param name="elems" select="*[position() &lt; last()]"/>
-      <xsl:with-param name="i" select="$i"/>
-    </xsl:call-template>
-    <xsl:text>]</xsl:text>
+    <xsl:element name="PrivPred">
+      <xsl:copy-of select="@*"/>
+      <xsl:if test="$not=&quot;1&quot;">
+        <xsl:attribute name="neg">
+          <xsl:value-of select="$neg"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates>
+        <xsl:with-param name="i" select="$i"/>
+        <xsl:with-param name="pr" select="$pr"/>
+      </xsl:apply-templates>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="Is">
     <xsl:param name="i"/>
     <xsl:param name="pr"/>
     <xsl:param name="not"/>
-    <xsl:apply-templates select="*[1]">
-      <xsl:with-param name="i" select="$i"/>
-    </xsl:apply-templates>
-    <xsl:copy-of select="$is_s"/>
-    <xsl:if test="$not=&quot;1&quot;">
-      <xsl:copy-of select="$not_s"/>
-    </xsl:if>
-    <xsl:apply-templates select="*[2]">
-      <xsl:with-param name="i" select="$i"/>
-    </xsl:apply-templates>
+    <xsl:element name="Is">
+      <xsl:copy-of select="@*"/>
+      <xsl:if test="$not=&quot;1&quot;">
+        <xsl:attribute name="neg">
+          <xsl:value-of select="$neg"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates>
+        <xsl:with-param name="i" select="$i"/>
+        <xsl:with-param name="pr" select="$pr"/>
+      </xsl:apply-templates>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="Verum">
     <xsl:param name="i"/>
     <xsl:param name="pr"/>
     <xsl:param name="not"/>
-    <xsl:choose>
-      <xsl:when test="$not=&quot;1&quot;">
-        <xsl:text>contradiction</xsl:text>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:text>verum</xsl:text>
-      </xsl:otherwise>
-    </xsl:choose>
+    <xsl:element name="Verum">
+      <xsl:copy-of select="@*"/>
+      <xsl:if test="$not=&quot;1&quot;">
+        <xsl:attribute name="neg">
+          <xsl:value-of select="$neg"/>
+        </xsl:attribute>
+      </xsl:if>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="ErrorFrm">
     <xsl:param name="i"/>
     <xsl:param name="pr"/>
     <xsl:param name="not"/>
-    <xsl:if test="$not=&quot;1&quot;">
-      <xsl:copy-of select="$not_s"/>
-    </xsl:if>
-    <xsl:text>errorfrm</xsl:text>
+    <xsl:element name="ErrorFrm">
+      <xsl:copy-of select="@*"/>
+      <xsl:if test="$not=&quot;1&quot;">
+        <xsl:attribute name="neg">
+          <xsl:value-of select="$neg"/>
+        </xsl:attribute>
+      </xsl:if>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="FlexFrm">
     <xsl:param name="i"/>
     <xsl:param name="pr"/>
     <xsl:param name="not"/>
-    <xsl:variable name="conn">
-      <xsl:choose>
-        <xsl:when test="$not=&quot;1&quot;">
-          <xsl:value-of select="$or_s"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="$and_s"/>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-    <xsl:apply-templates select="*[1]">
-      <xsl:with-param name="i" select="$i"/>
-      <xsl:with-param name="pr" select="$pr"/>
-      <xsl:with-param name="not" select="$not"/>
-    </xsl:apply-templates>
-    <xsl:value-of select="$conn"/>
-    <xsl:copy-of select="$dots_s"/>
-    <xsl:value-of select="$conn"/>
-    <xsl:apply-templates select="*[2]">
-      <xsl:with-param name="i" select="$i"/>
-      <xsl:with-param name="pr" select="$pr"/>
-      <xsl:with-param name="not" select="$not"/>
-    </xsl:apply-templates>
+    <xsl:element name="FlexFrm">
+      <xsl:copy-of select="@*"/>
+      <xsl:if test="$not=&quot;1&quot;">
+        <xsl:attribute name="neg">
+          <xsl:value-of select="$neg"/>
+        </xsl:attribute>
+      </xsl:if>
+      <xsl:apply-templates>
+        <xsl:with-param name="pr" select="$pr"/>
+        <xsl:with-param name="i" select="$i"/>
+        <xsl:with-param name="not" select="$not"/>
+      </xsl:apply-templates>
+    </xsl:element>
   </xsl:template>
 
   <!-- Terms -->

@@ -246,15 +246,13 @@ tpl [And](#i,#pr) { $e1= is_equiv(#el=`.`);
     else { copy-of $lbracket_s; " "; // if[not(@pid)] { " NOPID ";} 
            ilist(#separ=$and_s, #elems=`*`, #i=$i,#pr="1"); " "; copy-of $rbracket_s; }}}
 
+
 tpl [Pred](#i,#not,#pr) 
 {
+<Pred {  copy-of `@*`; 
     choose 
     {
-      when [@kind='P'] 
-      { 
-         pschpvar(#nr=`@nr`); 
-	 "["; ilist(#separ=",", #elems=`*`, #i = $i); "]";
-      }
+      when [@kind='P']       { apply(#p=$p,#i=$i); }
       when [(@kind='V') or (@kind='R')]  
       { 
 	   $pi = { patt_info(#k=`@kind`, #nr=`@nr`, #pid =`@pid`); }
@@ -266,33 +264,30 @@ tpl [Pred](#i,#not,#pr)
 	   $neg = { if [$not="1"] { `($antonym + $not) mod 2`; }
 		    else { `$antonym mod 2`; }}
            if [$neg="1"] { copy-of $not_s;}
-           if [(@kind='V') and ($predattr="0")] 
-       	   {
-	       apply[*[position() = last()]](#i = $i); copy-of $is_s;  
-	       pp(#k=`@kind`,#nr=`@nr`,#args=`*[position() < last()]`,#pid=`@pid`,#i=$i);
-	       // abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`, #fnr=$fnr, #pid=$pid)); 
-           }
-           else { pp(#k=`@kind`,#nr=`@nr`,#args=`*`,#pid=`@pid`,#i=$i); }
+
+	   @formatnr = $fnr;
+	   @neg = $neg;
+	   apply(#i=$i,#pr=$pr);
       } 
     }
-}
+}}
 //,#sym1=abs(#k=`@kind`, #nr=`@nr`, #sym=abs1(#k=`@kind`, #nr=`@nr`))); }}
 //  "[ "; list(#separ=",", #elems=`*`); "]"; }
 
 
-tpl [PrivPred](#i,#pr,#not) { if [$not="1"] { copy-of $not_s; } pppred(#nr=`@nr`); "["; 
-    ilist(#separ=",", #elems=`*[position() < last()]`, #i = $i); "]"; }
-tpl [Is](#i,#pr,#not) { apply[*[1]](#i = $i); copy-of $is_s; if [$not="1"] { copy-of $not_s; } apply[*[2]](#i = $i); } 
-tpl [Verum](#i,#pr,#not) { if [$not="1"] { "contradiction"; } else { "verum";} }
-tpl [ErrorFrm](#i,#pr,#not) { if [$not="1"] { copy-of $not_s; } "errorfrm"; }
+tpl [PrivPred](#i,#pr,#not) { <PrivPred {  copy-of `@*`; if [$not="1"] { @neg = $neg; }
+apply(#i=$i,#pr=$pr);}}
+tpl [Is](#i,#pr,#not) { <Is {  copy-of `@*`; if [$not="1"] { @neg = $neg; }
+	   apply(#i=$i,#pr=$pr);
+}}
+tpl [Verum](#i,#pr,#not) { <Verum {  copy-of `@*`; if [$not="1"] { @neg = $neg; }}}
+tpl [ErrorFrm](#i,#pr,#not) { <ErrorFrm {  copy-of `@*`; if [$not="1"] { @neg = $neg; }}}
 
 tpl [FlexFrm](#i,#pr,#not)
 { 
-   $conn = { if [$not="1"] { $or_s; } else { $and_s; } }
-   apply[*[1]](#i = $i, #pr = $pr, #not = $not); 
-   $conn; copy-of $dots_s; $conn; 
-   apply[*[2]](#i = $i, #pr = $pr, #not = $not);
-} 
+  <FlexFrm {  copy-of `@*`; if [$not="1"] { @neg = $neg; }
+  apply(#pr=$pr,#i=$i,#not = $not);   
+}}
 
 // Terms
 // #p is the parenthesis count
