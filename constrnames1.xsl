@@ -140,7 +140,7 @@
                   <xsl:for-each select="key($dkey,$snr)">
                     <xsl:value-of select="@name"/>
                     <xsl:if test="($sk=&apos;K&apos;)">
-                      <xsl:text>..</xsl:text>
+                      <xsl:text> </xsl:text>
                       <xsl:for-each select="key(&apos;D_L&apos;,$rsnr)">
                         <xsl:value-of select="@name"/>
                       </xsl:for-each>
@@ -156,10 +156,10 @@
                       <xsl:text>=</xsl:text>
                     </xsl:when>
                     <xsl:when test="($snr=&apos;1&apos;) and ($sk=&apos;K&apos;)">
-                      <xsl:text>[..]</xsl:text>
+                      <xsl:text>[ ]</xsl:text>
                     </xsl:when>
                     <xsl:when test="($snr=&apos;2&apos;) and ($sk=&apos;K&apos;)">
-                      <xsl:text>{..}</xsl:text>
+                      <xsl:text>{ }</xsl:text>
                     </xsl:when>
                     <xsl:otherwise>
                       <xsl:value-of select="concat($k,$nr,&quot;ERRORERROR&quot;)"/>

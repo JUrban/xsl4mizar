@@ -88,12 +88,12 @@ tpl abs1(#k,#nr,#fnr1) {
          for-each [document($vocs,/)] {
           if [key($dkey,$snr)] {
 	   for-each [key($dkey,$snr)] { `@name`;
-		    if [($sk='K')] { "..";
+		    if [($sk='K')] { " ";
 		       for-each [key('D_L',$rsnr)] { `@name`; } }} } 
           else { choose { 
            when [($snr='1') and ($sk='M')] { "set"; }
            when [($snr='1') and ($sk='R')] { "="; }
-           when [($snr='1') and ($sk='K')] { "[..]";}  
-           when [($snr='2') and ($sk='K')] { "{..}";}
+           when [($snr='1') and ($sk='K')] { "[ ]";}  
+           when [($snr='2') and ($sk='K')] { "{ }";}
 	  otherwise { `concat($k,$nr,"ERRORERROR")`; } } } } } } } }
 
