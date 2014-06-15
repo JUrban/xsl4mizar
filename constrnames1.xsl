@@ -51,7 +51,7 @@
   </xsl:param>
 
   <xsl:template match="/">
-    <xsl:apply-templates select="/Article/Pattern"/>
+    <xsl:apply-templates select="//Pattern"/>
   </xsl:template>
 
   <xsl:template match="Pattern">

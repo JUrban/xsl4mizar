@@ -49,7 +49,7 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // .dcx file with vocabulary
 #vocs=  { `concat($anamelc, '.dcx')`; }
 
-tpl [/] { apply[/Article/Pattern]; }
+tpl [/] { apply[//Pattern]; }
 
 tpl [Pattern] { 
     // avoids expandable modes
