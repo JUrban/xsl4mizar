@@ -1,0 +1,94 @@
+stylesheet 1.0;
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
+// producing the pretty-printing names for constructor
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL constrnames.xsltxt >constrnames.xsl
+
+// Than run e.g. this way:
+// xsltproc constrnames.xsl xboole_0.xml > xboole_0.nam
+
+output method=text;
+
+strip-space "*";
+
+// keys for fast constructor lookup
+key "M" [Constructor[@kind='M']] `@relnr` ;
+key "L" [Constructor[@kind='L']] `@relnr` ;
+key "V" [Constructor[@kind='V']] `@relnr` ;
+key "R" [Constructor[@kind='R']] `@relnr` ;
+key "K" [Constructor[@kind='K']] `@relnr` ;
+key "U" [Constructor[@kind='U']] `@relnr` ;
+key "G" [Constructor[@kind='G']] `@relnr` ;
+
+key "F" [Format] `@nr`;
+
+key "D_G" [Symbol[@kind='G']] `@nr`;
+key "D_K" [Symbol[@kind='K']] `@nr`;
+key "D_J" [Symbol[@kind='J']] `@nr`;
+key "D_L" [Symbol[@kind='L']] `@nr`;
+key "D_M" [Symbol[@kind='M']] `@nr`;
+key "D_O" [Symbol[@kind='O']] `@nr`;
+key "D_R" [Symbol[@kind='R']] `@nr`;
+key "D_U" [Symbol[@kind='U']] `@nr`;
+key "D_V" [Symbol[@kind='V']] `@nr`;
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+// name of current article (upper case)
+#aname= { `string(/*/@aid)`; }
+
+// name of current article (lower case)
+#anamelc= { `translate($aname, $ucletters, $lcletters)`; }
+
+// .frx file with all (both imported and article's) formats
+#formats=  { `concat($anamelc, '.frx')`; }
+
+// .dcx file with vocabulary
+#vocs=  { `concat($anamelc, '.dcx')`; }
+
+tpl [/] { apply[/Article/Pattern]; }
+
+tpl [Pattern] { 
+    // avoids expandable modes
+    if [(@constrnr>0)] {
+    // checks that the constructor is from this article
+    if [key(@constrkind,@constrnr)] {
+    // ignores other than first notation
+       $k1 = `@constrkind`; $nr1= `@constrnr`; 
+    if [not(preceding-sibling::Pattern[(@constrnr=$nr1) and (@constrkind=$k1)])]
+    {
+ 
+     for-each [key(@constrkind,@constrnr)] { 
+      `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
+     " ";
+     abs1(#k=`@constrkind`, #nr=`@constrnr`, #fnr1=`@formatnr`); "\n";
+}}}}
+
+// return first symbol corresponding to constructor;
+// if nothing found, just concat #k and #nr; #r says to look for
+// right bracket instead of left or fail if the format is not bracket
+tpl abs1(#k,#nr,#fnr1) {
+//DEBUG    "abs1:"; $k; ":"; $fnr; ":";
+   for-each [document($formats,/)] {
+     if [not(key('F',$fnr1))] { `concat($k,$nr,"ERRORERROR")`; }
+     else {
+       for-each [key('F',$fnr1)] {
+          $snr=`@symbolnr`; $sk1=`@kind`; 
+	  $sk = { if [$sk1="L"] { "G";} else { $sk1; } }
+	  $dkey=`concat('D_',$sk)`;
+          $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } } 
+         for-each [document($vocs,/)] {
+          if [key($dkey,$snr)] {
+	   for-each [key($dkey,$snr)] { `@name`;
+		    if [($sk='K')] { "..";
+		       for-each [key('D_L',$rsnr)] { `@name`; } }} } 
+          else { choose { 
+           when [($snr='1') and ($sk='M')] { "set"; }
+           when [($snr='1') and ($sk='R')] { "="; }
+           when [($snr='1') and ($sk='K')] { "[..]";}  
+           when [($snr='2') and ($sk='K')] { "{..}";}
+	  otherwise { `concat($k,$nr,"ERRORERROR")`; } } } } } } } }
+
