@@ -4,10 +4,10 @@ stylesheet 1.0;
 // producing the pretty-printing names for constructor
 
 // To produce standard XSLT from this do e.g.: 
-// java -jar xsltxt.jar toXSL constrnames.xsltxt >constrnames.xsl
+// java -jar xsltxt.jar toXSL constrnames1.xsltxt >constrnames1.xsl
 
 // Than run e.g. this way:
-// xsltproc constrnames.xsl xboole_0.xml > xboole_0.nam
+// xsltproc constrnames1.xsl xboole_0.xml > xboole_0.nam
 
 output method=text;
 
@@ -79,7 +79,12 @@ tpl abs1(#k,#nr,#fnr1) {
           $snr=`@symbolnr`; $sk1=`@kind`; 
 	  $sk = { if [$sk1="L"] { "G";} else { $sk1; } }
 	  $dkey=`concat('D_',$sk)`;
-          $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } } 
+          $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } }
+	  if [($sk='K')] { `@argnr`; "circumfix ";}
+	  else
+	  {
+	  if[@leftargnr] {`@leftargnr`; ":"; `@argnr -  @leftargnr`; " "; } else {"0"; ":"; `@argnr`; " "; }   
+	  }
          for-each [document($vocs,/)] {
           if [key($dkey,$snr)] {
 	   for-each [key($dkey,$snr)] { `@name`;
