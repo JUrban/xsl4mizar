@@ -115,7 +115,7 @@
             <xsl:choose>
               <xsl:when test="($sk=&apos;K&apos;)">
                 <xsl:value-of select="@argnr"/>
-                <xsl:text>circumfix </xsl:text>
+                <xsl:text>:circumfix </xsl:text>
               </xsl:when>
               <xsl:otherwise>
                 <xsl:choose>

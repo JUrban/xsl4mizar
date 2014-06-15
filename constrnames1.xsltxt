@@ -80,7 +80,7 @@ tpl abs1(#k,#nr,#fnr1) {
 	  $sk = { if [$sk1="L"] { "G";} else { $sk1; } }
 	  $dkey=`concat('D_',$sk)`;
           $rsnr= { if [$sk='K'] { `@rightsymbolnr`; } }
-	  if [($sk='K')] { `@argnr`; "circumfix ";}
+	  if [($sk='K')] { `@argnr`; ":circumfix ";}
 	  else
 	  {
 	  if[@leftargnr] {`@leftargnr`; ":"; `@argnr -  @leftargnr`; " "; } else {"0"; ":"; `@argnr`; " "; }   
