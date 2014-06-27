@@ -1479,7 +1479,7 @@ tpl symmetry(#el,#arg1,#arg2,#anti)
 }
 
 tpl [Symmetry](#el,#arg1,#arg2) { symmetry(#el=$el,#arg1=$arg1,#arg2=$arg2); } 
-tpl [Antisymmetry](#el,#arg1,#arg2) { 
+tpl [Antisymmetry|Asymmetry](#el,#arg1,#arg2) { 
     symmetry(#el=$el,#arg1=$arg1,#arg2=$arg2,#anti="1"); } 
 
 tpl reflexivity(#el,#arg1,#arg2,#anti) 

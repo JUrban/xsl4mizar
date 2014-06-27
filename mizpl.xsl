@@ -3583,7 +3583,7 @@
     </xsl:call-template>
   </xsl:template>
 
-  <xsl:template match="Antisymmetry">
+  <xsl:template match="Antisymmetry|Asymmetry">
     <xsl:param name="el"/>
     <xsl:param name="arg1"/>
     <xsl:param name="arg2"/>
