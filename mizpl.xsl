@@ -1928,6 +1928,22 @@
 </xsl:text>
         </xsl:if>
       </xsl:for-each>
+      <xsl:for-each select="//SchemeBlock">
+        <xsl:if test="@vid&gt;0">
+          <xsl:variable name="sname" select="concat(&apos;s&apos;,@schemenr,&apos;_&apos;,$anamelc)"/>
+          <xsl:variable name="nm">
+            <xsl:call-template name="get_vid_name">
+              <xsl:with-param name="vid" select="@vid"/>
+            </xsl:call-template>
+          </xsl:variable>
+          <xsl:text>propname(</xsl:text>
+          <xsl:value-of select="$sname"/>
+          <xsl:text>,&apos;</xsl:text>
+          <xsl:value-of select="$nm"/>
+          <xsl:text>&apos;).
+</xsl:text>
+        </xsl:if>
+      </xsl:for-each>
       </xsl:document> 
       <xsl:variable name="bogus" select="1"/>
     </xsl:if>
