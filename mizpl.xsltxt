@@ -836,6 +836,16 @@ tpl dumproptable()
        "propname("; $pname; ",'"; $nm; "').\n";
     }
    }
+
+   for-each [//SchemeBlock]
+   {
+     if [@vid>0] 
+     {
+       $sname = `concat('s',@schemenr,'_',$anamelc)`;
+       $nm = { get_vid_name(#vid = `@vid`); }
+       "propname("; $sname; ",'"; $nm; "').\n";
+     }
+   }
 // </xsl:document>
        $bogus=`1`;
  }
