@@ -973,6 +973,9 @@ tpl [IdentifyRegistration] { apply; }
 
 tpl [ReductionRegistration] { apply; }
 
+tpl [PropertyRegistration] { apply; }
+
+
 //   ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition
 tpl [RegistrationBlock] 
 {

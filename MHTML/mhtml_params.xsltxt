@@ -223,6 +223,9 @@ $lbydlicgipref= { `concat($lbydlicgi,"?url=",$lbydliurl)`; }
 // include comment info from .cmt file
 #mk_comments =  { "0"; }
 
+// include environ info from .evl file
+#mk_environ =  { "0"; }	     
+
 // Suppress the header and trailer of the final document. 
 // Thus, you can insert the resulting document into a larger one.
 #body_only = { "0"; }
@@ -277,7 +280,10 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 // .cmt file with comments info (done by MizComments.pl)
 #cmt=  { `concat($anamelc, '.cmt')`; }
 
+// .evl file with environ info
+#evl =  { `concat($anamelc, '.evl')`; }
 
+       
 #varcolor = { "Olive"; }
 
 #constcolor = { "Maroon"; }

@@ -134,6 +134,7 @@ $mizjs1;
         }
 
 	if[$mk_header > 0] { apply[document($hdr,/)/Header/*]; <br; }
+	if[$mk_environ > 0] { pkeyword(#str="environ "); <br;  <br; apply[document($evl,/)/Environ/*]; <br; }
 
 // first read the keys for imported stuff
 //          apply[document($constrs,/)/Constructors/Constructor]; 
@@ -147,6 +148,7 @@ $mizjs1;
      else 
      {
        if[$mk_header > 0] { apply[document($hdr,/)/Header/*]; <br; }
+       	if[$mk_environ > 0] { pkeyword(#str="environ "); <br; <br;  apply[document($evl,/)/Environ/*]; <br; }
        apply;
      }
   }
@@ -161,6 +163,9 @@ tpl [dc:creator] { pcomment(#str=`concat("by ", text())`); pcomment(#str=""); }
 tpl [dc:date] { pcomment(#str=`concat("Received ", text())`); }
 tpl [dc:rights] { pcomment(#str=`concat("Copyright ", text())`); }
 
+tpl [Directive] { pkeyword(#str=`@name`); " "; list(#separ=", ", #elems=`Ident`); ";"; <br; }
+tpl [Ident] { aidref(#aid=`@name`);}
+    
 // comment rules
 
 tpl [Comment] 

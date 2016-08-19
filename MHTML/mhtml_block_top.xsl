@@ -1660,6 +1660,10 @@
     <xsl:apply-templates/>
   </xsl:template>
 
+  <xsl:template match="PropertyRegistration">
+    <xsl:apply-templates/>
+  </xsl:template>
+
   <!-- ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition -->
   <xsl:template match="RegistrationBlock">
     <xsl:call-template name="add_comments">

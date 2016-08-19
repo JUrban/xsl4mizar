@@ -287,6 +287,10 @@
   <xsl:param name="mk_comments">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- include environ info from .evl file -->
+  <xsl:param name="mk_environ">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- Suppress the header and trailer of the final document. -->
   <!-- Thus, you can insert the resulting document into a larger one. -->
   <xsl:param name="body_only">
@@ -373,6 +377,10 @@
   <!-- .cmt file with comments info (done by MizComments.pl) -->
   <xsl:param name="cmt">
     <xsl:value-of select="concat($anamelc, &apos;.cmt&apos;)"/>
+  </xsl:param>
+  <!-- .evl file with environ info -->
+  <xsl:param name="evl">
+    <xsl:value-of select="concat($anamelc, &apos;.evl&apos;)"/>
   </xsl:param>
   <xsl:param name="varcolor">
     <xsl:text>Olive</xsl:text>

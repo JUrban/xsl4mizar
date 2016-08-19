@@ -180,6 +180,17 @@ var mizhtm=&apos;</xsl:text>
                   <xsl:apply-templates select="document($hdr,/)/Header/*"/>
                   <xsl:element name="br"/>
                 </xsl:if>
+                <xsl:if test="$mk_environ &gt; 0">
+                  <xsl:call-template name="pkeyword">
+                    <xsl:with-param name="str">
+                      <xsl:text>environ </xsl:text>
+                    </xsl:with-param>
+                  </xsl:call-template>
+                  <xsl:element name="br"/>
+                  <xsl:element name="br"/>
+                  <xsl:apply-templates select="document($evl,/)/Environ/*"/>
+                  <xsl:element name="br"/>
+                </xsl:if>
                 <!-- first read the keys for imported stuff -->
                 <!-- apply[document($constrs,/)/Constructors/Constructor]; -->
                 <!-- apply[document($thms,/)/Theorems/Theorem]; -->
@@ -193,6 +204,17 @@ var mizhtm=&apos;</xsl:text>
           <xsl:otherwise>
             <xsl:if test="$mk_header &gt; 0">
               <xsl:apply-templates select="document($hdr,/)/Header/*"/>
+              <xsl:element name="br"/>
+            </xsl:if>
+            <xsl:if test="$mk_environ &gt; 0">
+              <xsl:call-template name="pkeyword">
+                <xsl:with-param name="str">
+                  <xsl:text>environ </xsl:text>
+                </xsl:with-param>
+              </xsl:call-template>
+              <xsl:element name="br"/>
+              <xsl:element name="br"/>
+              <xsl:apply-templates select="document($evl,/)/Environ/*"/>
               <xsl:element name="br"/>
             </xsl:if>
             <xsl:apply-templates/>
@@ -231,6 +253,27 @@ var mizhtm=&apos;</xsl:text>
   <xsl:template match="dc:rights">
     <xsl:call-template name="pcomment">
       <xsl:with-param name="str" select="concat(&quot;Copyright &quot;, text())"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="Directive">
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str" select="@name"/>
+    </xsl:call-template>
+    <xsl:text> </xsl:text>
+    <xsl:call-template name="list">
+      <xsl:with-param name="separ">
+        <xsl:text>, </xsl:text>
+      </xsl:with-param>
+      <xsl:with-param name="elems" select="Ident"/>
+    </xsl:call-template>
+    <xsl:text>;</xsl:text>
+    <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template match="Ident">
+    <xsl:call-template name="aidref">
+      <xsl:with-param name="aid" select="@name"/>
     </xsl:call-template>
   </xsl:template>
 

@@ -14,6 +14,40 @@ include mhtml_utils.xsl;
 // License: GPL (GNU GENERAL PUBLIC LICENSE)
 
 
+// article references
+// add the reference's href, $c tells if it is from current article
+// $nm passes the explicit text to be displayed
+tpl aidref(#aid) 
+{
+  $alc =  { lc(#s = $aid); }
+  <a {
+      @class = "ref";
+
+      if [($linking = 'q') or (($linking = 'm') and not($c))] 
+      {
+        @href = `concat($mmlq,$aid)`;
+      }
+      else 
+      {
+        @href =	
+	{
+           if[($aid = $aname) and (($linking = 'm') or ($linking = 'l'))]
+	   {
+	      "#";
+	   }
+	   else { `concat($mizhtml,$alc, ".",$ext)`; }
+	}
+
+        if [$aid = $aname] 
+	{
+          @target = "_self";
+        }
+      }
+
+      $aid;
+ }
+}
+   
 // ##TODO: try some unification of mkref and absref
 //
 // theorem, definition and scheme references

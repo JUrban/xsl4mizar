@@ -319,6 +319,10 @@
   <xsl:param name="mk_comments">
     <xsl:text>0</xsl:text>
   </xsl:param>
+  <!-- include environ info from .evl file -->
+  <xsl:param name="mk_environ">
+    <xsl:text>0</xsl:text>
+  </xsl:param>
   <!-- Suppress the header and trailer of the final document. -->
   <!-- Thus, you can insert the resulting document into a larger one. -->
   <xsl:param name="body_only">
@@ -405,6 +409,10 @@
   <!-- .cmt file with comments info (done by MizComments.pl) -->
   <xsl:param name="cmt">
     <xsl:value-of select="concat($anamelc, &apos;.cmt&apos;)"/>
+  </xsl:param>
+  <!-- .evl file with environ info -->
+  <xsl:param name="evl">
+    <xsl:value-of select="concat($anamelc, &apos;.evl&apos;)"/>
   </xsl:param>
   <xsl:param name="varcolor">
     <xsl:text>Olive</xsl:text>
@@ -4432,6 +4440,48 @@ function rh() { tooltip.hide(); }
   <!-- Author: Josef Urban -->
   <!--  -->
   <!-- License: GPL (GNU GENERAL PUBLIC LICENSE) -->
+  <!-- article references -->
+  <!-- add the reference's href, $c tells if it is from current article -->
+  <!-- $nm passes the explicit text to be displayed -->
+  <xsl:template name="aidref">
+    <xsl:param name="aid"/>
+    <xsl:variable name="alc">
+      <xsl:call-template name="lc">
+        <xsl:with-param name="s" select="$aid"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:element name="a">
+      <xsl:attribute name="class">
+        <xsl:text>ref</xsl:text>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="($linking = &apos;q&apos;) or (($linking = &apos;m&apos;) and not($c))">
+          <xsl:attribute name="href">
+            <xsl:value-of select="concat($mmlq,$aid)"/>
+          </xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:attribute name="href">
+            <xsl:choose>
+              <xsl:when test="($aid = $aname) and (($linking = &apos;m&apos;) or ($linking = &apos;l&apos;))">
+                <xsl:text>#</xsl:text>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="concat($mizhtml,$alc, &quot;.&quot;,$ext)"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:attribute>
+          <xsl:if test="$aid = $aname">
+            <xsl:attribute name="target">
+              <xsl:text>_self</xsl:text>
+            </xsl:attribute>
+          </xsl:if>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:value-of select="$aid"/>
+    </xsl:element>
+  </xsl:template>
+
   <!-- ##TODO: try some unification of mkref and absref -->
   <!--  -->
   <!-- theorem, definition and scheme references -->
@@ -8240,6 +8290,10 @@ function rh() { tooltip.hide(); }
     <xsl:apply-templates/>
   </xsl:template>
 
+  <xsl:template match="PropertyRegistration">
+    <xsl:apply-templates/>
+  </xsl:template>
+
   <!-- ( elLet | AuxiliaryItem | elRegistration | elCanceled )+, elEndPosition -->
   <xsl:template match="RegistrationBlock">
     <xsl:call-template name="add_comments">
@@ -9243,6 +9297,17 @@ var mizhtm=&apos;</xsl:text>
                   <xsl:apply-templates select="document($hdr,/)/Header/*"/>
                   <xsl:element name="br"/>
                 </xsl:if>
+                <xsl:if test="$mk_environ &gt; 0">
+                  <xsl:call-template name="pkeyword">
+                    <xsl:with-param name="str">
+                      <xsl:text>environ </xsl:text>
+                    </xsl:with-param>
+                  </xsl:call-template>
+                  <xsl:element name="br"/>
+                  <xsl:element name="br"/>
+                  <xsl:apply-templates select="document($evl,/)/Environ/*"/>
+                  <xsl:element name="br"/>
+                </xsl:if>
                 <!-- first read the keys for imported stuff -->
                 <!-- apply[document($constrs,/)/Constructors/Constructor]; -->
                 <!-- apply[document($thms,/)/Theorems/Theorem]; -->
@@ -9256,6 +9321,17 @@ var mizhtm=&apos;</xsl:text>
           <xsl:otherwise>
             <xsl:if test="$mk_header &gt; 0">
               <xsl:apply-templates select="document($hdr,/)/Header/*"/>
+              <xsl:element name="br"/>
+            </xsl:if>
+            <xsl:if test="$mk_environ &gt; 0">
+              <xsl:call-template name="pkeyword">
+                <xsl:with-param name="str">
+                  <xsl:text>environ </xsl:text>
+                </xsl:with-param>
+              </xsl:call-template>
+              <xsl:element name="br"/>
+              <xsl:element name="br"/>
+              <xsl:apply-templates select="document($evl,/)/Environ/*"/>
               <xsl:element name="br"/>
             </xsl:if>
             <xsl:apply-templates/>
@@ -9294,6 +9370,27 @@ var mizhtm=&apos;</xsl:text>
   <xsl:template match="dc:rights">
     <xsl:call-template name="pcomment">
       <xsl:with-param name="str" select="concat(&quot;Copyright &quot;, text())"/>
+    </xsl:call-template>
+  </xsl:template>
+
+  <xsl:template match="Directive">
+    <xsl:call-template name="pkeyword">
+      <xsl:with-param name="str" select="@name"/>
+    </xsl:call-template>
+    <xsl:text> </xsl:text>
+    <xsl:call-template name="list">
+      <xsl:with-param name="separ">
+        <xsl:text>, </xsl:text>
+      </xsl:with-param>
+      <xsl:with-param name="elems" select="Ident"/>
+    </xsl:call-template>
+    <xsl:text>;</xsl:text>
+    <xsl:element name="br"/>
+  </xsl:template>
+
+  <xsl:template match="Ident">
+    <xsl:call-template name="aidref">
+      <xsl:with-param name="aid" select="@name"/>
     </xsl:call-template>
   </xsl:template>
 

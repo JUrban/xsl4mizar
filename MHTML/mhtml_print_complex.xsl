@@ -11,6 +11,48 @@
   <!-- Author: Josef Urban -->
   <!--  -->
   <!-- License: GPL (GNU GENERAL PUBLIC LICENSE) -->
+  <!-- article references -->
+  <!-- add the reference's href, $c tells if it is from current article -->
+  <!-- $nm passes the explicit text to be displayed -->
+  <xsl:template name="aidref">
+    <xsl:param name="aid"/>
+    <xsl:variable name="alc">
+      <xsl:call-template name="lc">
+        <xsl:with-param name="s" select="$aid"/>
+      </xsl:call-template>
+    </xsl:variable>
+    <xsl:element name="a">
+      <xsl:attribute name="class">
+        <xsl:text>ref</xsl:text>
+      </xsl:attribute>
+      <xsl:choose>
+        <xsl:when test="($linking = &apos;q&apos;) or (($linking = &apos;m&apos;) and not($c))">
+          <xsl:attribute name="href">
+            <xsl:value-of select="concat($mmlq,$aid)"/>
+          </xsl:attribute>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:attribute name="href">
+            <xsl:choose>
+              <xsl:when test="($aid = $aname) and (($linking = &apos;m&apos;) or ($linking = &apos;l&apos;))">
+                <xsl:text>#</xsl:text>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:value-of select="concat($mizhtml,$alc, &quot;.&quot;,$ext)"/>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:attribute>
+          <xsl:if test="$aid = $aname">
+            <xsl:attribute name="target">
+              <xsl:text>_self</xsl:text>
+            </xsl:attribute>
+          </xsl:if>
+        </xsl:otherwise>
+      </xsl:choose>
+      <xsl:value-of select="$aid"/>
+    </xsl:element>
+  </xsl:template>
+
   <!-- ##TODO: try some unification of mkref and absref -->
   <!--  -->
   <!-- theorem, definition and scheme references -->
