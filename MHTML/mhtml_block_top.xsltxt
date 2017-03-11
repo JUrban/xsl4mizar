@@ -292,6 +292,14 @@ tpl add_comments(#line)
          apply[.];
        } 
     }
+    $prevline1 = `$line - 2`;
+    for-each [document($cmt,/)]
+    {
+       for-each [key('CMT',$prevline1)]
+       {
+         apply[.];
+       } 
+    }
   }
 }
 

@@ -516,6 +516,12 @@
           <xsl:apply-templates select="."/>
         </xsl:for-each>
       </xsl:for-each>
+      <xsl:variable name="prevline1" select="$line - 2"/>
+      <xsl:for-each select="document($cmt,/)">
+        <xsl:for-each select="key(&apos;CMT&apos;,$prevline1)">
+          <xsl:apply-templates select="."/>
+        </xsl:for-each>
+      </xsl:for-each>
     </xsl:if>
   </xsl:template>
 

@@ -471,7 +471,7 @@
     <xsl:param name="str"/>
     <xsl:element name="div">
       <xsl:attribute name="class">
-        <xsl:text>comment</xsl:text>
+        <xsl:text>comment mathjax</xsl:text>
       </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">

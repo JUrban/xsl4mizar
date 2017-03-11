@@ -1236,7 +1236,7 @@ function rh() { tooltip.hide(); }
     <xsl:param name="str"/>
     <xsl:element name="div">
       <xsl:attribute name="class">
-        <xsl:text>comment</xsl:text>
+        <xsl:text>comment mathjax</xsl:text>
       </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">
@@ -7146,6 +7146,12 @@ function rh() { tooltip.hide(); }
           <xsl:apply-templates select="."/>
         </xsl:for-each>
       </xsl:for-each>
+      <xsl:variable name="prevline1" select="$line - 2"/>
+      <xsl:for-each select="document($cmt,/)">
+        <xsl:for-each select="key(&apos;CMT&apos;,$prevline1)">
+          <xsl:apply-templates select="."/>
+        </xsl:for-each>
+      </xsl:for-each>
     </xsl:if>
   </xsl:template>
 
@@ -9235,8 +9241,38 @@ var mizhtm=&apos;</xsl:text>
                   <xsl:text>&apos;;</xsl:text>
                   <xsl:value-of select="$mizjs1"/>
                 </xsl:element>
+                <xsl:element name="script">
+                  <xsl:attribute name="type">
+                    <xsl:text>text/x-mathjax-config</xsl:text>
+                  </xsl:attribute>
+                  <xsl:text>
+  MathJax.Hub.Config({                                                                                                                            
+    extensions: [&apos;tex2jax.js&apos;],                                                                                                                   
+    jax: [&apos;input/TeX&apos;, &apos;output/HTML-CSS&apos;],                                                                                                        
+    tex2jax: {                                                                                                                                    
+      inlineMath: [ [&apos;$&apos;,&apos;$&apos;], [&apos;\(&apos;,&apos;\)&apos;] ],                                                                                                   
+      displayMath: [ [&apos;$$&apos;,&apos;$$&apos;], [&apos;\[&apos;,&apos;\]&apos;] ],                                                                                                
+  processClass: &apos;mathjax&apos;,                                                                                                                        
+  ignoreClass: &apos;no-mathjax&apos;,                                                                                                                      
+      processEscapes: true,                                                                                                                       
+    },                                                                                                                                            
+    &apos;HTML-CSS&apos;: {   scale: 80, availableFonts: [&apos;TeX&apos;] }                                                                                          
+  });
+</xsl:text>
+                </xsl:element>
+                <xsl:element name="script">
+                  <xsl:attribute name="type">
+                    <xsl:text>text/javascript</xsl:text>
+                  </xsl:attribute>
+                  <xsl:attribute name="src">
+                    <xsl:text>https://cdn.mathjax.org/mathjax/latest/MathJax.js</xsl:text>
+                  </xsl:attribute>
+                </xsl:element>
               </xsl:element>
               <xsl:element name="body">
+                <xsl:attribute name="class">
+                  <xsl:text>no-mathjax</xsl:text>
+                </xsl:attribute>
                 <xsl:if test="$wiki_links=1">
                   <xsl:element name="div">
                     <xsl:attribute name="class">
@@ -9398,7 +9434,7 @@ var mizhtm=&apos;</xsl:text>
   <xsl:template match="Comment">
     <xsl:element name="div">
       <xsl:attribute name="class">
-        <xsl:text>comment</xsl:text>
+        <xsl:text>comment mathjax</xsl:text>
       </xsl:attribute>
       <xsl:choose>
         <xsl:when test="$colored=&quot;1&quot;">

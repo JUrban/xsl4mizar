@@ -194,7 +194,7 @@ tpl pcomment(#str) { pcomment0(#str=$str); <br;}
 // this assumes comments with :: already
 tpl pcommentedblock(#str) 
 { 
-   <div { @class="comment"; 
+   <div { @class="comment mathjax"; 
      if [$colored="1"] {
         <font {@color=$commentcolor; br(#text=$str);}
      }

@@ -836,7 +836,7 @@ tpl pcomment(#str) { pcomment0(#str=$str); <br;}
 // this assumes comments with :: already
 tpl pcommentedblock(#str) 
 { 
-   <div { @class="comment"; 
+   <div { @class="comment mathjax"; 
      if [$colored="1"] {
         <font {@color=$commentcolor; br(#text=$str);}
      }
@@ -3501,6 +3501,14 @@ tpl add_comments(#line)
          apply[.];
        } 
     }
+    $prevline1 = `$line - 2`;
+    for-each [document($cmt,/)]
+    {
+       for-each [key('CMT',$prevline1)]
+       {
+         apply[.];
+       } 
+    }
   }
 }
 
@@ -4675,8 +4683,29 @@ span.p0:hover { color : inherit; background-color : #FFBAFF; }
 var mizhtm='"; $mizhtml; "';"; 
 $mizjs1;
   }
+
+<script { @type="text/x-mathjax-config";
+"
+  MathJax.Hub.Config({                                                                                                                            
+    extensions: ['tex2jax.js'],                                                                                                                   
+    jax: ['input/TeX', 'output/HTML-CSS'],                                                                                                        
+    tex2jax: {                                                                                                                                    
+      inlineMath: [ ['$','$'], ['\\(','\\)'] ],                                                                                                   
+      displayMath: [ ['$$','$$'], ['\\[','\\]'] ],                                                                                                
+  processClass: 'mathjax',                                                                                                                        
+  ignoreClass: 'no-mathjax',                                                                                                                      
+      processEscapes: true,                                                                                                                       
+    },                                                                                                                                            
+    'HTML-CSS': {   scale: 80, availableFonts: ['TeX'] }                                                                                          
+  });
+";
 }
-        <body {  
+<script { @type="text/javascript";
+   @src="https://cdn.mathjax.org/mathjax/latest/MathJax.js";
+}
+  
+}
+        <body {  @class="no-mathjax";
 
 	if[$wiki_links=1]
 	{
@@ -4733,7 +4762,7 @@ tpl [Ident] { aidref(#aid=`@name`);}
 
 tpl [Comment] 
 { 
-   <div { @class="comment";
+   <div { @class="comment mathjax";
    	if [$colored="1"] {
           <font {@color=$commentcolor; apply; }
      	}
