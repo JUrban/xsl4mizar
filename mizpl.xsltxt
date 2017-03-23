@@ -45,6 +45,9 @@ strip-space "*";
 // loading the .idx file and by the lookups
 #dump_prop_labels = { "0"; }
 
+// semantic patterns for all symbols - untested for normal MPTP
+#sem_patterns_all =  { "0"; }
+
 // symbols, take care, the spaces are sometimes (e.g. for '~')
 // needed for correct Prolog parsing
 #not_s = { "~ "; }
@@ -96,16 +99,35 @@ key "pp" [DefPred] `concat(@nr,":",@plevel)` ;
 // used only if $dump_prop_labels = 1
 key "D_I" [Symbol[@kind='I']] `@nr`;
 
+// patterns are slightly tricky, since a predicate pattern
+// may be linked to an attribute constructor; hence the
+// indexing is done according to @constrkind and not @kind
+// TODO: the attribute<->predicate change should propagate to usage
+//       of "is"
+// Expandable modes have all @constrkind='M' and @constrnr=0,
+// they are indexed separately only on their @relnr (@pid)
+key "P_M" [Pattern[(@constrkind='M') and (@constrnr>0)]] `@constrnr` ;
+key "P_L" [Pattern[@constrkind='L']] `@constrnr` ;
+key "P_V" [Pattern[@constrkind='V']] `@constrnr` ;
+key "P_R" [Pattern[@constrkind='R']] `@constrnr` ;
+key "P_K" [Pattern[@constrkind='K']] `@constrnr` ;
+key "P_U" [Pattern[@constrkind='U']] `@constrnr` ;
+key "P_G" [Pattern[@constrkind='G']] `@constrnr` ;
+key "EXP" [Pattern[(@constrkind='M') and (@constrnr=0)]] `@relnr` ;
+
 // name of current article (upper case)
 #aname= { `string(/*/@aid)`; }
 
 // name of current article (lower case)
 #anamelc= { lc(#s=$aname); }
 
+// .eno file with imported patterns
+#patts=  { `concat($anamelc, '.eno')`; }
+	  
 // .idx file with identifier names
 // used only if $dump_prop_labels = 1
 #ids=  { `concat($anamelc, '.idx')`; }
-
+       
 // private - look up the name of id
 tpl get_vid_name(#vid)
 {
@@ -1283,6 +1305,89 @@ tpl [SchemeFuncDecl]
     "functor,position(0,0),[scheme,type,"; $sname; "])]).\n"; 
 }
 
+// "M" | "L" | "V" | "R" | "K" | "U" | "G"
+// ###TODO: add the inference, do the properties
+tpl [Pattern] 
+{ 
+    $lkind = { lc(#s=`@kind`); }
+    $pn = { "n"; absc1(#el=`.`); }
+    // absolute name of the redefined pattern
+    $redefname =  { if [@redefnr>0] {
+       $rn = `@redefnr`;
+       $cn = `@constrnr`;
+       $pkey = `concat('P_',@constrkind)`;
+       $doc     = { if [key($pkey,$cn)[$rn=@relnr]] { ""; } else { $patts; } }
+       for-each [document($doc,/)] 
+       { if [key($pkey,$cn)[$rn=@relnr]] {
+	    for-each [key($pkey,$cn)[$rn=@relnr]] {"n"; absc1(#el=`.`); }}
+	    else {"pattfail:"; $rn; ":"; $cn; ":"; $pkey; ":"; $doc; ":";}
+	    }
+    } else {"0";} }
+    // do not do this for expandable modes
+    if[($sem_patterns_all = "1") and not (@kind = 'J')]
+    {
+      "fof(dt_";  $pn; ","; $derived_lemma; ",";
+      apply[ArgTypes];
+      $l0 = `count(ArgTypes/Typ)`;
+      $l = `1 + $l0`;
+    if [(@kind='K') or 
+        (@kind='U') or (@kind='G')] 
+    {
+      "("; $pn;         if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } $eq_s;
+      if [@redefnr>0] { $redefname; if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
+      else { absc2(#el=`.`); if [$l0 > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; } }
+      ")";
+    }    
+    if [(@kind='R')]
+    {
+      "("; $pn; if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } $equiv_s;
+      if [@antonymic] {"("; $not_s;}
+      if [@redefnr>0] { $redefname; if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
+      else {
+      absc2(#el=`.`); if [$l0 > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; } }
+      if [@antonymic] {")"; }
+      ")";
+    }    
+    if[(@kind='M') or (@kind='L')] 
+    {
+        "!["; ploci(#nr=$l); " : "; "$true"; "]: ("; 
+        $srt_s; "("; ploci(#nr=$l); ","; $pn; 
+        if [$l > 1] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } ")";
+	$equiv_s;
+	$srt_s; "(";
+	ploci(#nr=$l); ",";
+	if[(@constrnr > 0)] {
+	  if [@antonymic] {"("; $not_s;}
+	  absc2(#el=`.`); 
+          if [$l > 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+	  if [@antonymic] {")"; }
+	}
+	else { apply[Expansion/Typ]; }
+	 "))";
+     }
+    if[(@kind='V')] 
+    {    
+	"("; $srt_s; "("; ploci(#nr=$l0); ","; $pn;
+	$v1 = `count(Visible/Int)`;
+        if [$v1 > 1] { "("; visiblelist(#separ=",",#elems=`Visible/Int[position() < last()]`); ")"; } ")";
+	$equiv_s;
+	$srt_s; "(";
+	ploci(#nr=$l0); ",";
+	  if [@antonymic] {"("; $not_s;}
+	  if [@redefnr>0] { $redefname; if [$v1 > 1] { "("; visiblelist(#separ=",",#elems=`Visible/Int[position() < last()]`); ")"; } }
+	  else {
+	  absc2(#el=`.`); 
+          if [$l0 > 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < last()]`); ")"; } }
+	  if [@antonymic] {")"; }
+	 "))";
+     }     
+      ",file("; lc(#s=`@aid`); ",";
+      $pn; "),[mptp_info("; `@nr`; ",[],"; "n"; $lkind; 
+      ",position(0,0),[pattern_def])]).\n"; 
+    }
+}
+
+	
 
 // "M" | "L" | "V" | "R" | "K" | "U" | "G"
 // ###TODO: add the inference, do the properties
@@ -1919,6 +2024,11 @@ tpl absc1(#el) { for-each [$el] {
     if [@aid and @nr] { lc(#s=`concat(@kind,@nr,'_',@aid)`); }
     else { lc(#s=`@kind`); `@nr`;  $fail; } } }
 
+// for patterns
+tpl absc2(#el) { for-each [$el] {
+    if [@constraid and @absconstrnr] { lc(#s=`concat(@constrkind,@absconstrnr,'_',@constraid)`); }
+    else { lc(#s=`@constrkind`); `@constrnr`;  $fail; } } }
+
 // absolute reference names (use $fail for debugging absnrs)
 // also used for From to get the scheme name
 tpl absr(#el) { for-each [$el] {
@@ -1952,6 +2062,14 @@ tpl arglist(#separ,#elems,#s) {
   if [not(position()=last())] { $separ; } }
 }
 
+// visible argument list
+tpl visiblelist(#separ,#elems) {
+for-each [$elems] { 
+   $x=`@x`;
+   ploci(#nr=$x); 
+   if [not(position()=last())] { $separ; } }    
+}
+	
 // add numbers starting at #j+1 between #sep1 and #sep2 - now with constants
 tpl jlist(#j,#sep1,#sep2,#elems) { 
 for-each [$elems] {
@@ -2160,7 +2278,7 @@ tpl [ByExplanations](#i,#pl) { for-each [Typ] { if[position() = 2] { "non"; } "z
  ").\n"; }}
 
 
-tpl [/] { if [$mml="0"] { apply[//Constructor|//Proposition[not(name(..)="Reconsider")]|//Now|//IterEquality|
+tpl [/] { if [$mml="0"] { apply[//Pattern|//Constructor|//Proposition[not(name(..)="Reconsider")]|//Now|//IterEquality|
 	     //Let|//Given|//TakeAsVar|//Consider|//Set|
 	     //Reconsider|//SchemeFuncDecl|//SchemeBlock|
 	     //CCluster|//FCluster|//RCluster|//Reduction|//IdentifyWithExp|//Identify|//Thesis|//PerCasesReasoning|/ByExplanations]; 
