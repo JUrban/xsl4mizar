@@ -1358,8 +1358,11 @@ tpl [Pattern]
 	ploci(#nr=$l); ",";
 	if[(@constrnr > 0)] {
 	  if [@antonymic] {"("; $not_s;}
-	  absc2(#el=`.`); 
-          if [$l > 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+	  if [@redefnr>0] { $redefname; if [$l > 1] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
+	  else {
+	    absc2(#el=`.`); 
+            if [$l > 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+	  }
 	  if [@antonymic] {")"; }
 	}
 	else { apply[Expansion/Typ]; }
