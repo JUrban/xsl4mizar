@@ -1355,7 +1355,7 @@ tpl [Pattern]
       "fof(dt_";  $pn; ","; $derived_lemma; ",";
       apply[ArgTypes];
       $l0 = `count(ArgTypes/Typ)`;
-      $s = `$constrargnr - $l0`;
+      $s = `$l0 - $constrargnr`;
       $l = `1 + $l0`;
     if [(@kind='K') or 
         (@kind='U') or (@kind='G')] 
