@@ -73,8 +73,18 @@ tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
 tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
 
 // this is for lookup of selectors for Abstractness property
-key "G" [Constructor[@kind='G']] `@nr` ;
+key "G1" [Constructor[@kind='G']] `@nr` ;
 
+// keys for fast constructor and reference lookup
+key "M" [Constructor[@kind='M']] `@relnr` ;
+key "L" [Constructor[@kind='L']] `@relnr` ;
+key "V" [Constructor[@kind='V']] `@relnr` ;
+key "R" [Constructor[@kind='R']] `@relnr` ;
+key "K" [Constructor[@kind='K']] `@relnr` ;
+key "U" [Constructor[@kind='U']] `@relnr` ;
+key "G" [Constructor[@kind='G']] `@relnr` ;
+
+    
 // lookup for local constants
 key "C" [Let|Given|TakeAsVar|Consider|Set|Reconsider] `@plevel` ;
 
@@ -120,6 +130,9 @@ key "EXP" [Pattern[(@constrkind='M') and (@constrnr=0)]] `@relnr` ;
 
 // name of current article (lower case)
 #anamelc= { lc(#s=$aname); }
+
+// .atr file with imported constructors - needed for semantic patterns only
+#constrs=  { `concat($anamelc, '.atr')`; }
 
 // .eno file with imported patterns
 #patts=  { `concat($anamelc, '.eno')`; }
@@ -1311,6 +1324,19 @@ tpl [Pattern]
 { 
     $lkind = { lc(#s=`@kind`); }
     $pn = { "n"; absc1(#el=`.`); }
+
+  $constrargnr =  { if [@redefnr>0] {
+       $rn = `@redefnr`;
+       $cn = `@constrnr`;
+       $ck = `@constrkind`;
+       $doc     = { if [key($ck,$cn)] { ""; } else { $constrs; } }
+       for-each [document($doc,/)] 
+       { if [key($ck,$cn)] {
+	    for-each [key($ck,$cn)] { `count(ArgTypes/Typ)`; }}
+	    else {"pattfail:"; $rn; ":"; $cn; ":"; $ck; ":"; $doc; ":";}
+	    }
+    } else { `count(ArgTypes/Typ)`; } }
+      
     // absolute name of the redefined pattern
     $redefname =  { if [@redefnr>0] {
        $rn = `@redefnr`;
@@ -1329,22 +1355,27 @@ tpl [Pattern]
       "fof(dt_";  $pn; ","; $derived_lemma; ",";
       apply[ArgTypes];
       $l0 = `count(ArgTypes/Typ)`;
+      $s = `$constrargnr - $l0`;
       $l = `1 + $l0`;
     if [(@kind='K') or 
         (@kind='U') or (@kind='G')] 
     {
       "("; $pn;         if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } $eq_s;
-      if [@redefnr>0] { $redefname; if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
-      else { absc2(#el=`.`); if [$l0 > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; } }
+//      if [@redefnr>0] { $redefname; if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
+//      else { absc2(#el=`.`); if [$l0 > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; } }
+
+      absc2(#el=`.`);	 if [$l0 > $s] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() > $s]`,#s=$s); ")";}
+      
       ")";
     }    
     if [(@kind='R')]
     {
       "("; $pn; if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } $equiv_s;
       if [@antonymic] {"("; $not_s;}
-      if [@redefnr>0] { $redefname; if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
-      else {
-      absc2(#el=`.`); if [$l0 > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; } }
+//      if [@redefnr>0] { $redefname; if [$l0 > 0] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
+//      else {
+//      absc2(#el=`.`); if [$l0 > 0] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; } }
+        absc2(#el=`.`);	 if [$l0 > $s] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() > $s]`,#s=$s); ")";}
       if [@antonymic] {")"; }
       ")";
     }    
@@ -1358,11 +1389,12 @@ tpl [Pattern]
 	ploci(#nr=$l); ",";
 	if[(@constrnr > 0)] {
 	  if [@antonymic] {"("; $not_s;}
-	  if [@redefnr>0] { $redefname; if [$l > 1] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
-	  else {
-	    absc2(#el=`.`); 
-            if [$l > 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
-	  }
+	  // if [@redefnr>0] { $redefname; if [$l > 1] { "("; visiblelist(#separ=",",#elems=`Visible/Int`); ")"; } }
+	  // else {
+	  //  absc2(#el=`.`); 
+          //  if [$l > 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ`); ")"; }
+	  // }
+	  absc2(#el=`.`);	 if [$l0 > $s] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() > $s]`,#s=$s); ")";}
 	  if [@antonymic] {")"; }
 	}
 	else { apply[Expansion/Typ]; }
@@ -1377,10 +1409,11 @@ tpl [Pattern]
 	$srt_s; "(";
 	ploci(#nr=$l0); ",";
 	  if [@antonymic] {"("; $not_s;}
-	  if [@redefnr>0] { $redefname; if [$v1 > 1] { "("; visiblelist(#separ=",",#elems=`Visible/Int[position() < last()]`); ")"; } }
-	  else {
-	  absc2(#el=`.`); 
-          if [$l0 > 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < last()]`); ")"; } }
+//	  if [@redefnr>0] { $redefname; if [$v1 > 1] { "("; visiblelist(#separ=",",#elems=`Visible/Int[position() < last()]`); ")"; } }
+//	  else {
+//	  absc2(#el=`.`); 
+//          if [$l0 > 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < last()]`); ")"; } }
+	  absc2(#el=`.`);	 if [$l0 > $s + 1] { "("; arglist(#separ=",",#elems=`ArgTypes/Typ[(position() > $s) and (position() < last())]`,#s=$s); ")";}  
 	  if [@antonymic] {")"; }
 	 "))";
      }     
@@ -1695,9 +1728,9 @@ tpl [Abstractness](#el,#arg1,#arg2)
      "("; arglist(#separ=",",#elems=`ArgTypes/Typ[position() < last()]`); ")";
     }
     ")"; $imp_s; "("; ploci(#nr=$l); $eq_s;
-    if [key('G',$lasttyp/@absnr)] 
+    if [key('G1',$lasttyp/@absnr)] 
     {  
-       for-each [key('G',$lasttyp/@absnr)] 
+       for-each [key('G1',$lasttyp/@absnr)] 
        {  
          absc1(#el=`.`); "("; 
 	 // print the "over" args first
