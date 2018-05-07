@@ -45,6 +45,10 @@ strip-space "*";
 // loading the .idx file and by the lookups
 #dump_prop_labels = { "0"; }
 
+// print identifiers for constants wrapped in const(' ') instead of
+// normalized constant names
+$print_identifiers = { "0"; }
+
 // semantic patterns for all symbols - untested for normal MPTP
 #sem_patterns_all =  { "0"; }
 
@@ -336,7 +340,8 @@ tpl [ErrorFrm](#i,#pl) { "errorfrm"; }
 tpl [Var](#i,#pl) { pvar(#nr=`@nr`); } 
 tpl [LocusVar](#i,#pl) { ploci(#nr=`@nr`); } 
 tpl [FreeVar](#i,#pl) { $fail; }
-tpl [Const](#i,#pl) { pconst(#nr=`@nr`,#pl=$pl); }
+tpl [Const](#i,#pl) { if[$print_identifiers > 0] {ppconst(#nr = `@nr`, #vid = `@vid`, #pl = $pl); }
+    		    else { pconst(#nr=`@nr`,#pl=$pl); }}
 tpl [InfConst](#i,#pl) { $fail; }
 tpl [Num](#i,#pl) {  `@nr`; }
 // ##GRM: Sch_Func : "f" Number "_" Scheme_Name
@@ -2042,6 +2047,20 @@ tpl [ArgTypes] { if [Typ] {
 
 tpl pvar(#nr) { "B"; $nr; }
 tpl pconst(#nr,#pl) { "c"; absconst(#nr=$nr,#pl=$pl); }
+
+// assumes $print_identifiers > 0
+// is not compatible with pconst!
+tpl ppconst(#nr, #vid, #pl) 
+{ 
+    if [($vid > 0)] 
+    {
+       $nm = { get_vid_name(#vid = $vid); }
+       "const('"; $nm; "')"; 
+    }
+    else { "c"; $nr; addp(#pl=$pl); }
+}
+
+
 tpl ploci(#nr) { "A"; $nr; }
 tpl plab(#nr) { <i { <font { @color=$labcolor; "E"; `@nr`; } } }
 
