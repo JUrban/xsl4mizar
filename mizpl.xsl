@@ -51,9 +51,9 @@
   </xsl:param>
   <!-- print identifiers for constants wrapped in const(' ') instead of -->
   <!-- normalized constant names -->
-  <xsl:variable name="print_identifiers">
+  <xsl:param name="print_identifiers">
     <xsl:text>0</xsl:text>
-  </xsl:variable>
+  </xsl:param>
   <!-- semantic patterns for all symbols - untested for normal MPTP -->
   <xsl:param name="sem_patterns_all">
     <xsl:text>0</xsl:text>

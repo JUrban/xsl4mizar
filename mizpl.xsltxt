@@ -47,7 +47,7 @@ strip-space "*";
 
 // print identifiers for constants wrapped in const(' ') instead of
 // normalized constant names
-$print_identifiers = { "0"; }
+#print_identifiers = { "0"; }
 
 // semantic patterns for all symbols - untested for normal MPTP
 #sem_patterns_all =  { "0"; }
