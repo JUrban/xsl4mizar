@@ -2049,15 +2049,15 @@ tpl pvar(#nr) { "B"; $nr; }
 tpl pconst(#nr,#pl) { "c"; absconst(#nr=$nr,#pl=$pl); }
 
 // assumes $print_identifiers > 0
-// is not compatible with pconst!
+// is now compatible with pconst
 tpl ppconst(#nr, #vid, #pl) 
 { 
     if [($vid > 0)] 
     {
        $nm = { get_vid_name(#vid = $vid); }
-       "const('"; $nm; "')"; 
+       "const('"; $nm; ",";  pconst(#nr=$nr,#pl=$pl);  "')"; 
     }
-    else { "c"; $nr; addp(#pl=$pl); }
+    else { pconst(#nr=$nr,#pl=$pl); }
 }
 
 

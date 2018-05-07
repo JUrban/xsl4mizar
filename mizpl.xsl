@@ -4926,7 +4926,7 @@
   </xsl:template>
 
   <!-- assumes $print_identifiers > 0 -->
-  <!-- is not compatible with pconst! -->
+  <!-- is now compatible with pconst -->
   <xsl:template name="ppconst">
     <xsl:param name="nr"/>
     <xsl:param name="vid"/>
@@ -4940,12 +4940,16 @@
         </xsl:variable>
         <xsl:text>const(&apos;</xsl:text>
         <xsl:value-of select="$nm"/>
+        <xsl:text>,</xsl:text>
+        <xsl:call-template name="pconst">
+          <xsl:with-param name="nr" select="$nr"/>
+          <xsl:with-param name="pl" select="$pl"/>
+        </xsl:call-template>
         <xsl:text>&apos;)</xsl:text>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:text>c</xsl:text>
-        <xsl:value-of select="$nr"/>
-        <xsl:call-template name="addp">
+        <xsl:call-template name="pconst">
+          <xsl:with-param name="nr" select="$nr"/>
           <xsl:with-param name="pl" select="$pl"/>
         </xsl:call-template>
       </xsl:otherwise>
