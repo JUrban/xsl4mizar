@@ -4940,12 +4940,12 @@
         </xsl:variable>
         <xsl:text>const(&apos;</xsl:text>
         <xsl:value-of select="$nm"/>
-        <xsl:text>,</xsl:text>
+        <xsl:text>&apos;,</xsl:text>
         <xsl:call-template name="pconst">
           <xsl:with-param name="nr" select="$nr"/>
           <xsl:with-param name="pl" select="$pl"/>
         </xsl:call-template>
-        <xsl:text>&apos;)</xsl:text>
+        <xsl:text>)</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:call-template name="pconst">

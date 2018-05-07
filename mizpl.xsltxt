@@ -2055,7 +2055,7 @@ tpl ppconst(#nr, #vid, #pl)
     if [($vid > 0)] 
     {
        $nm = { get_vid_name(#vid = $vid); }
-       "const('"; $nm; ",";  pconst(#nr=$nr,#pl=$pl);  "')"; 
+       "const('"; $nm; "',";  pconst(#nr=$nr,#pl=$pl);  ")"; 
     }
     else { pconst(#nr=$nr,#pl=$pl); }
 }
