@@ -1,13 +1,13 @@
 stylesheet 1.0;
 
 // XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
-// producing the pretty-printing names for constructor
+// producing the pretty-printing names for patterns
 
 // To produce standard XSLT from this do e.g.: 
-// java -jar xsltxt.jar toXSL constrnames1.xsltxt >constrnames1.xsl
+// java -jar xsltxt.jar toXSL pattnames.xsltxt >pattnames.xsl
 
 // Than run e.g. this way:
-// xsltproc constrnames1.xsl xboole_0.xml > xboole_0.nam
+// xsltproc pattnames1.xsl xboole_0.xml > xboole_0.nam
 
 output method=text;
 
@@ -52,20 +52,12 @@ $ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
 tpl [/] { apply[//Pattern]; }
 
 tpl [Pattern] { 
-    // avoids expandable modes
-    if [(@constrnr>0)] {
-    // checks that the constructor is from this article
-    if [key(@constrkind,@constrnr)] {
     // ignores other than first notation
        $k1 = `@constrkind`; $nr1= `@constrnr`; 
-    if [not(preceding-sibling::Pattern[(@constrnr=$nr1) and (@constrkind=$k1)])]
-    {
- 
-     for-each [key(@constrkind,@constrnr)] { 
-      `translate(concat(@kind,@nr,'_',@aid),$ucletters,$lcletters)`; }
+      `translate(concat("n",@kind,@nr,'_',@aid),$ucletters,$lcletters)`;
      " ";
-     abs1(#k=`@constrkind`, #nr=`@constrnr`, #fnr1=`@formatnr`); "\n";
-}}}}
+     abs1(#k=`@kind`, #nr=`@nr`, #fnr1=`@formatnr`); "\n";
+}
 
 // return first symbol corresponding to constructor;
 // if nothing found, just concat #k and #nr; #r says to look for
