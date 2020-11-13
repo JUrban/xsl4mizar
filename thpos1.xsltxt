@@ -37,5 +37,5 @@ tpl [Now]
 	
 tpl [IterEquality] 
 {
-	"itereq ";  `@line`; " "; `IterStep[position() = last()]/*[(name()="By") or (name()="From")]/@line`; "\n"; 
+	"itereq ";  `IterStep[position() = 1]/*[(name()="By") or (name()="From")]/@line`; " "; `@line`; "\n"; 
 }
