@@ -32,6 +32,7 @@
     <xsl:value-of select="EndPosition[1]/@line"/>
     <xsl:text>
 </xsl:text>
+    <xsl:apply-templates/>
   </xsl:template>
 
   <xsl:template match="Now">
@@ -41,6 +42,7 @@
     <xsl:value-of select="EndPosition[1]/@line"/>
     <xsl:text>
 </xsl:text>
+    <xsl:apply-templates/>
   </xsl:template>
 
   <xsl:template match="IterEquality">

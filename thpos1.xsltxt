@@ -25,12 +25,14 @@ tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
 
 tpl [Proof] 
 {
-	"proof ";  `@line`; " "; `EndPosition[1]/@line`; "\n"; 
+	"proof ";  `@line`; " "; `EndPosition[1]/@line`; "\n";
+	apply;
 }
 
 tpl [Now] 
 {
-	"now ";  `@line`; " "; `EndPosition[1]/@line`; "\n"; 
+	"now ";  `@line`; " "; `EndPosition[1]/@line`; "\n";
+	apply;
 }
 	
 tpl [IterEquality] 
