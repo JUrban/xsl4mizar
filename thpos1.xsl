@@ -47,7 +47,7 @@
     <xsl:text>itereq </xsl:text>
     <xsl:value-of select="@line"/>
     <xsl:text> </xsl:text>
-    <xsl:value-of select="IterStep[position() = last()]/[By|From]/@line"/>
+    <xsl:value-of select="IterStep[position() = last()]/*[(name()=&quot;By&quot;) or (name()=&quot;From&quot;)]/@line"/>
     <xsl:text>
 </xsl:text>
   </xsl:template>
