@@ -1,0 +1,39 @@
+stylesheet "1.0" 
+extension-element-prefixes = "exsl exsl-str xt";
+xmlns exsl "http://exslt.org/common"; 
+xmlns exsl-str "http://exslt.org/strings";
+xmlns xt "http://www.jclark.com/xt";
+output method=text;
+
+
+// XSLTXT (https://xsltxt.dev.java.net/) stylesheet 
+// rremoving all proof elements from the xml
+
+// To produce standard XSLT from this do e.g.: 
+// java -jar xsltxt.jar toXSL remproofs.xsltxt > remproofs.xsl
+
+// Then e.g.: xsltproc remproofs.xsl ordinal2.xml > remproofs.xml1
+
+strip-space "*";
+
+$lcletters= { "abcdefghijklmnopqrstuvwxyz"; }
+$ucletters= { "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; } 
+
+tpl lc(#s) { `translate($s, $ucletters, $lcletters)`; }
+tpl uc(#s) { `translate($s, $lcletters, $ucletters)`; }
+
+
+tpl [Proof] 
+{
+	"proof ";  `@line`; " "; `EndPosition[1]/@line`; "\n"; 
+}
+
+tpl [Now] 
+{
+	"now ";  `@line`; " "; `EndPosition[1]/@line`; "\n"; 
+}
+	
+tpl [IterEquality] 
+{
+	"itereq ";  `@line`; " "; `IterStep[position() = last()]/[By/From]/@line`; "\n"; 
+}
